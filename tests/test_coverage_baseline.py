@@ -1,4 +1,5 @@
 """Tests for coverage infrastructure (PR-0, Task 0.1)."""
+
 from __future__ import annotations
 
 import subprocess
@@ -19,13 +20,12 @@ class TestCoverageBaseline:
 
     def test_coverage_source_configured(self) -> None:
         """Verify pyproject.toml has coverage source configured."""
-        import tomllib
         from pathlib import Path
+
+        import tomllib
 
         pyproject = Path("pyproject.toml")
         data = tomllib.loads(pyproject.read_text(encoding="utf-8"))
         coverage = data.get("tool", {}).get("coverage", {})
         run_config = coverage.get("run", {})
-        assert "lupe" in run_config.get("source", []), (
-            "coverage.run.source must include 'lupe'"
-        )
+        assert "lupe" in run_config.get("source", []), "coverage.run.source must include 'lupe'"

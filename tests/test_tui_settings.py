@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import sys
-from pathlib import Path
 
 import pytest
 
@@ -79,7 +78,9 @@ class TestSettingsPersistence:
         """save_settings creates a TOML file at the expected path."""
         from lupe.tui.screens.settings import save_settings
 
-        monkeypatch.setattr("lupe.tui.screens.settings._get_config_path", lambda: tmp_path / "lupe.toml")
+        monkeypatch.setattr(
+            "lupe.tui.screens.settings._get_config_path", lambda: tmp_path / "lupe.toml"
+        )
         settings = {
             "llm_provider": "openai",
             "openai_key": "sk-test123",
@@ -106,7 +107,9 @@ class TestSettingsPersistence:
         if sys.platform == "win32":
             pytest.skip("chmod 600 not applicable on Windows")
 
-        monkeypatch.setattr("lupe.tui.screens.settings._get_config_path", lambda: tmp_path / "lupe.toml")
+        monkeypatch.setattr(
+            "lupe.tui.screens.settings._get_config_path", lambda: tmp_path / "lupe.toml"
+        )
         save_settings({"test": "value"})
 
         mode = (tmp_path / "lupe.toml").stat().st_mode & 0o777
@@ -116,14 +119,15 @@ class TestSettingsPersistence:
         """On Windows, save doesn't crash (chmod gracefully skipped)."""
         from lupe.tui.screens.settings import save_settings
 
-        monkeypatch.setattr("lupe.tui.screens.settings._get_config_path", lambda: tmp_path / "lupe.toml")
+        monkeypatch.setattr(
+            "lupe.tui.screens.settings._get_config_path", lambda: tmp_path / "lupe.toml"
+        )
         # Should not raise on any platform
         save_settings({"test": "value"})
         assert (tmp_path / "lupe.toml").exists()
 
     def test_load_populates_settings(self, tmp_path, monkeypatch):
         """load_settings reads values from TOML file."""
-        import tomllib
 
         from lupe.tui.screens.settings import load_settings
 
@@ -142,16 +146,20 @@ class TestSettingsPersistence:
         """load_settings returns empty dict when config file doesn't exist."""
         from lupe.tui.screens.settings import load_settings
 
-        monkeypatch.setattr("lupe.tui.screens.settings._get_config_path", lambda: tmp_path / "nonexistent.toml")
+        monkeypatch.setattr(
+            "lupe.tui.screens.settings._get_config_path", lambda: tmp_path / "nonexistent.toml"
+        )
 
         loaded = load_settings()
         assert loaded == {}
 
     def test_roundtrip_save_load(self, tmp_path, monkeypatch):
         """Settings survive a save→load roundtrip."""
-        from lupe.tui.screens.settings import save_settings, load_settings
+        from lupe.tui.screens.settings import load_settings, save_settings
 
-        monkeypatch.setattr("lupe.tui.screens.settings._get_config_path", lambda: tmp_path / "lupe.toml")
+        monkeypatch.setattr(
+            "lupe.tui.screens.settings._get_config_path", lambda: tmp_path / "lupe.toml"
+        )
         original = {
             "llm_provider": "anthropic",
             "anthropic_key": "sk-ant-test123",

@@ -1,10 +1,10 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import re
 from datetime import date, datetime
 from pathlib import Path
 
-from lupe.models import EnrichmentResult, IOC, Severity
+from lupe.models import IOC, EnrichmentResult, Severity
 
 # Severity ordering for comparison
 _SEVERITY_RANK: dict[Severity, int] = {

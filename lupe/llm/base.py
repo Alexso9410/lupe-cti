@@ -28,16 +28,12 @@ class LLMProvider(ABC):
     requires_api_key: bool = True
 
     @abstractmethod
-    async def generate(
-        self, prompt: str, *, system: str | None = None
-    ) -> str:
+    async def generate(self, prompt: str, *, system: str | None = None) -> str:
         """Send a prompt and return the model's text response."""
         ...
 
     @abstractmethod
-    async def stream(
-        self, prompt: str, *, system: str | None = None
-    ) -> AsyncIterator[str]:
+    async def stream(self, prompt: str, *, system: str | None = None) -> AsyncIterator[str]:
         """Send a prompt and yield tokens as they arrive."""
         ...
         # Make this an async generator for type-checkers

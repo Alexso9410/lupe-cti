@@ -1,16 +1,15 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import asyncio
 import json
 import time
 from datetime import datetime, timezone
-from pathlib import Path
 
 import httpx
 
 from lupe.config import get_cache_dir
 from lupe.enrichment.base import EnrichmentPlugin
-from lupe.models import IOC, IOCType, EnrichmentResult, Severity
+from lupe.models import IOC, EnrichmentResult, IOCType, Severity
 
 _WMN_URL = "https://raw.githubusercontent.com/WebBreacher/WhatsMyName/main/wmn-data.json"
 _CACHE_PATH = get_cache_dir() / "wmn-data.json"
@@ -67,9 +66,7 @@ class WhatsMyNamePlugin(EnrichmentPlugin):
             expected_code = site.get("e_code", 200)
             async with semaphore:
                 try:
-                    r = await client.head(
-                        url, timeout=_REQUEST_TIMEOUT, follow_redirects=True
-                    )
+                    r = await client.head(url, timeout=_REQUEST_TIMEOUT, follow_redirects=True)
                     if r.status_code == expected_code:
                         return {
                             "site": site.get("name", ""),

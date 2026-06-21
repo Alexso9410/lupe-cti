@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import asyncio
 from datetime import datetime, timezone
@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 import httpx
 
 from lupe.enrichment.base import EnrichmentPlugin
-from lupe.models import IOC, IOCType, EnrichmentResult, Severity
+from lupe.models import IOC, EnrichmentResult, IOCType, Severity
 
 _VT_BASE = "https://www.virustotal.com/api/v3"
 
@@ -40,9 +40,7 @@ class VirusTotalPlugin(EnrichmentPlugin):
     def _headers(self) -> dict[str, str]:
         return {"x-apikey": self._api_key}
 
-    async def _get_analysis(
-        self, client: httpx.AsyncClient, url: str
-    ) -> dict | None:
+    async def _get_analysis(self, client: httpx.AsyncClient, url: str) -> dict | None:
         try:
             response = await client.get(url, headers=self._headers(), timeout=15.0)
         except httpx.RequestError:
@@ -51,9 +49,7 @@ class VirusTotalPlugin(EnrichmentPlugin):
             return None
         return response.json()
 
-    async def _submit_url(
-        self, ioc: IOC, client: httpx.AsyncClient
-    ) -> dict | None:
+    async def _submit_url(self, ioc: IOC, client: httpx.AsyncClient) -> dict | None:
         """Submit a URL for scanning, then retrieve its analysis."""
         try:
             submit = await client.post(
@@ -69,9 +65,7 @@ class VirusTotalPlugin(EnrichmentPlugin):
             return None
 
         submit_data: dict = submit.json()
-        analysis_id: str | None = (
-            submit_data.get("data", {}).get("id")
-        )
+        analysis_id: str | None = submit_data.get("data", {}).get("id")
         if not analysis_id:
             return None
 
@@ -81,24 +75,16 @@ class VirusTotalPlugin(EnrichmentPlugin):
         analysis_url = f"{_VT_BASE}/analyses/{analysis_id}"
         return await self._get_analysis(client, analysis_url)
 
-    async def enrich(
-        self, ioc: IOC, client: httpx.AsyncClient
-    ) -> EnrichmentResult | None:
+    async def enrich(self, ioc: IOC, client: httpx.AsyncClient) -> EnrichmentResult | None:
         """Query VirusTotal for malicious detections and reputation."""
         data: dict | None = None
 
         if ioc.type in (IOCType.ipv4, IOCType.ipv6):
-            data = await self._get_analysis(
-                client, f"{_VT_BASE}/ip_addresses/{ioc.value}"
-            )
+            data = await self._get_analysis(client, f"{_VT_BASE}/ip_addresses/{ioc.value}")
         elif ioc.type == IOCType.domain:
-            data = await self._get_analysis(
-                client, f"{_VT_BASE}/domains/{ioc.value}"
-            )
+            data = await self._get_analysis(client, f"{_VT_BASE}/domains/{ioc.value}")
         elif ioc.type in (IOCType.hash_md5, IOCType.hash_sha1, IOCType.hash_sha256):
-            data = await self._get_analysis(
-                client, f"{_VT_BASE}/files/{ioc.value}"
-            )
+            data = await self._get_analysis(client, f"{_VT_BASE}/files/{ioc.value}")
         elif ioc.type == IOCType.url:
             data = await self._submit_url(ioc, client)
 

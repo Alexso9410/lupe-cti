@@ -1,10 +1,11 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
-import httpx
 from datetime import datetime, timezone
 
+import httpx
+
 from lupe.enrichment.base import EnrichmentPlugin
-from lupe.models import IOC, IOCType, EnrichmentResult, Severity
+from lupe.models import IOC, EnrichmentResult, IOCType, Severity
 
 _NUMVERIFY_URL = "http://apilayer.net/api/validate"  # HTTP — free tier no redirige a HTTPS
 
@@ -49,8 +50,7 @@ class NumVerifyPlugin(EnrichmentPlugin):
 
         severity = _numverify_to_severity(valid, line_type)
         summary = (
-            f"NumVerify: {intl_fmt} | {country_name} | {carrier} | "
-            f"{line_type} | válido={valid}"
+            f"NumVerify: {intl_fmt} | {country_name} | {carrier} | {line_type} | válido={valid}"
         )
         return EnrichmentResult(
             source=self.name,

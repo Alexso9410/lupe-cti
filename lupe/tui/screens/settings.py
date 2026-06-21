@@ -15,9 +15,9 @@ except ImportError:
     import tomli as tomllib  # type: ignore[no-redef]
 
 from textual.app import ComposeResult
+from textual.containers import VerticalScroll
 from textual.screen import Screen
-from textual.widgets import Footer, Header, Static, Input, Button, Label
-from textual.containers import Vertical, VerticalScroll
+from textual.widgets import Button, Footer, Header, Input, Label, Static
 
 logger = logging.getLogger(__name__)
 
@@ -198,31 +198,95 @@ class SettingsScreen(Screen):
             )
 
             yield Label("[bold]LLM API Keys[/bold]", classes="settings-group")
-            yield Input(placeholder="OpenAI API key (sk-...)", id="input-openai-key", classes="key-input", password=True)
-            yield Input(placeholder="Anthropic API key (sk-ant-...)", id="input-anthropic-key", classes="key-input", password=True)
-            yield Input(placeholder="OpenRouter API key (sk-or-...)", id="input-openrouter-key", classes="key-input", password=True)
+            yield Input(
+                placeholder="OpenAI API key (sk-...)",
+                id="input-openai-key",
+                classes="key-input",
+                password=True,
+            )
+            yield Input(
+                placeholder="Anthropic API key (sk-ant-...)",
+                id="input-anthropic-key",
+                classes="key-input",
+                password=True,
+            )
+            yield Input(
+                placeholder="OpenRouter API key (sk-or-...)",
+                id="input-openrouter-key",
+                classes="key-input",
+                password=True,
+            )
 
             yield Label("[bold]Enrichment API Keys[/bold]", classes="settings-group")
-            yield Input(placeholder="VirusTotal key", id="input-virustotal-key", classes="key-input", password=True)
-            yield Input(placeholder="AbuseIPDB key", id="input-abuseipdb-key", classes="key-input", password=True)
-            yield Input(placeholder="Shodan key", id="input-shodan-key", classes="key-input", password=True)
-            yield Input(placeholder="OTX key", id="input-otx-key", classes="key-input", password=True)
-            yield Input(placeholder="URLScan key", id="input-urlscan-key", classes="key-input", password=True)
-            yield Input(placeholder="HIBP key", id="input-hibp-key", classes="key-input", password=True)
-            yield Input(placeholder="GreyNoise key", id="input-greynoise-key", classes="key-input", password=True)
-            yield Input(placeholder="IPQS key", id="input-ipqs-key", classes="key-input", password=True)
-            yield Input(placeholder="NumVerify key", id="input-numverify-key", classes="key-input", password=True)
+            yield Input(
+                placeholder="VirusTotal key",
+                id="input-virustotal-key",
+                classes="key-input",
+                password=True,
+            )
+            yield Input(
+                placeholder="AbuseIPDB key",
+                id="input-abuseipdb-key",
+                classes="key-input",
+                password=True,
+            )
+            yield Input(
+                placeholder="Shodan key", id="input-shodan-key", classes="key-input", password=True
+            )
+            yield Input(
+                placeholder="OTX key", id="input-otx-key", classes="key-input", password=True
+            )
+            yield Input(
+                placeholder="URLScan key",
+                id="input-urlscan-key",
+                classes="key-input",
+                password=True,
+            )
+            yield Input(
+                placeholder="HIBP key", id="input-hibp-key", classes="key-input", password=True
+            )
+            yield Input(
+                placeholder="GreyNoise key",
+                id="input-greynoise-key",
+                classes="key-input",
+                password=True,
+            )
+            yield Input(
+                placeholder="IPQS key", id="input-ipqs-key", classes="key-input", password=True
+            )
+            yield Input(
+                placeholder="NumVerify key",
+                id="input-numverify-key",
+                classes="key-input",
+                password=True,
+            )
 
             yield Label("[bold]MISP[/bold]", classes="settings-group")
-            yield Input(placeholder="MISP URL (https://misp.example.com)", id="input-misp-url", classes="key-input")
-            yield Input(placeholder="MISP API key", id="input-misp-key", classes="key-input", password=True)
+            yield Input(
+                placeholder="MISP URL (https://misp.example.com)",
+                id="input-misp-url",
+                classes="key-input",
+            )
+            yield Input(
+                placeholder="MISP API key", id="input-misp-key", classes="key-input", password=True
+            )
 
             yield Label("[bold]Censys[/bold]", classes="settings-group")
             yield Input(placeholder="Censys ID", id="input-censys-id", classes="key-input")
-            yield Input(placeholder="Censys Secret", id="input-censys-secret", classes="key-input", password=True)
+            yield Input(
+                placeholder="Censys Secret",
+                id="input-censys-secret",
+                classes="key-input",
+                password=True,
+            )
 
             yield Label("[bold]Hybrid Analysis[/bold]", classes="settings-group")
-            yield Input(placeholder="Hybrid Analysis key", id="input-hybrid-analysis-key", classes="key-input", password=True)
+            yield Input(
+                placeholder="Hybrid Analysis key",
+                id="input-hybrid-analysis-key",
+                classes="key-input",
+                password=True,
+            )
 
             yield Static("", id="signup-link")
             yield Static("", id="save-status")
@@ -266,7 +330,12 @@ class SettingsScreen(Screen):
 
         # Show signup link for the focused provider
         signup_link = self.query_one("#signup-link", Static)
-        base_name = provider_key.replace("_key", "").replace("_url", "").replace("_id", "").replace("_secret", "")
+        base_name = (
+            provider_key.replace("_key", "")
+            .replace("_url", "")
+            .replace("_id", "")
+            .replace("_secret", "")
+        )
         if base_name in SIGNUP_URLS:
             signup_link.update(f"Get a key: {SIGNUP_URLS[base_name]}")
         else:

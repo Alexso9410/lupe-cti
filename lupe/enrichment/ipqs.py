@@ -1,16 +1,18 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from datetime import datetime, timezone
 
 import httpx
 
 from lupe.enrichment.base import EnrichmentPlugin
-from lupe.models import IOC, IOCType, EnrichmentResult, Severity
+from lupe.models import IOC, EnrichmentResult, IOCType, Severity
 
 _IPQS_URL = "https://ipqualityscore.com/api/json/ip/"
 
 
-def _fraud_score_to_severity(score: int, active_tor: bool = False, active_vpn: bool = False) -> Severity:
+def _fraud_score_to_severity(
+    score: int, active_tor: bool = False, active_vpn: bool = False
+) -> Severity:
     """Convert fraud score to severity, considering active VPN/TOR status."""
     # Calculate base severity from score
     if score >= 85:
@@ -31,7 +33,13 @@ def _fraud_score_to_severity(score: int, active_tor: bool = False, active_vpn: b
 
     if active_vpn:
         # Active VPN: take max of score-based severity and medium
-        severity_order = {Severity.info: 0, Severity.low: 1, Severity.medium: 2, Severity.high: 3, Severity.critical: 4}
+        severity_order = {
+            Severity.info: 0,
+            Severity.low: 1,
+            Severity.medium: 2,
+            Severity.high: 3,
+            Severity.critical: 4,
+        }
         if severity_order[base_severity] < severity_order[Severity.medium]:
             return Severity.medium
 
@@ -46,9 +54,7 @@ class IPQSPlugin(EnrichmentPlugin):
     def __init__(self, api_key: str) -> None:
         self._api_key = api_key
 
-    async def enrich(
-        self, ioc: IOC, client: httpx.AsyncClient
-    ) -> EnrichmentResult | None:
+    async def enrich(self, ioc: IOC, client: httpx.AsyncClient) -> EnrichmentResult | None:
         """Query IPQualityScore for IP fraud score and proxy/VPN detection."""
         try:
             response = await client.get(
@@ -67,14 +73,11 @@ class IPQSPlugin(EnrichmentPlugin):
             return None
 
         fraud_score = data.get("fraud_score", 0)
-        vpn = data.get("vpn", False)
-        tor = data.get("tor", False)
         proxy = data.get("proxy", False)
         bot_status = data.get("bot_status", False)
         recent_abuse = data.get("recent_abuse", False)
         country_code = data.get("country_code", "N/A")
         isp = data.get("ISP", "N/A")
-        host = data.get("host")
 
         # New fields from API response
         active_vpn = data.get("active_vpn", False)
@@ -82,16 +85,19 @@ class IPQSPlugin(EnrichmentPlugin):
         connection_type = data.get("connection_type", "unknown")
         abuse_velocity = data.get("abuse_velocity", "none")
         is_crawler = data.get("is_crawler", False)
-        mobile = data.get("mobile", False)
         organization = data.get("organization", isp)  # fallback to ISP
         asn = data.get("ASN")
 
         severity = _fraud_score_to_severity(fraud_score, active_tor, active_vpn)
 
         summary = (
-            f"IPQS: score={fraud_score} | {connection_type} | {country_code}/{organization}\n"
-            f"Flags: vpn={active_vpn}, tor={active_tor}, proxy={proxy}, bot={bot_status}, crawler={is_crawler}\n"
-            f"Abuso: velocity={abuse_velocity}, recent={recent_abuse} | ASN={asn}"
+            f"IPQS: score={fraud_score} | {connection_type}"
+            f" | {country_code}/{organization}\n"
+            f"Flags: vpn={active_vpn}, tor={active_tor},"
+            f" proxy={proxy}, bot={bot_status},"
+            f" crawler={is_crawler}\n"
+            f"Abuso: velocity={abuse_velocity},"
+            f" recent={recent_abuse} | ASN={asn}"
         )
 
         return EnrichmentResult(
@@ -129,6 +135,7 @@ class IPQSPhonePlugin(EnrichmentPlugin):
 
     async def enrich(self, ioc: IOC, client: httpx.AsyncClient) -> EnrichmentResult | None:
         import urllib.parse
+
         import phonenumbers
 
         try:

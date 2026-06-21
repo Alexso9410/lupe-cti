@@ -3,17 +3,15 @@
 from __future__ import annotations
 
 from textual.app import ComposeResult
+from textual.containers import Vertical
 from textual.screen import Screen
-from textual.widgets import Footer, Header, Static, Button, Label
-from textual.containers import Vertical, Horizontal
-
-from lupe.tui.theme import MATRIX_GREEN, CYAN
+from textual.widgets import Button, Footer, Header, Label, Static
 
 _LUPE_BANNER = r"""
  ██╗     ██╗   ██╗██████╗ ███████╗
  ██║     ██║   ██║██╔══██╗██╔════╝
- ██║     ██║   ██║██████╔╝█████╗  
- ██║     ██║   ██║██╔═══╝ ██╔══╝  
+ ██║     ██║   ██║██████╔╝█████╗
+ ██║     ██║   ██║██╔═══╝ ██╔══╝
  ███████╗╚██████╔╝██║     ███████╗
  ╚══════╝ ╚═════╝ ╚═╝     ╚══════╝
       Cyber Threat Intelligence
@@ -53,7 +51,9 @@ class HomeScreen(Screen):
         yield Header()
         yield Vertical(
             Static(_LUPE_BANNER, id="banner"),
-            Label("[bold #00FFFF]Lupe CTI[/bold #00FFFF] — Cyber Threat Intelligence", id="subtitle"),
+            Label(
+                "[bold #00FFFF]Lupe CTI[/bold #00FFFF] — Cyber Threat Intelligence", id="subtitle"
+            ),
             Button("Enrich IOC  [2]", id="btn-enrich", variant="primary", classes="nav-button"),
             Button("Settings    [3]", id="btn-settings", variant="default", classes="nav-button"),
             Button("MISP        [4]", id="btn-misp", variant="default", classes="nav-button"),

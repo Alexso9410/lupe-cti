@@ -1,4 +1,4 @@
-﻿"""PyWebView desktop application entry point for Centinela."""
+"""PyWebView desktop application entry point for Centinela."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ def main() -> None:
 
     html_path = Path(__file__).parent / "frontend" / "index.html"
 
-    window = webview.create_window(
+    webview.create_window(
         title="Centinela — Heimdall Security",
         url=str(html_path),
         js_api=api,

@@ -18,10 +18,10 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
-
 # =============================================================================
 # Data Structures
 # =============================================================================
+
 
 @dataclass
 class ParsedHeaders:
@@ -115,6 +115,7 @@ MAX_BODY_LENGTH = 10000
 # =============================================================================
 # Header Extraction
 # =============================================================================
+
 
 def _extract_email_from_header(header_value: str) -> str:
     """Extract email address from a header value.
@@ -228,6 +229,7 @@ def _extract_headers(msg: email.message.Message) -> ParsedHeaders:
 # Authentication Results Extraction
 # =============================================================================
 
+
 def _extract_auth_results(msg: email.message.Message) -> AuthResults:
     """Extract SPF, DKIM, and DMARC authentication results.
 
@@ -301,6 +303,7 @@ def _extract_auth_results(msg: email.message.Message) -> AuthResults:
 # =============================================================================
 # Received Chain Extraction
 # =============================================================================
+
 
 def _is_private_ip(ip_str: str) -> bool:
     """Check if an IP address string represents a private address.
@@ -384,6 +387,7 @@ def _extract_received_chain(msg: email.message.Message) -> list[ReceivedHop]:
 # Body Extraction
 # =============================================================================
 
+
 def _strip_html_tags(html_text: str) -> str:
     """Strip HTML tags from text and normalize whitespace.
 
@@ -456,6 +460,7 @@ def _extract_body(msg: email.message.Message) -> str:
 # =============================================================================
 # Attachment Extraction
 # =============================================================================
+
 
 def _get_filename(part: email.message.Message) -> str:
     """Extract filename from a message part.
@@ -543,6 +548,7 @@ def _extract_attachments(msg: email.message.Message) -> list[AttachmentInfo]:
 # =============================================================================
 # Main Parser
 # =============================================================================
+
 
 def parse_eml(file_path: Path | str) -> ParsedEmail:
     """Parse an .eml file and return complete structure for phishing analysis.

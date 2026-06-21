@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import importlib.util
 import os
-import sys
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -68,14 +67,14 @@ class CentinelaAgentBridge:
         if not _DASHBOARD_ENABLED:
             return
 
-        AgentWriter = _try_import_agent_writer()
-        if AgentWriter is None:
+        agent_writer_cls = _try_import_agent_writer()
+        if agent_writer_cls is None:
             return
 
         try:
             # agent_id is kept simple and stable so the dashboard can track
             # this agent across enrichment calls in the same session.
-            self._writer = AgentWriter(
+            self._writer = agent_writer_cls(
                 agent_name,
                 agent_name,
                 "Initializing",

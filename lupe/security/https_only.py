@@ -3,6 +3,7 @@
 All enrichment plugins MUST use this to validate URLs before making
 requests. Localhost HTTP is allowed for Ollama and local services.
 """
+
 from __future__ import annotations
 
 from urllib.parse import urlparse

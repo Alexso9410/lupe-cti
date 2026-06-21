@@ -1,6 +1,7 @@
-﻿import pytest
-import respx
 import httpx
+import pytest
+import respx
+
 from lupe.enrichment.emailrep import EmailRepPlugin
 from lupe.models import IOC, IOCType, Severity
 
@@ -123,9 +124,7 @@ class TestEmailRepPlugin:
 
     @respx.mock
     async def test_returns_none_on_500(self, plugin_no_key, email_ioc):
-        respx.get("https://emailrep.io/test@example.com").mock(
-            return_value=httpx.Response(500)
-        )
+        respx.get("https://emailrep.io/test@example.com").mock(return_value=httpx.Response(500))
         async with httpx.AsyncClient() as client:
             result = await plugin_no_key.enrich(email_ioc, client)
         assert result is None

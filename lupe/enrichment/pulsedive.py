@@ -1,8 +1,11 @@
-﻿from __future__ import annotations
+from __future__ import annotations
+
 from datetime import datetime, timezone
+
 import httpx
+
 from lupe.enrichment.base import EnrichmentPlugin
-from lupe.models import IOC, IOCType, EnrichmentResult, Severity
+from lupe.models import IOC, EnrichmentResult, IOCType, Severity
 
 
 class PulsedivePlugin(EnrichmentPlugin):
@@ -57,6 +60,12 @@ class PulsedivePlugin(EnrichmentPlugin):
             ioc_value=ioc.value,
             severity=severity,
             summary=summary,
-            raw_data={"iid": data.get("iid"), "risk": risk, "indicator": data.get("indicator"), "threats": threats, "feeds": feeds},
+            raw_data={
+                "iid": data.get("iid"),
+                "risk": risk,
+                "indicator": data.get("indicator"),
+                "threats": threats,
+                "feeds": feeds,
+            },
             enriched_at=datetime.now(tz=timezone.utc),
         )

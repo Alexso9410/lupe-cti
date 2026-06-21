@@ -1,9 +1,10 @@
-﻿import pytest
-import respx
 import httpx
+import pytest
+import respx
+
+from lupe.enrichment import holehe
 from lupe.enrichment.holehe import HolehePlugin
 from lupe.models import IOC, IOCType, Severity
-from lupe.enrichment import holehe
 
 
 class TestHolehePlugin:
@@ -84,9 +85,9 @@ class TestHolehePlugin:
                     "found_if": lambda r: True,
                 }
             )
-            respx.get(
-                f"https://site{i}.example/check?email=test@example.com"
-            ).mock(return_value=httpx.Response(200))
+            respx.get(f"https://site{i}.example/check?email=test@example.com").mock(
+                return_value=httpx.Response(200)
+            )
         holehe._SITES = sites
 
         async with httpx.AsyncClient() as client:
@@ -108,9 +109,7 @@ class TestHolehePlugin:
                 "found_if": lambda r: True,
             },
         ]
-        respx.get("https://a.example?email=test@example.com").mock(
-            return_value=httpx.Response(200)
-        )
+        respx.get("https://a.example?email=test@example.com").mock(return_value=httpx.Response(200))
 
         async with httpx.AsyncClient() as client:
             result = await plugin.enrich(email_ioc, client)

@@ -1,11 +1,11 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from datetime import datetime, timezone
 
 import httpx
 
 from lupe.enrichment.base import EnrichmentPlugin
-from lupe.models import IOC, IOCType, EnrichmentResult, Severity
+from lupe.models import IOC, EnrichmentResult, IOCType, Severity
 
 
 class EmailRepPlugin(EnrichmentPlugin):
@@ -16,16 +16,12 @@ class EmailRepPlugin(EnrichmentPlugin):
     def __init__(self, api_key: str | None = None) -> None:
         self._api_key = api_key
 
-    async def enrich(
-        self, ioc: IOC, client: httpx.AsyncClient
-    ) -> EnrichmentResult | None:
+    async def enrich(self, ioc: IOC, client: httpx.AsyncClient) -> EnrichmentResult | None:
         try:
             headers = {}
             if self._api_key:
                 headers["Key"] = self._api_key
-            resp = await client.get(
-                f"https://emailrep.io/{ioc.value}", headers=headers
-            )
+            resp = await client.get(f"https://emailrep.io/{ioc.value}", headers=headers)
             resp.raise_for_status()
             data = resp.json()
         except Exception:

@@ -1,11 +1,11 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from datetime import datetime, timezone
 
 import httpx
 
 from lupe.enrichment.base import EnrichmentPlugin
-from lupe.models import IOC, IOCType, EnrichmentResult, Severity
+from lupe.models import IOC, EnrichmentResult, IOCType, Severity
 
 _THREATFOX_URL = "https://threatfox-api.abuse.ch/api/v1/"
 
@@ -21,15 +21,11 @@ class ThreatFoxPlugin(EnrichmentPlugin):
     }
     requires_api_key = False
 
-    async def enrich(
-        self, ioc: IOC, client: httpx.AsyncClient
-    ) -> EnrichmentResult | None:
+    async def enrich(self, ioc: IOC, client: httpx.AsyncClient) -> EnrichmentResult | None:
         """Query ThreatFox for known malicious IOCs."""
         payload = {"query": "search_ioc", "search_term": ioc.value}
         try:
-            response = await client.post(
-                _THREATFOX_URL, json=payload, timeout=15.0
-            )
+            response = await client.post(_THREATFOX_URL, json=payload, timeout=15.0)
         except httpx.RequestError:
             return None
 

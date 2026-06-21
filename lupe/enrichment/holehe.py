@@ -1,12 +1,12 @@
-﻿from __future__ import annotations
-
-from datetime import datetime, timezone
+from __future__ import annotations
 
 import asyncio
+from datetime import datetime, timezone
+
 import httpx
 
 from lupe.enrichment.base import EnrichmentPlugin
-from lupe.models import IOC, IOCType, EnrichmentResult, Severity
+from lupe.models import IOC, EnrichmentResult, IOCType, Severity
 
 _SITES = [
     {
@@ -20,10 +20,13 @@ _SITES = [
         "url": "https://www.instagram.com/accounts/web_create_ajax/attempt/",
         "method": "POST",
         "data": {"email": "{email}"},
-        "found_if": lambda r: r.status_code == 200 and (
-            "email" in r.text.lower()
-            or "taken" in r.text.lower()
-            or "username" in r.text.lower()
+        "found_if": lambda r: (
+            r.status_code == 200
+            and (
+                "email" in r.text.lower()
+                or "taken" in r.text.lower()
+                or "username" in r.text.lower()
+            )
         ),
     },
     {
@@ -62,10 +65,9 @@ _SITES = [
         "name": "Spotify",
         "url": "https://spclient.wg.spotify.com/signup/public/v1/account",
         "method": "GET",
-        "found_if": lambda r: r.status_code == 200 and (
-            "status" not in r.text
-            or "taken" in r.text.lower()
-            or "1" in r.text
+        "found_if": lambda r: (
+            r.status_code == 200
+            and ("status" not in r.text or "taken" in r.text.lower() or "1" in r.text)
         ),
     },
     {
@@ -130,9 +132,7 @@ class HolehePlugin(EnrichmentPlugin):
     supported_ioc_types: set[IOCType] = {IOCType.email}
     requires_api_key = False
 
-    async def enrich(
-        self, ioc: IOC, client: httpx.AsyncClient
-    ) -> EnrichmentResult | None:
+    async def enrich(self, ioc: IOC, client: httpx.AsyncClient) -> EnrichmentResult | None:
         try:
             return await self._do_check(ioc.value)
         except Exception:
@@ -151,16 +151,14 @@ class HolehePlugin(EnrichmentPlugin):
                     if site_def["method"] == "POST":
                         if "data" in site_def:
                             form_data = {
-                                k: v.format(email=email)
-                                for k, v in site_def["data"].items()
+                                k: v.format(email=email) for k, v in site_def["data"].items()
                             }
                             resp = await httpx.AsyncClient(timeout=timeout).post(
                                 url, data=form_data
                             )
                         elif "json" in site_def:
                             json_data = {
-                                k: v.format(email=email)
-                                for k, v in site_def["json"].items()
+                                k: v.format(email=email) for k, v in site_def["json"].items()
                             }
                             resp = await httpx.AsyncClient(timeout=timeout).post(
                                 url, json=json_data

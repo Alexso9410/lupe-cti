@@ -1,11 +1,11 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from datetime import datetime, timezone
 
 import httpx
 
 from lupe.enrichment.base import EnrichmentPlugin
-from lupe.models import IOC, IOCType, EnrichmentResult, Severity
+from lupe.models import IOC, EnrichmentResult, IOCType, Severity
 
 _SHODAN_URL = "https://api.shodan.io/shodan/host/{ip}"
 
@@ -26,15 +26,11 @@ class ShodanPlugin(EnrichmentPlugin):
     def __init__(self, api_key: str) -> None:
         self._api_key = api_key
 
-    async def enrich(
-        self, ioc: IOC, client: httpx.AsyncClient
-    ) -> EnrichmentResult | None:
+    async def enrich(self, ioc: IOC, client: httpx.AsyncClient) -> EnrichmentResult | None:
         """Query Shodan for open ports, vulnerabilities, and host metadata."""
         url = _SHODAN_URL.format(ip=ioc.value)
         try:
-            response = await client.get(
-                url, params={"key": self._api_key}, timeout=15.0
-            )
+            response = await client.get(url, params={"key": self._api_key}, timeout=15.0)
         except httpx.RequestError:
             return None
 

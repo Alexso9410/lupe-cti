@@ -1,11 +1,11 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from datetime import datetime, timezone
 
 import httpx
 
 from lupe.enrichment.base import EnrichmentPlugin
-from lupe.models import IOC, IOCType, EnrichmentResult, Severity
+from lupe.models import IOC, EnrichmentResult, IOCType, Severity
 
 _URLHAUS_URL = "https://urlhaus-api.abuse.ch/v1/"
 
@@ -20,9 +20,7 @@ class URLhausPlugin(EnrichmentPlugin):
     }
     requires_api_key = False
 
-    async def enrich(
-        self, ioc: IOC, client: httpx.AsyncClient
-    ) -> EnrichmentResult | None:
+    async def enrich(self, ioc: IOC, client: httpx.AsyncClient) -> EnrichmentResult | None:
         """Query URLhaus for malware distribution URLs and hosts."""
         try:
             if ioc.type == IOCType.url:
@@ -65,9 +63,7 @@ class URLhausPlugin(EnrichmentPlugin):
             url_status = data.get("url_status", "unknown")
             tags: list[str] = data.get("tags", []) or []
 
-            severity = (
-                Severity.critical if url_status == "online" else Severity.medium
-            )
+            severity = Severity.critical if url_status == "online" else Severity.medium
 
             summary = f"URLhaus: {threat} — status: {url_status}, tags: {tags}"
 
@@ -86,7 +82,6 @@ class URLhausPlugin(EnrichmentPlugin):
 
             urls_count = data.get("urls_count", 0)
             tags: list[str] = data.get("tags", []) or []
-            payloads = data.get("payloads", []) or []
 
             severity = Severity.high if urls_count > 0 else Severity.info
 

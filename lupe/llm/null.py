@@ -17,14 +17,10 @@ class NullProvider(LLMProvider):
     name = "null"
     requires_api_key = False
 
-    async def generate(
-        self, prompt: str, *, system: str | None = None
-    ) -> str:
+    async def generate(self, prompt: str, *, system: str | None = None) -> str:
         return ""
 
-    async def stream(
-        self, prompt: str, *, system: str | None = None
-    ) -> AsyncIterator[str]:
+    async def stream(self, prompt: str, *, system: str | None = None) -> AsyncIterator[str]:
         if False:  # pragma: no cover
             yield ""
 

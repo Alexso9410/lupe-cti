@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 from textual.app import ComposeResult
-from textual.screen import Screen
-from textual.widgets import Footer, Header, Static, Input, Button
 from textual.containers import Vertical
+from textual.screen import Screen
+from textual.widgets import Button, Footer, Header, Input, Static
 
 
 class MISPScreen(Screen):

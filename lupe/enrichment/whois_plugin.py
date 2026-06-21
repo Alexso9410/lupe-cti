@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import asyncio
 from datetime import datetime, timezone
@@ -7,7 +7,7 @@ import httpx
 import whois
 
 from lupe.enrichment.base import EnrichmentPlugin
-from lupe.models import IOC, IOCType, EnrichmentResult, Severity
+from lupe.models import IOC, EnrichmentResult, IOCType, Severity
 
 
 def _coerce_date(value: object) -> str | None:
@@ -44,9 +44,7 @@ class WhoisPlugin(EnrichmentPlugin):
     supported_ioc_types: set[IOCType] = {IOCType.domain, IOCType.ipv4}
     requires_api_key = False
 
-    async def enrich(
-        self, ioc: IOC, client: httpx.AsyncClient
-    ) -> EnrichmentResult | None:
+    async def enrich(self, ioc: IOC, client: httpx.AsyncClient) -> EnrichmentResult | None:
         """Run WHOIS lookup for a domain or IPv4 address."""
         loop = asyncio.get_event_loop()
         try:

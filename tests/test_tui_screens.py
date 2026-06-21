@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 
 class TestTuiApp:
     """Tests for the main LupeTuiApp."""
@@ -16,8 +14,9 @@ class TestTuiApp:
 
     def test_app_class_exists(self):
         """LupeTuiApp class exists and is a Textual App."""
-        from lupe.tui.app import LupeTuiApp
         from textual.app import App
+
+        from lupe.tui.app import LupeTuiApp
 
         assert issubclass(LupeTuiApp, App)
 
@@ -51,7 +50,7 @@ class TestTuiTheme:
 
     def test_theme_colors_defined(self):
         """Theme module defines the expected color constants."""
-        from lupe.tui.theme import MATRIX_GREEN, CYAN, DARK_BG, ERROR_RED
+        from lupe.tui.theme import CYAN, DARK_BG, ERROR_RED, MATRIX_GREEN
 
         assert MATRIX_GREEN == "#00FF41"
         assert CYAN == "#00FFFF"
@@ -73,55 +72,57 @@ class TestTuiScreens:
 
     def test_home_screen_class_exists(self):
         """HomeScreen class exists."""
-        from lupe.tui.screens.home import HomeScreen
         from textual.screen import Screen
+
+        from lupe.tui.screens.home import HomeScreen
 
         assert issubclass(HomeScreen, Screen)
 
     def test_enrich_screen_class_exists(self):
         """EnrichScreen class exists."""
-        from lupe.tui.screens.enrich import EnrichScreen
         from textual.screen import Screen
+
+        from lupe.tui.screens.enrich import EnrichScreen
 
         assert issubclass(EnrichScreen, Screen)
 
     def test_settings_screen_class_exists(self):
         """SettingsScreen class exists."""
-        from lupe.tui.screens.settings import SettingsScreen
         from textual.screen import Screen
+
+        from lupe.tui.screens.settings import SettingsScreen
 
         assert issubclass(SettingsScreen, Screen)
 
     def test_misp_screen_class_exists(self):
         """MISPScreen class exists."""
-        from lupe.tui.screens.misp import MISPScreen
         from textual.screen import Screen
+
+        from lupe.tui.screens.misp import MISPScreen
 
         assert issubclass(MISPScreen, Screen)
 
     def test_plugins_screen_class_exists(self):
         """PluginsScreen class exists."""
-        from lupe.tui.screens.plugins import PluginsScreen
         from textual.screen import Screen
+
+        from lupe.tui.screens.plugins import PluginsScreen
 
         assert issubclass(PluginsScreen, Screen)
 
     def test_cases_screen_class_exists(self):
         """CasesScreen class exists."""
-        from lupe.tui.screens.cases import CasesScreen
         from textual.screen import Screen
+
+        from lupe.tui.screens.cases import CasesScreen
 
         assert issubclass(CasesScreen, Screen)
 
     def test_screens_package_init(self):
         """Screens package __init__.py imports all screens."""
         from lupe.tui.screens import (
-            HomeScreen,
             EnrichScreen,
-            SettingsScreen,
-            MISPScreen,
-            PluginsScreen,
-            CasesScreen,
+            HomeScreen,
         )
 
         assert HomeScreen is not None

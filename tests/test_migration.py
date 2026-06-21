@@ -1,12 +1,11 @@
 """Tests for DB migration from Centinela to Lupe CTI (PR-5)."""
+
 from __future__ import annotations
 
 import sqlite3
 from pathlib import Path
 
-import pytest
-
-from lupe.migrate import migrate_from_centinela, _count_rows
+from lupe.migrate import _count_rows, migrate_from_centinela
 
 
 def _create_fake_legacy_db(db_path: Path) -> None:
@@ -51,6 +50,7 @@ class TestMigration:
 
     def test_migrate_command_exists(self) -> None:
         from lupe.migrate import migrate_from_centinela
+
         assert callable(migrate_from_centinela)
 
     def test_legacy_not_found_returns_error(self, tmp_path: Path) -> None:

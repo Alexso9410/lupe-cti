@@ -1,4 +1,4 @@
-﻿"""PyWebView bridge — the only Python surface exposed to JavaScript.
+"""PyWebView bridge — the only Python surface exposed to JavaScript.
 
 Every public method here is callable from JS as:
     window.pywebview.api.method_name(args)
@@ -16,7 +16,6 @@ from __future__ import annotations
 import asyncio
 import traceback
 from pathlib import Path
-
 from typing import Any
 
 import webview
@@ -34,7 +33,7 @@ from lupe.db import Database
 from lupe.enrichment import run_enrichment
 from lupe.export.obsidian import export_ioc_to_obsidian, save_obsidian_note
 from lupe.ioc_detect import detect_ioc
-from lupe.models import EnrichmentResult, IOC
+from lupe.models import IOC, EnrichmentResult
 
 
 def _enrichment_to_dict(result: EnrichmentResult) -> dict[str, Any]:
@@ -107,9 +106,7 @@ class CentinelaAPI:
                 }
 
             settings = get_settings()
-            enrichments: list[EnrichmentResult] = asyncio.run(
-                run_enrichment(ioc, settings)
-            )
+            enrichments: list[EnrichmentResult] = asyncio.run(run_enrichment(ioc, settings))
 
             analysis: str | None = None
             if not no_ai:
@@ -183,6 +180,7 @@ class CentinelaAPI:
             # --- Username enrichment ---
             if username.strip():
                 from lupe.models import IOC, IOCType
+
                 user_ioc = IOC(type=IOCType.username, value=username.strip())
                 enrichments = asyncio.run(run_enrichment(user_ioc, settings))
                 username_results = [_enrichment_to_dict(e) for e in enrichments]
@@ -197,6 +195,7 @@ class CentinelaAPI:
             # --- Email enrichment ---
             if email.strip():
                 from lupe.models import IOC, IOCType
+
                 email_ioc = IOC(type=IOCType.email, value=email.strip())
                 enrichments = asyncio.run(run_enrichment(email_ioc, settings))
                 email_results = [_enrichment_to_dict(e) for e in enrichments]
@@ -215,9 +214,11 @@ class CentinelaAPI:
                     ref_ioc = detect_ioc(phone.strip())
                 elif email.strip():
                     from lupe.models import IOC, IOCType
+
                     ref_ioc = IOC(type=IOCType.email, value=email.strip())
                 else:
                     from lupe.models import IOC, IOCType
+
                     ref_ioc = IOC(type=IOCType.username, value=username.strip())
                 analysis = asyncio.run(analyze_ioc(ref_ioc, all_enrichments, settings))
 
@@ -335,9 +336,7 @@ class CentinelaAPI:
     # Enrich + Save (combined flow)
     # ------------------------------------------------------------------
 
-    def enrich_and_save(
-        self, ioc_value: str, case_id: int, no_ai: bool = False
-    ) -> dict[str, Any]:
+    def enrich_and_save(self, ioc_value: str, case_id: int, no_ai: bool = False) -> dict[str, Any]:
         """Enrich an IOC and persist all results linked to a case.
 
         Args:
@@ -369,9 +368,7 @@ class CentinelaAPI:
                 }
 
             settings = get_settings()
-            enrichments: list[EnrichmentResult] = asyncio.run(
-                run_enrichment(ioc, settings)
-            )
+            enrichments: list[EnrichmentResult] = asyncio.run(run_enrichment(ioc, settings))
 
             analysis: str | None = None
             if not no_ai:
@@ -537,7 +534,6 @@ class CentinelaAPI:
 
             case_name = case["name"]
             iocs = self._db.get_case_iocs(case_id)
-            settings = get_settings()
             saved_paths: list[str] = []
 
             for ioc_row in iocs:
@@ -566,7 +562,9 @@ class CentinelaAPI:
                 # Best available analysis: look for a saved one in DB
                 analysis: str | None = None
                 analyses_cur = self._db._conn.execute(
-                    "SELECT summary FROM analyses WHERE ioc_id = ? ORDER BY analyzed_at DESC LIMIT 1",
+                    "SELECT summary FROM analyses "
+                    "WHERE ioc_id = ? "
+                    "ORDER BY analyzed_at DESC LIMIT 1",
                     (ioc_row["id"],),
                 )
                 row = analyses_cur.fetchone()
@@ -610,15 +608,11 @@ class CentinelaAPI:
             conn = self._db._conn
 
             total_iocs: int = conn.execute("SELECT COUNT(*) FROM iocs").fetchone()[0]
-            total_cases: int = conn.execute(
-                "SELECT COUNT(*) FROM cases"
-            ).fetchone()[0]
+            total_cases: int = conn.execute("SELECT COUNT(*) FROM cases").fetchone()[0]
             open_cases: int = conn.execute(
                 "SELECT COUNT(*) FROM cases WHERE status != 'closed'"
             ).fetchone()[0]
-            total_enrichments: int = conn.execute(
-                "SELECT COUNT(*) FROM enrichments"
-            ).fetchone()[0]
+            total_enrichments: int = conn.execute("SELECT COUNT(*) FROM enrichments").fetchone()[0]
 
             return {
                 "success": True,
@@ -719,6 +713,7 @@ class CentinelaAPI:
     def open_url(self, url: str) -> dict:
         """Abrir una URL en el navegador predeterminado del sistema."""
         import webbrowser
+
         try:
             webbrowser.open(url)
             return {"success": True, "error": None}

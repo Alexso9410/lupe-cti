@@ -2,14 +2,11 @@
 
 from __future__ import annotations
 
-from datetime import datetime
-
+import httpx
 import pytest
 import respx
-import httpx
 
-from lupe.models import IOC, IOCType, EnrichmentResult
-
+from lupe.models import IOC, IOCType
 
 # ---------------------------------------------------------------------------
 # Blocklist.de Plugin Tests
@@ -21,11 +18,13 @@ class TestBlocklistDePlugin:
 
     def test_plugin_name(self):
         from lupe.enrichment.blocklist_de import BlocklistDePlugin
+
         plugin = BlocklistDePlugin()
         assert plugin.name == "blocklist-de"
 
     def test_supports_ipv4(self):
         from lupe.enrichment.blocklist_de import BlocklistDePlugin
+
         plugin = BlocklistDePlugin()
         assert plugin.supports(IOCType.ipv4)
         assert plugin.supports(IOCType.ipv6)
@@ -33,6 +32,7 @@ class TestBlocklistDePlugin:
 
     def test_no_api_key_required(self):
         from lupe.enrichment.blocklist_de import BlocklistDePlugin
+
         plugin = BlocklistDePlugin()
         assert plugin.requires_api_key is False
 
@@ -40,6 +40,7 @@ class TestBlocklistDePlugin:
     @pytest.mark.asyncio
     async def test_enrich_listed_ip(self):
         from lupe.enrichment.blocklist_de import BlocklistDePlugin
+
         plugin = BlocklistDePlugin()
 
         respx.get("https://api.blocklist.de/api.php").mock(
@@ -61,6 +62,7 @@ class TestBlocklistDePlugin:
     @pytest.mark.asyncio
     async def test_enrich_clean_ip_returns_none(self):
         from lupe.enrichment.blocklist_de import BlocklistDePlugin
+
         plugin = BlocklistDePlugin()
 
         respx.get("https://api.blocklist.de/api.php").mock(
@@ -77,11 +79,10 @@ class TestBlocklistDePlugin:
     @pytest.mark.asyncio
     async def test_enrich_error_returns_none(self):
         from lupe.enrichment.blocklist_de import BlocklistDePlugin
+
         plugin = BlocklistDePlugin()
 
-        respx.get("https://api.blocklist.de/api.php").mock(
-            return_value=httpx.Response(500)
-        )
+        respx.get("https://api.blocklist.de/api.php").mock(return_value=httpx.Response(500))
 
         ioc = IOC(type=IOCType.ipv4, value="1.2.3.4")
         async with httpx.AsyncClient() as client:
@@ -100,11 +101,13 @@ class TestSpamhausPlugin:
 
     def test_plugin_name(self):
         from lupe.enrichment.spamhaus import SpamhausPlugin
+
         plugin = SpamhausPlugin(api_key="test")
         assert plugin.name == "spamhaus"
 
     def test_supports_ip_and_domain(self):
         from lupe.enrichment.spamhaus import SpamhausPlugin
+
         plugin = SpamhausPlugin(api_key="test")
         assert plugin.supports(IOCType.ipv4)
         assert plugin.supports(IOCType.domain)
@@ -112,6 +115,7 @@ class TestSpamhausPlugin:
 
     def test_requires_api_key(self):
         from lupe.enrichment.spamhaus import SpamhausPlugin
+
         plugin = SpamhausPlugin()
         assert plugin.requires_api_key is True
 
@@ -119,6 +123,7 @@ class TestSpamhausPlugin:
     @pytest.mark.asyncio
     async def test_enrich_ipv4_malicious(self):
         from lupe.enrichment.spamhaus import SpamhausPlugin
+
         plugin = SpamhausPlugin(api_key="test-key")
 
         respx.get("https://api.spamhaus.org/api/v2/intel/ipv4/1.2.3.4").mock(
@@ -140,6 +145,7 @@ class TestSpamhausPlugin:
     @pytest.mark.asyncio
     async def test_enrich_not_found_returns_none(self):
         from lupe.enrichment.spamhaus import SpamhausPlugin
+
         plugin = SpamhausPlugin(api_key="test-key")
 
         respx.get("https://api.spamhaus.org/api/v2/intel/ipv4/8.8.8.8").mock(
@@ -156,6 +162,7 @@ class TestSpamhausPlugin:
     @pytest.mark.asyncio
     async def test_auth_failure_returns_none(self):
         from lupe.enrichment.spamhaus import SpamhausPlugin
+
         plugin = SpamhausPlugin(api_key="bad-key")
 
         respx.get("https://api.spamhaus.org/api/v2/intel/ipv4/1.2.3.4").mock(
@@ -171,6 +178,7 @@ class TestSpamhausPlugin:
     @pytest.mark.asyncio
     async def test_no_key_returns_none(self):
         from lupe.enrichment.spamhaus import SpamhausPlugin
+
         plugin = SpamhausPlugin(api_key="")
 
         ioc = IOC(type=IOCType.ipv4, value="1.2.3.4")
@@ -190,11 +198,13 @@ class TestCrtShPlugin:
 
     def test_plugin_name(self):
         from lupe.enrichment.crtsh import CrtShPlugin
+
         plugin = CrtShPlugin()
         assert plugin.name == "crt.sh"
 
     def test_supports_domain_only(self):
         from lupe.enrichment.crtsh import CrtShPlugin
+
         plugin = CrtShPlugin()
         assert plugin.supports(IOCType.domain)
         assert not plugin.supports(IOCType.ipv4)
@@ -203,6 +213,7 @@ class TestCrtShPlugin:
     @pytest.mark.asyncio
     async def test_enrich_domain_returns_certs(self):
         from lupe.enrichment.crtsh import CrtShPlugin
+
         plugin = CrtShPlugin()
 
         respx.get("https://crt.sh/").mock(
@@ -227,11 +238,10 @@ class TestCrtShPlugin:
     @pytest.mark.asyncio
     async def test_empty_response_returns_none(self):
         from lupe.enrichment.crtsh import CrtShPlugin
+
         plugin = CrtShPlugin()
 
-        respx.get("https://crt.sh/").mock(
-            return_value=httpx.Response(200, json=[])
-        )
+        respx.get("https://crt.sh/").mock(return_value=httpx.Response(200, json=[]))
 
         ioc = IOC(type=IOCType.domain, value="nonexistent.example")
         async with httpx.AsyncClient() as client:
@@ -243,6 +253,7 @@ class TestCrtShPlugin:
     @pytest.mark.asyncio
     async def test_unsupported_type_returns_none(self):
         from lupe.enrichment.crtsh import CrtShPlugin
+
         plugin = CrtShPlugin()
 
         ioc = IOC(type=IOCType.ipv4, value="1.2.3.4")
@@ -262,11 +273,13 @@ class TestHybridAnalysisPlugin:
 
     def test_plugin_name(self):
         from lupe.enrichment.hybrid_analysis import HybridAnalysisPlugin
+
         plugin = HybridAnalysisPlugin(api_key="test")
         assert plugin.name == "hybrid_analysis"
 
     def test_supports_hashes_and_urls(self):
         from lupe.enrichment.hybrid_analysis import HybridAnalysisPlugin
+
         plugin = HybridAnalysisPlugin(api_key="test")
         assert plugin.supports(IOCType.hash_sha256)
         assert plugin.supports(IOCType.url)
@@ -276,17 +289,20 @@ class TestHybridAnalysisPlugin:
     @pytest.mark.asyncio
     async def test_enrich_hash(self):
         from lupe.enrichment.hybrid_analysis import HybridAnalysisPlugin
+
         plugin = HybridAnalysisPlugin(api_key="test-key")
 
         respx.post("https://www.hybrid-analysis.com/api/v2/search/hash").mock(
             return_value=httpx.Response(
                 200,
-                json=[{
-                    "verdict": "malicious",
-                    "threat_score": 85,
-                    "type_description": "PE32 executable",
-                    "environment_description": "Windows 10 64-bit",
-                }],
+                json=[
+                    {
+                        "verdict": "malicious",
+                        "threat_score": 85,
+                        "type_description": "PE32 executable",
+                        "environment_description": "Windows 10 64-bit",
+                    }
+                ],
             )
         )
 
@@ -302,6 +318,7 @@ class TestHybridAnalysisPlugin:
     @pytest.mark.asyncio
     async def test_quota_exceeded_returns_none(self):
         from lupe.enrichment.hybrid_analysis import HybridAnalysisPlugin
+
         plugin = HybridAnalysisPlugin(api_key="test-key")
 
         respx.post("https://www.hybrid-analysis.com/api/v2/search/hash").mock(
@@ -318,6 +335,7 @@ class TestHybridAnalysisPlugin:
     @pytest.mark.asyncio
     async def test_auth_error_returns_none(self):
         from lupe.enrichment.hybrid_analysis import HybridAnalysisPlugin
+
         plugin = HybridAnalysisPlugin(api_key="bad-key")
 
         respx.post("https://www.hybrid-analysis.com/api/v2/search/hash").mock(
@@ -333,6 +351,7 @@ class TestHybridAnalysisPlugin:
     @pytest.mark.asyncio
     async def test_no_key_returns_none(self):
         from lupe.enrichment.hybrid_analysis import HybridAnalysisPlugin
+
         plugin = HybridAnalysisPlugin(api_key="")
 
         ioc = IOC(type=IOCType.hash_sha256, value="abc123" * 11)
@@ -352,11 +371,13 @@ class TestCensysPlugin:
 
     def test_plugin_name(self):
         from lupe.enrichment.censys import CensysPlugin
+
         plugin = CensysPlugin(censys_id="id", censys_secret="secret")
         assert plugin.name == "censys"
 
     def test_supports_ip_and_domain(self):
         from lupe.enrichment.censys import CensysPlugin
+
         plugin = CensysPlugin(censys_id="id", censys_secret="secret")
         assert plugin.supports(IOCType.ipv4)
         assert plugin.supports(IOCType.domain)
@@ -364,6 +385,7 @@ class TestCensysPlugin:
 
     def test_requires_two_keys(self):
         from lupe.enrichment.censys import CensysPlugin
+
         plugin = CensysPlugin()
         assert plugin.requires_api_key is True
 
@@ -371,6 +393,7 @@ class TestCensysPlugin:
     @pytest.mark.asyncio
     async def test_enrich_ipv4(self):
         from lupe.enrichment.censys import CensysPlugin
+
         plugin = CensysPlugin(censys_id="test-id", censys_secret="test-secret")
 
         respx.get("https://search.censys.io/api/v2/hosts/1.2.3.4").mock(
@@ -402,6 +425,7 @@ class TestCensysPlugin:
     @pytest.mark.asyncio
     async def test_invalid_credentials_returns_none(self):
         from lupe.enrichment.censys import CensysPlugin
+
         plugin = CensysPlugin(censys_id="bad-id", censys_secret="bad-secret")
 
         respx.get("https://search.censys.io/api/v2/hosts/1.2.3.4").mock(
@@ -417,6 +441,7 @@ class TestCensysPlugin:
     @pytest.mark.asyncio
     async def test_no_keys_returns_none(self):
         from lupe.enrichment.censys import CensysPlugin
+
         plugin = CensysPlugin(censys_id="", censys_secret="")
 
         ioc = IOC(type=IOCType.ipv4, value="1.2.3.4")
@@ -429,6 +454,7 @@ class TestCensysPlugin:
     @pytest.mark.asyncio
     async def test_not_found_returns_none(self):
         from lupe.enrichment.censys import CensysPlugin
+
         plugin = CensysPlugin(censys_id="id", censys_secret="secret")
 
         respx.get("https://search.censys.io/api/v2/hosts/10.0.0.1").mock(

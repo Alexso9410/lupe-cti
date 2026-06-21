@@ -50,7 +50,7 @@ def get_provider(name: str, settings: Settings) -> LLMProvider:
 
 # Import submodules so their @register_provider decorators execute.
 # This must happen AFTER _PROVIDERS and register_provider are defined.
+from lupe.llm import anthropic as _anthropic  # noqa: E402, F401
 from lupe.llm import ollama as _ollama  # noqa: E402, F401
 from lupe.llm import openai as _openai  # noqa: E402, F401
-from lupe.llm import anthropic as _anthropic  # noqa: E402, F401
 from lupe.llm import openrouter as _openrouter  # noqa: E402, F401

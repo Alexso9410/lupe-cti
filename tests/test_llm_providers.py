@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
+import httpx
 import pytest
 import respx
-import httpx
 
 from lupe.config import Settings
-
 
 # ---------------------------------------------------------------------------
 # Ollama Provider Tests
@@ -26,11 +25,7 @@ class TestOllamaProvider:
         respx.post("http://localhost:11434/v1/chat/completions").mock(
             return_value=httpx.Response(
                 200,
-                json={
-                    "choices": [
-                        {"message": {"content": "Analysis: clean IP"}}
-                    ]
-                },
+                json={"choices": [{"message": {"content": "Analysis: clean IP"}}]},
             )
         )
 
@@ -111,11 +106,7 @@ class TestOpenAIProvider:
         respx.post("https://api.openai.com/v1/chat/completions").mock(
             return_value=httpx.Response(
                 200,
-                json={
-                    "choices": [
-                        {"message": {"content": "Risk: 2/10 — benign IP"}}
-                    ]
-                },
+                json={"choices": [{"message": {"content": "Risk: 2/10 — benign IP"}}]},
             )
         )
 
@@ -286,11 +277,7 @@ class TestOpenRouterProvider:
         respx.post("https://openrouter.ai/api/v1/chat/completions").mock(
             return_value=httpx.Response(
                 200,
-                json={
-                    "choices": [
-                        {"message": {"content": "Analysis via OpenRouter"}}
-                    ]
-                },
+                json={"choices": [{"message": {"content": "Analysis via OpenRouter"}}]},
             )
         )
 
