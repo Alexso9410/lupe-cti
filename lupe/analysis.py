@@ -1,11 +1,14 @@
-﻿from __future__ import annotations
+﻿"""AI analysis module — delegates to configured LLM provider."""
+
+from __future__ import annotations
 
 import json
-
-import httpx
+import logging
 
 from lupe.config import Settings
 from lupe.models import IOC, EnrichmentResult
+
+logger = logging.getLogger(__name__)
 
 _SYSTEM_PROMPT = """\
 Sos un analista de ciberinteligencia senior. Analizá los resultados de enriquecimiento de este IOC y proporcioná:
@@ -53,44 +56,32 @@ async def analyze_ioc(
     enrichments: list[EnrichmentResult],
     settings: Settings,
 ) -> str | None:
-    """Request an AI analysis of the IOC enrichment results via Ollama.
+    """Request an AI analysis of the IOC enrichment results.
 
-    Args:
-        ioc: The IOC being analysed.
-        enrichments: List of enrichment results already gathered.
-        settings: Application settings (contains Ollama URL and model name).
-
-    Returns:
-        The model's text response, or None if Ollama is unavailable or
-        returns an error.
+    Uses the configured LLM provider (via ``LUPE_LLM_PROVIDER``).
+    Returns None when:
+    - No enrichments are available
+    - No provider is configured (empty llm_provider)
+    - The provider fails or returns an empty response
     """
     if not enrichments:
         return None
 
-    url = f"{settings.ollama_base_url.rstrip('/')}/v1/chat/completions"
-    payload = {
-        "model": settings.ollama_model,
-        "messages": [
-            {"role": "system", "content": _SYSTEM_PROMPT},
-            {"role": "user", "content": _build_user_message(ioc, enrichments)},
-        ],
-        "stream": False,
-    }
+    # Lazy import to avoid circular dependency at module load time
+    from lupe.llm.registry import get_provider
+
+    provider = get_provider(settings.llm_provider, settings)
+
+    if provider.name == "null":
+        logger.debug("No LLM provider configured — skipping AI analysis")
+        return None
+
+    prompt = _build_user_message(ioc, enrichments)
 
     try:
-        async with httpx.AsyncClient() as client:
-            response = await client.post(url, json=payload, timeout=120.0)
-    except httpx.ConnectError:
-        # Ollama not running — silent skip
-        return None
-    except httpx.RequestError:
+        result = await provider.generate(prompt, system=_SYSTEM_PROMPT)
+    except Exception:
+        logger.warning("LLM provider %r failed during generate()", provider.name, exc_info=True)
         return None
 
-    if response.status_code != 200:
-        return None
-
-    try:
-        data: dict = response.json()
-        return data["choices"][0]["message"]["content"]
-    except (KeyError, IndexError, ValueError):
-        return None
+    return result if result else None

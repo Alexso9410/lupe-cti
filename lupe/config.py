@@ -67,6 +67,23 @@ class Settings(BaseSettings):
     ollama_model: str = "gemma4:31b-cloud"
     db_path: str = ""  # Empty = use platformdirs default
 
+    # LLM provider selection (empty = skip AI analysis)
+    llm_provider: str = ""  # "ollama", "openai", "anthropic", "openrouter"
+    openai_api_key: str | None = None
+    anthropic_api_key: str | None = None
+    openrouter_api_key: str | None = None
+    openrouter_base_url: str = "https://openrouter.ai/api/v1"
+
+    # MISP integration
+    misp_url: str | None = None
+    misp_key: str | None = None
+
+    # New enrichment keys
+    hybrid_analysis_key: str | None = None
+    censys_id: str | None = None
+    censys_secret: str | None = None
+
+    # Existing enrichment keys
     abuseipdb_key: str | None = None
     virustotal_key: str | None = None
     shodan_key: str | None = None
