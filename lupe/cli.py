@@ -22,8 +22,8 @@ from lupe.ioc_detect import detect_ioc
 from lupe.models import EnrichmentResult, IOC, IOCType, Severity
 
 app = typer.Typer(
-    name="centinela",
-    help="IOC Enrichment & Investigation CLI — Heimdall Security",
+    name="lupe",
+    help="Lupe CTI — Cyber Threat Intelligence for OSINT & Forensics",
     add_completion=False,
 )
 
@@ -143,7 +143,7 @@ def enrich(
 
     if not output_json:
         console.print(
-            f"\n[bold]Centinela[/bold] — Enriching [cyan]{ioc.type.value}[/cyan]: "
+            f"\n[bold]Lupe CTI[/bold] — Enriching [cyan]{ioc.type.value}[/cyan]: "
             f"[bold white]{ioc.value}[/bold white]\n"
         )
 
@@ -293,7 +293,7 @@ def bulk(
     saved = 0
 
     console.print(
-        f"\n[bold]Centinela Bulk[/bold] — {len(ioc_values)} IOC(s) from "
+        f"\n[bold]Lupe CTI Bulk[/bold] — {len(ioc_values)} IOC(s) from "
         f"[cyan]{file.name}[/cyan]\n"
     )
 
@@ -402,7 +402,7 @@ def email_analyze(
         raise typer.Exit(code=1)
 
     console.print(
-        f"\n[bold]Centinela[/bold] — Analizando email: "
+        f"\n[bold]Lupe CTI[/bold] — Analizando email: "
         f"[cyan]{eml_file.name}[/cyan]\n"
     )
 
@@ -978,7 +978,7 @@ def config_test() -> None:
         ("Ollama", "configured", f"{settings.ollama_base_url.rstrip('/')}/api/tags"),
     ]
 
-    console.print("\n[bold]Centinela[/bold] — API Connectivity Test\n")
+    console.print("\n[bold]Lupe CTI[/bold] — API Connectivity Test\n")
 
     for name, key, url in checks:
         if key is None:
