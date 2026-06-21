@@ -1,0 +1,25 @@
+[Unit]
+Description=Lupe CTI Watcher
+Documentation=https://github.com/lupe-cti/lupe
+After=network.target
+
+[Service]
+Type=simple
+# Adjust ExecStart to the actual watch command when implemented.
+# Current placeholder uses 'lupe enrich' as a reference.
+ExecStart=/usr/bin/lupe enrich --watch --config /etc/lupe/watch.yaml
+Restart=on-failure
+RestartSec=10
+User=lupe
+Group=lupe
+WorkingDirectory=/var/lib/lupe
+Environment=LUPE_DB_PATH=/var/lib/lupe/lupe.db
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/lupe
+
+[Install]
+WantedBy=multi-user.target
