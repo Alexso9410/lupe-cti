@@ -7,9 +7,32 @@ packages = ["lupe"]
 
 [project]
 name = "lupe-cti"
-version = "0.1.0"
-description = "Lupe CTI — Cyber Threat Intelligence for OSINT & Forensics"
+version = "1.0.0"
+description = "Cyber Threat Intelligence CLI for OSINT, Forensics & Incident Response"
+readme = "README.md"
 requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "Lupe CTI Contributors"},
+]
+keywords = ["cti", "osint", "threat-intelligence", "ioc", "enrichment", "forensics", "incident-response"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: System Administrators",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: MacOS",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+    "Topic :: System :: Systems Administration",
+    "Typing :: Typed",
+]
 dependencies = [
     "typer>=0.9.0",
     "rich>=13.0.0",
@@ -17,7 +40,6 @@ dependencies = [
     "pydantic>=2.0.0",
     "pydantic-settings>=2.0.0",
     "python-whois>=0.9.0",
-    "pywebview>=5.0",  # installed: 6.1
     "reportlab>=4.0",
     "phonenumbers>=8.13.0",
     "platformdirs>=4.0",
@@ -45,7 +67,8 @@ lupe-desktop = "lupe.tui.app:run"
 [project.urls]
 Homepage = "https://github.com/lupe-cti/lupe"
 Repository = "https://github.com/lupe-cti/lupe"
-Documentation = "https://lupe-cti.readthedocs.io"
+Issues = "https://github.com/lupe-cti/lupe/issues"
+Changelog = "https://github.com/lupe-cti/lupe/blob/main/CHANGELOG.md"
 Logo = "https://raw.githubusercontent.com/lupe-cti/lupe/main/assets/lupe-logo/lupe-logo.svg"
 
 [tool.pytest.ini_options]
