@@ -49,25 +49,25 @@ _SEVERITY_STYLE: dict[Severity, str] = {
 
 # Fields that hold API keys in Settings — used by config show/test
 _KEY_FIELDS: list[tuple[str, str]] = [
-    ("abuseipdb_key", "CENTINELA_ABUSEIPDB_KEY"),
-    ("virustotal_key", "CENTINELA_VIRUSTOTAL_KEY"),
-    ("shodan_key", "CENTINELA_SHODAN_KEY"),
-    ("otx_key", "CENTINELA_OTX_KEY"),
-    ("urlscan_key", "CENTINELA_URLSCAN_KEY"),
-    ("hibp_key", "CENTINELA_HIBP_KEY"),
-    ("greynoise_key", "CENTINELA_GREYNOISE_KEY"),
-    ("ipqs_key", "CENTINELA_IPQS_KEY"),
-    ("numverify_key", "CENTINELA_NUMVERIFY_KEY"),
-    ("emailrep_key", "CENTINELA_EMAILREP_KEY"),
-    ("googlesb_key", "CENTINELA_GOOGLESB_KEY"),
-    ("phishtank_key", "CENTINELA_PHISHTANK_KEY"),
-    ("pulsedive_key", "CENTINELA_PULSEDIVE_KEY"),
+    ("abuseipdb_key", "LUPE_ABUSEIPDB_KEY"),
+    ("virustotal_key", "LUPE_VIRUSTOTAL_KEY"),
+    ("shodan_key", "LUPE_SHODAN_KEY"),
+    ("otx_key", "LUPE_OTX_KEY"),
+    ("urlscan_key", "LUPE_URLSCAN_KEY"),
+    ("hibp_key", "LUPE_HIBP_KEY"),
+    ("greynoise_key", "LUPE_GREYNOISE_KEY"),
+    ("ipqs_key", "LUPE_IPQS_KEY"),
+    ("numverify_key", "LUPE_NUMVERIFY_KEY"),
+    ("emailrep_key", "LUPE_EMAILREP_KEY"),
+    ("googlesb_key", "LUPE_GOOGLESB_KEY"),
+    ("phishtank_key", "LUPE_PHISHTANK_KEY"),
+    ("pulsedive_key", "LUPE_PULSEDIVE_KEY"),
 ]
 
 _PLAIN_FIELDS: list[tuple[str, str]] = [
-    ("ollama_base_url", "CENTINELA_OLLAMA_BASE_URL"),
-    ("ollama_model", "CENTINELA_OLLAMA_MODEL"),
-    ("db_path", "CENTINELA_DB_PATH"),
+    ("ollama_base_url", "LUPE_OLLAMA_BASE_URL"),
+    ("ollama_model", "LUPE_OLLAMA_MODEL"),
+    ("db_path", "LUPE_DB_PATH"),
 ]
 
 
@@ -926,7 +926,7 @@ def config_show() -> None:
 
 @config_app.command("set")
 def config_set(
-    key: Annotated[str, typer.Argument(help="Variable name (e.g. CENTINELA_VT_KEY)")],
+    key: Annotated[str, typer.Argument(help="Variable name (e.g. LUPE_VT_KEY)")],
     value: Annotated[str, typer.Argument(help="Value to set")],
 ) -> None:
     """Write or update a key=value pair in the .env file."""
