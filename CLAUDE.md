@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Centinela** — IOC Enrichment & Investigation CLI for Heimdall Security. Analyzes Indicators of Compromise (IPs, domains, URLs, hashes, emails, phones, usernames) by running them through multiple threat-intel enrichment plugins in parallel, with optional AI analysis via a local Ollama instance.
+**Lupe CTI** — Cyber Threat Intelligence CLI for OSINT, Forensics & Incident Response. Enriches Indicators of Compromise (IPs, domains, URLs, hashes, emails, phones, usernames) by running them through 25+ threat-intel enrichment plugins in parallel, with optional AI analysis via multiple LLM providers (Ollama, OpenAI, Anthropic, OpenRouter).
 
 ## Commands
 
@@ -13,16 +13,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 pip install -e ".[dev]"
 
 # Run CLI
-centinela enrich <IOC>
-centinela case list
-centinela person phone "+54 9 2954 123456"
-centinela config show
+lupe enrich <IOC>
+lupe case list
+lupe person phone "+54 9 2954 123456"
+lupe config show
+lupe misp pull --days 7
+lupe migrate-from-centinela
 
-# Desktop GUI
-centinela-desktop
+# Desktop TUI
+lupe-desktop
 
 # Run all tests
 pytest
+
+# Run tests with coverage
+pytest --cov=lupe --cov-report=term-missing
 
 # Run a single test file
 pytest tests/test_ioc_detect.py
@@ -30,49 +35,76 @@ pytest tests/test_ioc_detect.py
 # Run a specific test class or method
 pytest tests/test_ioc_detect.py::TestIPv4Detection
 pytest tests/test_ioc_detect.py::TestIPv4Detection::test_valid_ipv4
+
+# Lint and format
+ruff check lupe/ tests/
+ruff format lupe/ tests/
+
+# Type check
+mypy lupe/
+
+# Security
+bandit -r lupe/
+pip-audit
+
+# All checks
+make all
 ```
 
 ## Architecture
 
 ### Entry Points
-- `centinela/cli.py` — Typer CLI with four sub-apps: `config`, `case`, `person`, and root commands (`enrich`, `email`)
-- `centinela/desktop/app.py` — pywebview desktop wrapper that serves `centinela_kimi_frontend.html`
-- `centinela-desktop.py` — standalone desktop launcher at project root
+- `lupe/cli.py` — Typer CLI with sub-apps: `config`, `case`, `person`, `misp`, and root commands (`enrich`, `email`)
+- `lupe/tui/app.py` — Textual TUI with 6 screens (Home, Enrich, Settings, MISP, Plugins, Cases)
 
 ### Core Data Flow
-1. **IOC Detection** (`centinela/ioc_detect.py`) — regex-based auto-detection of IOC type (priority order: SHA256 > SHA1 > MD5 > URL > email > phone > IPv4 > IPv6 > domain)
-2. **Enrichment** (`centinela/enrichment/`) — plugin system where each plugin extends `EnrichmentPlugin` (ABC in `base.py`). `__init__.py:run_enrichment()` runs all compatible plugins concurrently (semaphore limit: 5)
-3. **AI Analysis** (`centinela/analysis.py`) — sends enrichment results to Ollama via `/v1/chat/completions`; silently no-ops if Ollama is unreachable
-4. **Persistence** (`centinela/db.py`) — SQLite via `Database` class; schema auto-migrated on init; stored at `~/.centinela/centinela.db`
+1. **IOC Detection** (`lupe/ioc_detect.py`) — regex-based auto-detection of IOC type (priority: SHA256 > SHA1 > MD5 > URL > email > phone > IPv4 > IPv6 > domain)
+2. **Enrichment** (`lupe/enrichment/`) — plugin system where each plugin extends `EnrichmentPlugin` (ABC in `base.py`). `__init__.py:run_enrichment()` runs all compatible plugins concurrently (semaphore limit: 5)
+3. **AI Analysis** (`lupe/analysis.py`) — delegates to LLM provider via strategy pattern; silently no-ops if no provider configured
+4. **Persistence** (`lupe/db.py`) — SQLite via `Database` class; schema auto-migrated on init; stored at XDG data dir
 
 ### Plugin System
-Every enrichment plugin lives in `centinela/enrichment/` and must:
+Every enrichment plugin lives in `lupe/enrichment/` and must:
 - Subclass `EnrichmentPlugin`
 - Declare `name: str`, `supported_ioc_types: set[IOCType]`, and `requires_api_key: bool`
 - Implement `async def enrich(self, ioc: IOC, client: httpx.AsyncClient) -> EnrichmentResult | None`
 
-Free plugins (no key): `WhoisPlugin`, `IpInfoPlugin`, `ThreatFoxPlugin`, `URLhausPlugin`, `MalwareBazaarPlugin`, `PhoneStaticPlugin`, `WhatsMyNamePlugin`
+Free plugins (no key): `WhoisPlugin`, `IpInfoPlugin`, `ThreatFoxPlugin`, `URLhausPlugin`, `MalwareBazaarPlugin`, `PhoneStaticPlugin`, `WhatsMyNamePlugin`, `IPQueryPlugin`, `CertShPlugin`, `CIRCLHashlookupPlugin`, `HolehePlugin`, `BlocklistDePlugin`, `CrtShPlugin`
 
-Keyed plugins (loaded only when env var is set): `AbuseIPDB`, `VirusTotal`, `Shodan`, `OTX`, `URLScan`, `HaveIBeenPwned`, `GreyNoise`, `IPQS` (also has phone variant), `NumVerify`
+Keyed plugins (loaded only when env var is set): `AbuseIPDB`, `VirusTotal`, `Shodan`, `OTX`, `URLScan`, `HaveIBeenPwned`, `GreyNoise`, `IPQS` (also has phone variant), `NumVerify`, `EmailRep`, `GoogleSafeBrowsing`, `PhishTank`, `Pulsedive`, `Spamhaus`, `HybridAnalysis`, `Censys`
+
+### Multi-LLM System
+`lupe/llm/` implements a strategy pattern:
+- `base.py` — `LLMProvider` ABC with `generate()`, `stream()`, `validate_key()`, `list_models()`
+- `registry.py` — Provider factory with `get_provider(name, settings)`
+- Providers: `ollama.py`, `openai.py`, `anthropic.py`, `openrouter.py`
+- Selection: `LUPE_LLM_PROVIDER` env var (empty = skip AI)
+
+### Security Layer (`lupe/security/`)
+- `redact.py` — Secret redaction in log output
+- `validation.py` — IOC input validation with per-type max lengths
+- `https_only.py` — HTTPS transport enforcement
+- `rate_limit.py` — Token-bucket rate limiter
 
 ### Configuration
-`centinela/config.py` — `pydantic-settings` singleton (`get_settings()` with `lru_cache`). All settings use `CENTINELA_` prefix. Reads from `.env` file or environment variables.
+`lupe/config.py` — `pydantic-settings` singleton (`get_settings()` with `lru_cache`). All settings use `LUPE_` prefix. Reads from `.env` file or environment variables. Uses `platformdirs` for XDG-compliant paths.
 
 Key settings:
-- `CENTINELA_OLLAMA_BASE_URL` / `CENTINELA_OLLAMA_MODEL` — AI analysis backend
-- `CENTINELA_DB_PATH` — SQLite path (default: `~/.centinela/centinela.db`)
-- One env var per API key (e.g., `CENTINELA_VIRUSTOTAL_KEY`)
+- `LUPE_OLLAMA_BASE_URL` / `LUPE_OLLAMA_MODEL` — Ollama backend
+- `LUPE_LLM_PROVIDER` — Provider selection (ollama/openai/anthropic/openrouter)
+- `LUPE_DB_PATH` — SQLite path (default: XDG data dir)
+- One env var per API key (e.g., `LUPE_VIRUSTOTAL_KEY`)
 
-### Export Layer (`centinela/export/`)
-- `obsidian.py` — generates Markdown notes with frontmatter, MITRE ATT&CK tag extraction
-- `json_export.py` — raw JSON export
-- `pdf_report.py` — PDF report via ReportLab (also used for email analysis reports)
+### MISP Integration (`lupe/integrations/misp.py`)
+Raw REST client for MISP. Commands: `lupe misp pull`, `lupe misp push`. Activated by `LUPE_MISP_URL` + `LUPE_MISP_KEY`.
 
-### Email Analysis (`centinela/email_parser.py`, `centinela/email_analyzer.py`)
-Parses `.eml` files: extracts headers, SPF/DKIM/DMARC auth results, received chain hops, attachments (SHA256), body IOCs, and computes a phishing score. Results stored in `email_analyses` table.
+### Export Layer (`lupe/export/`)
+- `obsidian.py` — Markdown with frontmatter and MITRE ATT&CK tag extraction
+- `json_export.py` — Raw JSON export
+- `pdf_report.py` — PDF via ReportLab
 
-### Heimdall Integration (`centinela/integrations/agent_writer_bridge.py`)
-Optional bridge to Heimdall's `agent-dashboard`. Activated by `CENTINELA_DASHBOARD_ENABLED=1`. Dynamically imports `AgentWriter` from `C:\Users\usuario\Documents\heimdall\tools\agent_writer.py`. Silently disabled if not found.
+### Email Analysis (`lupe/email_parser.py`, `lupe/email_analyzer.py`)
+Parses `.eml` files: headers, SPF/DKIM/DMARC auth, received chain, attachments (SHA256), body IOCs, phishing score.
 
 ## Database Schema
 
@@ -83,3 +115,5 @@ Six tables: `iocs`, `enrichments`, `analyses`, `cases`, `case_iocs`, `case_notes
 ## Testing
 
 Tests live in `tests/`. `pytest-asyncio` is configured with `asyncio_mode = "auto"` — no `@pytest.mark.asyncio` needed. Use `respx` for mocking `httpx` calls in enrichment plugin tests.
+
+Current status: 305 tests passing, 0 ruff errors.
