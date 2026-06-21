@@ -1,0 +1,51 @@
+schema: spec-driven
+
+context: |
+  Tech stack: Python 3.10+, hatchling, typer, rich, httpx, pydantic, pydantic-settings, SQLite, pywebview, reportlab, phonenumbers.
+  Architecture: Plugin-based IOC enrichment CLI with async concurrent plugins, pydantic models, SQLite persistence, optional Ollama AI analysis.
+  Testing: pytest + pytest-asyncio (auto mode) + respx. No CI/CD, linter, formatter, or type checker configured.
+  Style: snake_case modules, PascalCase plugin classes ({Service}Plugin), test files test_{module}.py, classes Test{Feature}.
+
+rules:
+  proposal:
+    - Include rollback plan for risky changes
+    - Acknowledge future rebrand Centinela -> Lupe CTI where relevant
+  specs:
+    - Use Given/When/Then for scenarios
+    - Use RFC 2119 keywords (MUST, SHALL, SHOULD, MAY)
+  design:
+    - Include sequence diagrams for complex flows
+    - Document architecture decisions with rationale
+    - Follow existing plugin ABC pattern (enrichment/base.py)
+  tasks:
+    - Group by phase, use hierarchical numbering
+    - Keep tasks completable in one session
+  apply:
+    - Follow existing code patterns (snake_case, pydantic models, async enrich methods)
+    - Maintain plugin registry conventions
+    tdd: true
+    test_command: "pytest"
+  verify:
+    test_command: "pytest"
+    build_command: "pip install -e .[dev]"
+    coverage_threshold: 0
+  archive:
+    - Warn before merging destructive deltas
+
+persistence:
+  mode: hybrid
+  engram_topic_key: sdd-init-opengo/centinela
+
+execution:
+  mode: interactive
+  delivery_strategy: ask-on-risk
+  chain_strategy: feature-branch-chain
+
+project:
+  name: centinela
+  future_name: Lupe CTI
+  path: C:\Users\usuario\Documents\proyectos IA aplicada\centinela
+  git_initialized: false
+  notes: |
+    Target deployment: distro Linux específica para OSINT y forense.
+    Packaging, dependencias e integración con ecosistema (TheHive, MISP) son importantes.

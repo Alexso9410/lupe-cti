@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "TryHackMe Room Scraper",
+  "description": "Extrae todo el contenido de las rooms de TryHackMe automaticamente",
+  "version": "1.0",
+  "permissions": [
+    "activeTab",
+    "downloads",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://tryhackme.com/*"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://tryhackme.com/room/*", "https://tryhackme.com/module/*"],
+      "js": ["content.js"]
+    }
+  ]
+}

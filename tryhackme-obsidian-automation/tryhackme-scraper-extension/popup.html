@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      width: 320px;
+      padding: 16px;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #1a1a2e;
+      color: #eee;
+    }
+    h1 {
+      font-size: 16px;
+      margin: 0 0 12px 0;
+      color: #00ff88;
+    }
+    .status {
+      background: #16213e;
+      padding: 10px;
+      border-radius: 6px;
+      margin: 10px 0;
+      font-size: 12px;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      background: #00ff88;
+      color: #1a1a2e;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 14px;
+    }
+    button:hover {
+      background: #00cc6a;
+    }
+    button:disabled {
+      background: #444;
+      color: #888;
+      cursor: not-allowed;
+    }
+    .progress {
+      display: none;
+      margin-top: 10px;
+    }
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: #16213e;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: #00ff88;
+      width: 0%;
+      transition: width 0.3s;
+    }
+    .info {
+      font-size: 11px;
+      color: #888;
+      margin-top: 8px;
+    }
+    #result {
+      display: none;
+      margin-top: 12px;
+      padding: 10px;
+      background: #0f3460;
+      border-radius: 6px;
+      font-size: 12px;
+    }
+    .success {
+      color: #00ff88;
+    }
+    .error {
+      color: #ff6b6b;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔷 TryHackMe Scraper</h1>
+  
+  <div class="status" id="status">
+    Esperando acción...
+  </div>
+
+  <button id="extractBtn">📥 Extraer Contenido</button>
+  <button id="downloadBtn" style="display:none;">💾 Descargar JSON</button>
+  
+  <div class="progress" id="progress">
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+    <div class="info" id="progressText">0 / 0 tareas</div>
+  </div>
+
+  <div id="result"></div>
+
+  <div class="info">
+    Visita una room de TryHackMe y presiona "Extraer Contenido"
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

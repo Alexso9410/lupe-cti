@@ -1,0 +1,2576 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Centinela - IOC Enrichment Platform</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --bg-hover: #30363d;
+            --border-default: #30363d;
+            --border-muted: #21262d;
+
+            --accent-cyan: #00b4d8;
+            --accent-cyan-glow: rgba(0, 180, 216, 0.3);
+            --accent-green: #39d353;
+            --accent-green-glow: rgba(57, 211, 83, 0.3);
+
+            --severity-critical: #da3633;
+            --severity-high: #d29922;
+            --severity-medium: #58a6ff;
+            --severity-low: #39d353;
+            --severity-info: #8b949e;
+
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --text-muted: #6e7681;
+
+            --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+
+            --radius-sm: 6px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.4);
+            --shadow-glow-cyan: 0 0 20px var(--accent-cyan-glow);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            overflow: hidden;
+            height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-secondary); }
+        ::-webkit-scrollbar-thumb { background: var(--bg-tertiary); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--bg-hover); }
+
+        /* Layout */
+        .app-container {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background-color: var(--bg-secondary);
+            border-right: 1px solid var(--border-default);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .sidebar-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border-muted);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-green));
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--bg-primary);
+            font-size: 18px;
+        }
+
+        .brand-text h1 { font-size: 18px; font-weight: 600; letter-spacing: 0.5px; color: var(--text-primary); }
+        .brand-text span { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; }
+
+        .nav-menu {
+            flex: 1;
+            padding: 16px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+        }
+
+        .nav-item:hover { background-color: var(--bg-tertiary); color: var(--text-primary); }
+        .nav-item.active {
+            background-color: rgba(0, 180, 216, 0.1);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(0, 180, 216, 0.2);
+        }
+
+        .nav-icon { font-size: 18px; width: 24px; text-align: center; }
+
+        /* Stats strip below nav */
+        .stats-strip {
+            padding: 12px 16px;
+            border-top: 1px solid var(--border-muted);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .stat-item {
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-sm);
+            padding: 8px 10px;
+            text-align: center;
+        }
+
+        .stat-value { font-size: 18px; font-weight: 700; color: var(--accent-cyan); font-family: var(--font-mono); }
+        .stat-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+        .sidebar-footer {
+            padding: 12px 16px;
+            border-top: 1px solid var(--border-muted);
+            font-size: 12px;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-primary);
+        }
+
+        .view {
+            display: none;
+            height: 100%;
+            overflow-y: auto;
+            padding: 32px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .view.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Global Loading Overlay */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(13, 17, 23, 0.85);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 16px;
+            backdrop-filter: blur(4px);
+        }
+
+        .loading-overlay.active { display: flex; }
+
+        .loading-spinner-large {
+            width: 48px;
+            height: 48px;
+            border: 3px solid rgba(0, 180, 216, 0.2);
+            border-top-color: var(--accent-cyan);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .loading-message { color: var(--text-secondary); font-size: 14px; }
+
+        /* Error Toast */
+        .error-toast {
+            display: none;
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: rgba(218, 54, 51, 0.15);
+            border: 1px solid rgba(218, 54, 51, 0.4);
+            border-radius: var(--radius-md);
+            padding: 14px 20px;
+            max-width: 420px;
+            color: var(--severity-critical);
+            font-size: 13px;
+            z-index: 3000;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .error-toast.active { display: block; }
+        .error-toast-close { float: right; cursor: pointer; margin-left: 12px; opacity: 0.7; }
+        .error-toast-close:hover { opacity: 1; }
+
+        /* Success Toast */
+        .success-toast {
+            display: none;
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: rgba(57, 211, 83, 0.15);
+            border: 1px solid rgba(57, 211, 83, 0.4);
+            border-radius: var(--radius-md);
+            padding: 14px 20px;
+            max-width: 420px;
+            color: var(--accent-green);
+            font-size: 13px;
+            z-index: 3000;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .success-toast.active { display: block; }
+
+        /* View Header */
+        .view-header {
+            margin-bottom: 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .view-title { font-size: 28px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px; }
+        .view-subtitle { color: var(--text-secondary); font-size: 14px; }
+
+        /* Input Section */
+        .input-section {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            margin-bottom: 32px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .input-group { margin-bottom: 24px; }
+
+        .input-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .ioc-input {
+            width: 100%;
+            padding: 16px;
+            background-color: var(--bg-primary);
+            border: 2px solid var(--border-default);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-family: var(--font-mono);
+            font-size: 16px;
+            transition: all 0.2s;
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .ioc-input:focus {
+            outline: none;
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 0 3px var(--accent-cyan-glow);
+        }
+
+        .ioc-input::placeholder { color: var(--text-muted); }
+
+        .button-group { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background-color: var(--accent-cyan);
+            color: var(--bg-primary);
+            box-shadow: 0 2px 8px rgba(0, 180, 216, 0.3);
+        }
+
+        .btn-primary:hover { background-color: #00c2e8; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0, 180, 216, 0.4); }
+        .btn-primary:active { transform: translateY(0); }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+        .btn-secondary {
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-default);
+        }
+
+        .btn-secondary:hover { background-color: var(--bg-hover); border-color: var(--text-muted); }
+        .btn-secondary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .btn-danger {
+            background-color: rgba(218, 54, 51, 0.15);
+            color: var(--severity-critical);
+            border: 1px solid rgba(218, 54, 51, 0.3);
+        }
+
+        .btn-danger:hover { background-color: rgba(218, 54, 51, 0.25); }
+
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(0, 180, 216, 0.3);
+            border-top-color: var(--accent-cyan);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            display: none;
+        }
+
+        .btn.loading .spinner { display: inline-block; }
+        .btn.loading .btn-text { display: none; }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Case selector (inline, for enrich+save flow) */
+        .case-selector-row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .form-select {
+            padding: 10px 14px;
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-size: 14px;
+            min-width: 220px;
+        }
+
+        .form-select:focus {
+            outline: none;
+            border-color: var(--accent-cyan);
+        }
+
+        /* Results Grid */
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .enrich-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .enrich-card:hover { border-color: var(--border-muted); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+
+        .card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-muted);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.2);
+        }
+
+        .card-source { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 14px; color: var(--text-primary); }
+
+        .source-icon {
+            width: 28px;
+            height: 28px;
+            background-color: var(--bg-tertiary);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .severity-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .severity-critical { background-color: rgba(218, 54, 51, 0.2); color: var(--severity-critical); border: 1px solid rgba(218, 54, 51, 0.3); }
+        .severity-high { background-color: rgba(210, 153, 34, 0.2); color: var(--severity-high); border: 1px solid rgba(210, 153, 34, 0.3); }
+        .severity-medium { background-color: rgba(88, 166, 255, 0.2); color: var(--severity-medium); border: 1px solid rgba(88, 166, 255, 0.3); }
+        .severity-low { background-color: rgba(57, 211, 83, 0.2); color: var(--severity-low); border: 1px solid rgba(57, 211, 83, 0.3); }
+        .severity-info { background-color: rgba(139, 148, 158, 0.2); color: var(--severity-info); border: 1px solid rgba(139, 148, 158, 0.3); }
+
+        .card-body { padding: 20px; flex: 1; }
+
+        .data-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 13px; }
+        .data-row:last-child { margin-bottom: 0; }
+        .data-label { color: var(--text-secondary); font-weight: 500; }
+        .data-value { color: var(--text-primary); font-family: var(--font-mono); font-weight: 600; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        .card-footer {
+            padding: 12px 20px;
+            border-top: 1px solid var(--border-muted);
+            font-size: 11px;
+            color: var(--text-muted);
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+
+        /* AI Analysis Panel */
+        .ai-panel {
+            background: linear-gradient(135deg, rgba(0, 180, 216, 0.05), rgba(57, 211, 83, 0.05));
+            border: 1px solid var(--accent-cyan);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ai-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-green));
+        }
+
+        .ai-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+            color: var(--accent-cyan);
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .ai-content { color: var(--text-primary); line-height: 1.8; font-size: 14px; }
+        .ai-content p { margin-bottom: 12px; }
+        .ai-content strong { color: var(--accent-cyan); }
+
+        /* Cases Table */
+        .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+
+        .cases-table-container {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+        }
+
+        .cases-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+
+        .cases-table th {
+            text-align: left;
+            padding: 16px 20px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border-default);
+            background-color: rgba(0, 0, 0, 0.2);
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+
+        .cases-table td {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-muted);
+            color: var(--text-primary);
+        }
+
+        .cases-table tr:last-child td { border-bottom: none; }
+        .cases-table tr:hover td { background-color: var(--bg-tertiary); cursor: pointer; }
+
+        .case-id { font-family: var(--font-mono); color: var(--accent-cyan); font-size: 12px; }
+
+        .case-status {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-open { background-color: rgba(210, 153, 34, 0.2); color: var(--severity-high); }
+        .status-closed { background-color: rgba(57, 211, 83, 0.2); color: var(--severity-low); }
+        .status-investigating { background-color: rgba(0, 180, 216, 0.2); color: var(--accent-cyan); }
+
+        /* Timeline */
+        .timeline-container {
+            display: none;
+            margin-top: 32px;
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+        }
+
+        .timeline-container.active { display: block; animation: fadeIn 0.3s ease; }
+
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-muted);
+        }
+
+        .timeline { position: relative; padding-left: 32px; }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 8px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background-color: var(--border-default);
+        }
+
+        .timeline-item { position: relative; margin-bottom: 24px; padding-bottom: 24px; }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -28px;
+            top: 4px;
+            width: 12px;
+            height: 12px;
+            background-color: var(--accent-cyan);
+            border-radius: 50%;
+            border: 3px solid var(--bg-secondary);
+            box-shadow: 0 0 0 2px var(--accent-cyan);
+        }
+
+        .timeline-time { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; font-family: var(--font-mono); }
+        .timeline-content { color: var(--text-primary); font-size: 14px; }
+        .timeline-title { font-weight: 600; margin-bottom: 4px; color: var(--text-primary); }
+
+        /* Config Form */
+        .config-form {
+            max-width: 600px;
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+        }
+
+        .form-group { margin-bottom: 24px; }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .form-input:focus { outline: none; border-color: var(--accent-cyan); box-shadow: 0 0 0 3px var(--accent-cyan-glow); }
+
+        .input-hint { margin-top: 6px; font-size: 12px; color: var(--text-muted); }
+
+        .password-wrapper { position: relative; }
+
+        .toggle-pass {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 12px;
+            padding: 4px;
+        }
+
+        .toggle-pass:hover { color: var(--text-primary); }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal.active { display: flex; }
+
+        .modal-content {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-lg);
+            width: 90%;
+            max-width: 500px;
+            padding: 32px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            animation: modalSlide 0.3s ease;
+        }
+
+        @keyframes modalSlide {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-header { margin-bottom: 24px; }
+        .modal-title { font-size: 20px; font-weight: 600; color: var(--text-primary); }
+        .modal-footer { margin-top: 24px; display: flex; justify-content: flex-end; gap: 12px; }
+
+        /* Empty State */
+        .empty-state { text-align: center; padding: 64px 32px; color: var(--text-muted); }
+        .empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+
+        .hidden { display: none !important; }
+
+        /* IOC type badge */
+        .ioc-type-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background-color: rgba(0, 180, 216, 0.15);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(0, 180, 216, 0.3);
+            margin-left: 8px;
+            font-family: var(--font-mono);
+        }
+
+        /* Case detail notes area */
+        .notes-area {
+            margin-top: 24px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .notes-area textarea {
+            flex: 1;
+            padding: 10px 14px;
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-size: 13px;
+            resize: none;
+            height: 60px;
+        }
+
+        .notes-area textarea:focus { outline: none; border-color: var(--accent-cyan); }
+
+        @media (max-width: 1200px) { .results-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) { .sidebar { width: 200px; } .results-grid { grid-template-columns: 1fr; } }
+
+        /* ─── Email Analyzer ─── */
+        .email-dropzone {
+            border: 2px dashed var(--border-default);
+            border-radius: 8px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+            margin-top: 8px;
+        }
+        .email-dropzone:hover,
+        .email-dropzone.drag-over {
+            border-color: var(--accent-cyan);
+            background: rgba(0, 180, 216, 0.05);
+        }
+        .email-selected-file {
+            display: flex;
+            align-items: center;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-default);
+            border-radius: 6px;
+            padding: 8px 12px;
+        }
+        .email-options {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-default);
+            border-radius: 8px;
+            padding: 16px;
+        }
+        .email-header-row td {
+            padding: 6px 0;
+            vertical-align: top;
+        }
+        .email-header-row td:first-child {
+            color: var(--text-secondary);
+            font-size: 12px;
+            width: 90px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding-right: 12px;
+            white-space: nowrap;
+        }
+        .email-header-row td:last-child {
+            color: var(--text-primary);
+            font-size: 13px;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <!-- Global Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-spinner-large"></div>
+        <div id="loading-message" class="loading-message">Procesando...</div>
+    </div>
+
+    <!-- Error Toast -->
+    <div id="error-toast" class="error-toast">
+        <span class="error-toast-close" onclick="hideError()">&#x2715;</span>
+        <span id="error-toast-text"></span>
+    </div>
+
+    <!-- Success Toast -->
+    <div id="success-toast" class="success-toast">
+        <span id="success-toast-text"></span>
+    </div>
+
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-icon">&#x25C8;</div>
+                <div class="brand-text">
+                    <h1>CENTINELA</h1>
+                    <span>IOC Enrichment</span>
+                </div>
+            </div>
+
+            <nav class="nav-menu">
+                <button class="nav-item active" onclick="navigateTo('enrich')">
+                    <span class="nav-icon">&#128269;</span>
+                    <span>Enriquecer IOC</span>
+                </button>
+                <button class="nav-item" onclick="navigateTo('cases')">
+                    <span class="nav-icon">&#128203;</span>
+                    <span>Casos de Investigación</span>
+                </button>
+                <button class="nav-item" onclick="navigateTo('config')">
+                    <span class="nav-icon">&#9881;&#65039;</span>
+                    <span>Configuración</span>
+                </button>
+                <button class="nav-item" onclick="navigateTo('email')">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="width: 18px; height: 18px;">
+                        <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1H2zm13 2.383-4.708 2.825L15 11.105V5.383zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741zM1 11.105l4.708-2.897L1 5.383v5.722z"/>
+                    </svg>
+                    <span>Analizar Email</span>
+                </button>
+                <button class="nav-item" onclick="navigateTo('persona')">
+                    <span class="nav-icon">&#128100;</span>
+                    <span>Persona OSINT</span>
+                </button>
+            </nav>
+
+            <div class="stats-strip">
+                <div class="stat-item">
+                    <div class="stat-value" id="stat-iocs">—</div>
+                    <div class="stat-label">IOCs</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="stat-cases">—</div>
+                    <div class="stat-label">Casos</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="stat-open">—</div>
+                    <div class="stat-label">Abiertos</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="stat-enrichments">—</div>
+                    <div class="stat-label">Enriq.</div>
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                v1.0.0 &bull; Heimdall Security
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+
+            <!-- Vista 1: Enriquecer IOC -->
+            <section id="view-enrich" class="view active">
+                <div class="view-header">
+                    <div>
+                        <h2 class="view-title">Enriquecer IOC</h2>
+                        <p class="view-subtitle">Analiza IPs, dominios, hashes y URLs contra múltiples fuentes de inteligencia</p>
+                    </div>
+                </div>
+
+                <div class="input-section">
+                    <div class="input-group">
+                        <label class="input-label">Indicador de Compromiso (IOC)</label>
+                        <textarea
+                            id="ioc-input"
+                            class="ioc-input"
+                            placeholder="Ingresa IP, dominio, hash SHA256/MD5 o URL...&#10;Ej: 185.220.101.34, ebadb2c8..., malware.com"
+                        ></textarea>
+                    </div>
+
+                    <div class="button-group">
+                        <button id="btn-analyze" class="btn btn-primary" onclick="analyzeIOC()">
+                            <span class="spinner"></span>
+                            <span class="btn-text">&#128269; Analizar IOC</span>
+                        </button>
+                        <button class="btn btn-secondary" onclick="clearResults()">
+                            Limpiar
+                        </button>
+                    </div>
+
+                    <!-- Enrich + Save to Case row (shown after successful enrichment) -->
+                    <div id="save-to-case-row" class="case-selector-row hidden">
+                        <select id="case-select-enrich" class="form-select">
+                            <option value="">Selecciona un caso...</option>
+                        </select>
+                        <button class="btn btn-primary" onclick="enrichAndSave()" id="btn-save-case">
+                            <span class="spinner"></span>
+                            <span class="btn-text">&#128190; Guardar en Caso</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Results Container -->
+                <div id="results-container" class="hidden">
+                    <div class="view-header" style="margin-bottom: 20px;">
+                        <h3 style="font-size: 18px; color: var(--text-secondary);">
+                            Resultados del Análisis
+                            <span id="result-ioc-badge" class="ioc-type-badge"></span>
+                        </h3>
+                    </div>
+
+                    <div id="results-grid" class="results-grid">
+                        <!-- Cards rendered dynamically -->
+                    </div>
+
+                    <!-- AI Analysis Panel -->
+                    <div id="ai-panel" class="ai-panel hidden">
+                        <div class="ai-header">
+                            <span>&#129302;</span>
+                            <span>Análisis por IA (Kimi)</span>
+                        </div>
+                        <div id="ai-content" class="ai-content"></div>
+                    </div>
+                </div>
+
+                <div id="empty-results" class="empty-state">
+                    <div class="empty-icon">&#128269;</div>
+                    <p>Ingresa un IOC y presiona "Analizar" para comenzar la investigación</p>
+                </div>
+            </section>
+
+            <!-- Vista 2: Casos de Investigación -->
+            <section id="view-cases" class="view">
+                <div class="view-header">
+                    <div>
+                        <h2 class="view-title">Casos de Investigación</h2>
+                        <p class="view-subtitle">Gestiona incidentes de seguridad y su historial de análisis</p>
+                    </div>
+                </div>
+
+                <div class="toolbar">
+                    <div style="display: flex; gap: 12px;">
+                        <button class="btn btn-primary" onclick="openNewCaseModal()">
+                            <span>+</span>
+                            <span>Nuevo Caso</span>
+                        </button>
+                        <button class="btn btn-secondary" onclick="loadCases()">
+                            &#128260; Actualizar
+                        </button>
+                    </div>
+                    <div style="color: var(--text-muted); font-size: 14px;">
+                        <span id="cases-count">0</span> casos totales
+                    </div>
+                </div>
+
+                <div class="cases-table-container">
+                    <table class="cases-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Título</th>
+                                <th>IOCs</th>
+                                <th>Estado</th>
+                                <th>Fecha Creación</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cases-tbody">
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Timeline / Case Detail -->
+                <div id="case-timeline" class="timeline-container">
+                    <div class="timeline-header">
+                        <div>
+                            <h3 id="timeline-title" style="font-size: 20px; margin-bottom: 4px;"></h3>
+                            <span id="timeline-subtitle" style="color: var(--text-secondary); font-size: 14px;">Timeline de investigación</span>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-secondary" id="btn-export-obsidian" onclick="exportCaseObsidian()">
+                                &#128196; Exportar Obsidian
+                            </button>
+                            <button class="btn btn-danger" id="btn-close-case" onclick="closeCurrentCase()">
+                                Cerrar Caso
+                            </button>
+                            <button class="btn btn-secondary" onclick="closeTimeline()">Cerrar</button>
+                        </div>
+                    </div>
+                    <div id="timeline-content" class="timeline"></div>
+
+                    <!-- Add note to case -->
+                    <div class="notes-area">
+                        <textarea id="case-note-input" placeholder="Agrega una nota al caso..."></textarea>
+                        <button class="btn btn-secondary" onclick="addNoteToCase()">Agregar nota</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Vista 3: Configuración -->
+            <section id="view-config" class="view">
+                <div class="view-header">
+                    <div>
+                        <h2 class="view-title">Configuración</h2>
+                        <p class="view-subtitle">Gestiona claves API y parámetros del sistema</p>
+                    </div>
+                </div>
+
+                <form class="config-form" onsubmit="event.preventDefault(); saveConfig();">
+                    <div class="form-group">
+                        <label class="form-label">AbuseIPDB API Key</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="api-abuseipdb" class="form-input" placeholder="Ingresa tu API key">
+                            <button type="button" class="toggle-pass" onclick="togglePassword('api-abuseipdb')">&#128065;</button>
+                        </div>
+                        <div class="input-hint">Requerido para consultas de reputación IP</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">VirusTotal API Key</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="api-virustotal" class="form-input" placeholder="Ingresa tu API key">
+                            <button type="button" class="toggle-pass" onclick="togglePassword('api-virustotal')">&#128065;</button>
+                        </div>
+                        <div class="input-hint">API v3 para análisis de archivos y URLs</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Shodan API Key</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="api-shodan" class="form-input" placeholder="Ingresa tu API key">
+                            <button type="button" class="toggle-pass" onclick="togglePassword('api-shodan')">&#128065;</button>
+                        </div>
+                        <div class="input-hint">Para búsqueda de dispositivos expuestos</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">OTX API Key</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="api-otx" class="form-input" placeholder="Ingresa tu API key">
+                            <button type="button" class="toggle-pass" onclick="togglePassword('api-otx')">&#128065;</button>
+                        </div>
+                        <div class="input-hint">AlienVault OTX Threat Intelligence</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">URLScan API Key</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="api-urlscan" class="form-input" placeholder="Ingresa tu API key">
+                            <button type="button" class="toggle-pass" onclick="togglePassword('api-urlscan')">&#128065;</button>
+                        </div>
+                        <div class="input-hint">Para escaneo de URLs sospechosas</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">HaveIBeenPwned API Key</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="api-hibp" class="form-input" placeholder="Ingresa tu API key">
+                            <button type="button" class="toggle-pass" onclick="togglePassword('api-hibp')">&#128065;</button>
+                        </div>
+                        <div class="input-hint">Para verificar emails y brechas de datos</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">GreyNoise API Key</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="api-greynoise" class="form-input" placeholder="Ingresa tu API key">
+                            <button type="button" class="toggle-pass" onclick="togglePassword('api-greynoise')">&#128065;</button>
+                        </div>
+                        <div class="input-hint">Community API para clasificación de IPs (ruido vs amenaza)</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">IPQS API Key</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="api-ipqs" class="form-input" placeholder="Ingresa tu API key">
+                            <button type="button" class="toggle-pass" onclick="togglePassword('api-ipqs')">&#128065;</button>
+                        </div>
+                        <div class="input-hint">Detección de proxies, VPN, Tor y bots</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">NumVerify API Key</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="api-numverify" class="form-input" placeholder="Ingresa tu API key">
+                            <button type="button" class="toggle-pass" onclick="togglePassword('api-numverify')">&#128065;</button>
+                        </div>
+                        <div class="input-hint">Validación y lookup de números telefónicos</div>
+                    </div>
+
+                    <div style="border-top: 1px solid var(--border-muted); margin: 24px 0;"></div>
+
+                    <h3 style="font-size: 18px; font-weight: 700; margin: 24px 0 8px; color: var(--text-primary);">Plugins nuevos (recién agregados)</h3>
+                    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Estos plugins funcionan sin API key o con cuota gratuita. Agregá una key si tenés registrada.</p>
+
+                    <div class="form-group">
+                        <label class="form-label">EmailRep API Key</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="api-emailrep" class="form-input" placeholder="Opcional — funciona con cuota baja">
+                            <button type="button" class="toggle-pass" onclick="togglePassword('api-emailrep')">&#128065;</button>
+                        </div>
+                        <div class="input-hint">Reputación de emails — funciona sin key (cuota gratuita)</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Google SafeBrowsing API Key</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="api-googlesb" class="form-input" placeholder="Ingresa tu API key">
+                            <button type="button" class="toggle-pass" onclick="togglePassword('api-googlesb')">&#128065;</button>
+                        </div>
+                        <div class="input-hint">Google SafeBrowsing v4 — detección de URLs/dominios maliciosos</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">PhishTank API Key</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="api-phishtank" class="form-input" placeholder="Ingresa tu API key">
+                            <button type="button" class="toggle-pass" onclick="togglePassword('api-phishtank')">&#128065;</button>
+                        </div>
+                        <div class="input-hint">Base de datos de sitios phishing — gratis en phishtank.com</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Pulsedive API Key</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="api-pulsedive" class="form-input" placeholder="Ingresa tu API key">
+                            <button type="button" class="toggle-pass" onclick="togglePassword('api-pulsedive')">&#128065;</button>
+                        </div>
+                        <div class="input-hint">Intel de IPs, dominios y URLs — gratis (community tier)</div>
+                    </div>
+
+                    <div style="border-top: 1px solid var(--border-muted); margin: 24px 0;"></div>
+
+                    <div class="form-group">
+                        <label class="form-label">Ollama URL</label>
+                        <input type="text" id="ollama-url" class="form-input" placeholder="http://localhost:11434">
+                        <div class="input-hint">Endpoint de Ollama para análisis IA local</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Modelo IA</label>
+                        <input type="text" id="ollama-model" class="form-input" placeholder="kimi-k2.5:cloud">
+                        <div class="input-hint">Modelo utilizado para el análisis de resultados</div>
+                    </div>
+
+                    <div class="button-group" style="margin-top: 32px;">
+                        <button type="submit" class="btn btn-primary" id="btn-save-config">
+                            <span class="spinner"></span>
+                            <span class="btn-text">Guardar Configuración</span>
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Vista 4: Analizar Email -->
+            <section id="view-email" class="view">
+
+                <!-- ESTADO 1: Upload -->
+                <div id="email-upload-section">
+                    <div class="view-header">
+                        <h1>Analizar Email Sospechoso</h1>
+                        <p class="view-subtitle">Importá un .eml y obtené score de phishing, IOCs e informe PDF</p>
+                    </div>
+
+                    <!-- Dropzone -->
+                    <div id="email-dropzone" class="email-dropzone">
+                        <svg width="48" height="48" viewBox="0 0 16 16" fill="currentColor" style="color: var(--text-secondary); margin-bottom: 12px;">
+                            <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1H2zm13 2.383-4.708 2.825L15 11.105V5.383zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741zM1 11.105l4.708-2.897L1 5.383v5.722z"/>
+                        </svg>
+                        <p style="color: var(--text-secondary); margin-bottom: 8px;">Arrastrá un archivo .eml acá</p>
+                        <p style="color: var(--text-muted, #484f58); font-size: 12px; margin-bottom: 16px;">o</p>
+                        <button class="btn btn-secondary" onclick="openEmailFilePicker()">Elegir archivo .eml</button>
+                    </div>
+
+                    <!-- Archivo seleccionado -->
+                    <div id="email-selected-file" style="display: none; margin-top: 12px;" class="email-selected-file">
+                        <span id="email-selected-name" style="font-family: monospace; color: var(--accent-cyan);"></span>
+                        <button onclick="clearSelectedEmail()" style="background: none; border: none; color: var(--text-secondary); cursor: pointer; margin-left: 8px;">✕</button>
+                    </div>
+
+                    <!-- Opciones -->
+                    <div class="email-options" style="margin-top: 20px;">
+                        <div class="form-group">
+                            <label class="form-label">Caso de investigación (opcional)</label>
+                            <select id="email-case-select" class="form-input">
+                                <option value="">Sin caso</option>
+                            </select>
+                        </div>
+
+                        <div style="display: flex; gap: 24px; margin-top: 12px; flex-wrap: wrap;">
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-primary);">
+                                <input type="checkbox" id="email-use-ai" checked style="accent-color: var(--accent-cyan);">
+                                Análisis con IA
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-primary);">
+                                <input type="checkbox" id="email-export-pdf" style="accent-color: var(--accent-cyan);">
+                                Exportar PDF automáticamente
+                            </label>
+                        </div>
+
+                        <!-- Dir PDF (oculto hasta que se marque el checkbox) -->
+                        <div id="email-pdf-dir-row" style="display: none; margin-top: 12px; align-items: center; gap: 8px; flex-wrap: wrap;">
+                            <input type="text" id="email-pdf-dir" class="form-input" placeholder="Directorio de salida del PDF..." readonly style="flex: 1; min-width: 200px;">
+                            <button class="btn btn-secondary" onclick="openPdfDirPicker()">Examinar...</button>
+                        </div>
+                    </div>
+
+                    <!-- Botón analizar -->
+                    <div style="margin-top: 24px;">
+                        <button id="btn-analyze-email" class="btn btn-primary" style="width: 100%; padding: 12px;" onclick="analyzeEmail()" disabled>
+                            Analizar Email
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ESTADO 2: Resultados -->
+                <div id="email-results-section" style="display: none;">
+
+                    <!-- Toolbar resultados -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap;">
+                        <button class="btn btn-secondary" onclick="showEmailUpload()">← Analizar otro</button>
+                        <span id="email-result-filename" style="font-family: monospace; color: var(--text-secondary); font-size: 13px;"></span>
+                    </div>
+
+                    <!-- Score + Clasificación IA -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+
+                        <div class="card" id="email-score-card">
+                            <div class="card-header" style="background: var(--bg-tertiary);">
+                                <span style="font-weight: 600; color: var(--text-primary);">Score de Phishing</span>
+                            </div>
+                            <div style="padding: 16px; text-align: center;">
+                                <div id="email-score-value" style="font-size: 36px; font-weight: 700; font-family: monospace;"></div>
+                                <div style="margin: 12px 0; background: var(--bg-tertiary); border-radius: 4px; height: 10px; overflow: hidden;">
+                                    <div id="email-score-bar" style="height: 100%; border-radius: 4px; transition: width 0.6s ease;"></div>
+                                </div>
+                                <div id="email-score-indicators" style="text-align: left; margin-top: 8px;"></div>
+                            </div>
+                        </div>
+
+                        <div class="card" id="email-ai-card">
+                            <div class="card-header" style="background: var(--bg-tertiary);">
+                                <span style="font-weight: 600; color: var(--text-primary);">Análisis IA</span>
+                            </div>
+                            <div id="email-ai-content" style="padding: 16px;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Datos del email -->
+                    <div class="card" style="margin-bottom: 16px;">
+                        <div class="card-header" style="background: var(--bg-tertiary);">
+                            <span style="font-weight: 600; color: var(--text-primary);">Datos del Email</span>
+                        </div>
+                        <div style="padding: 16px;">
+                            <table id="email-headers-table" style="width: 100%; border-collapse: collapse; font-size: 13px;"></table>
+                            <div style="margin-top: 12px; display: flex; gap: 12px; flex-wrap: wrap;">
+                                <span style="color: var(--text-secondary); font-size: 12px; align-self: center;">Autenticación:</span>
+                                <span id="badge-spf"></span>
+                                <span id="badge-dkim"></span>
+                                <span id="badge-dmarc"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- IOCs encontrados -->
+                    <div class="card" style="margin-bottom: 16px;">
+                        <div class="card-header" style="background: var(--bg-tertiary);">
+                            <span style="font-weight: 600; color: var(--text-primary);">IOCs Encontrados</span>
+                            <span id="email-ioc-count" style="background: var(--bg-secondary); color: var(--text-secondary); padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-left: 8px;"></span>
+                        </div>
+                        <div id="email-iocs-content" style="padding: 16px;"></div>
+                    </div>
+
+                    <!-- Recomendaciones IA -->
+                    <div id="email-recommendations-card" class="card" style="margin-bottom: 16px; display: none;">
+                        <div class="card-header" style="background: var(--bg-tertiary);">
+                            <span style="font-weight: 600; color: var(--text-primary);">Recomendaciones</span>
+                        </div>
+                        <div id="email-recommendations-content" style="padding: 16px;"></div>
+                    </div>
+
+                    <!-- Adjuntos -->
+                    <div class="card" style="margin-bottom: 16px;">
+                        <div class="card-header" style="background: var(--bg-tertiary);">
+                            <span style="font-weight: 600; color: var(--text-primary);">Adjuntos</span>
+                        </div>
+                        <div id="email-attachments-content" style="padding: 16px;"></div>
+                    </div>
+
+                    <!-- Acciones finales -->
+                    <div style="display: flex; gap: 12px; margin-top: 8px; flex-wrap: wrap;">
+                        <button id="btn-export-pdf" class="btn btn-secondary" onclick="exportEmailPdf()">📄 Exportar PDF</button>
+                        <button id="btn-save-email-case" class="btn btn-secondary" onclick="saveEmailAnalysisToCase()" style="display: none;">💾 Guardar en Caso</button>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- Vista 5: Persona OSINT -->
+            <section id="view-persona" class="view">
+                <div class="view-header">
+                    <h2 class="view-title">&#128100; Persona OSINT</h2>
+                    <p class="view-subtitle">Investigá una persona por teléfono y/o username en fuentes abiertas</p>
+                </div>
+
+                <!-- Formulario de búsqueda -->
+                <div class="card" style="margin-bottom: 20px;">
+                    <div class="card-header" style="background: var(--bg-tertiary);">
+                        <span style="font-weight: 600;">Datos del objetivo</span>
+                    </div>
+                    <div style="padding: 16px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
+                        <div class="form-group">
+                            <label class="form-label">Nombre (referencia)</label>
+                            <input type="text" id="persona-name" class="form-input" placeholder="Juan Pérez">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Teléfono</label>
+                            <input type="text" id="persona-phone" class="form-input" placeholder="+54 9 2954 123456">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Username</label>
+                            <input type="text" id="persona-username" class="form-input" placeholder="jperez">
+                        </div>
+                    </div>
+                    <div style="padding: 0 16px 16px;">
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <input type="email" id="persona-email" class="form-input" placeholder="usuario@ejemplo.com">
+                        </div>
+                    </div>
+                    <div style="padding: 0 16px 16px; display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <label class="form-label" style="margin: 0;">Caso (opcional)</label>
+                            <select id="persona-case-select" class="form-input" style="width: auto; min-width: 160px;">
+                                <option value="">Sin caso</option>
+                            </select>
+                        </div>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin-left: auto;">
+                            <input type="checkbox" id="persona-no-ai" style="accent-color: var(--accent-cyan);">
+                            <span style="font-size: 13px; color: var(--text-secondary);">Sin análisis IA</span>
+                        </label>
+                        <button id="btn-persona-enrich" class="btn btn-primary" style="padding: 10px 28px;" onclick="enrichPerson()">
+                            Investigar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Estado: sin resultados -->
+                <div id="persona-empty" style="text-align: center; padding: 48px; color: var(--text-secondary);">
+                    <div style="font-size: 48px; margin-bottom: 16px;">&#128100;</div>
+                    <p>Ingresá un teléfono, username o ambos para comenzar la investigación.</p>
+                </div>
+
+                <!-- Estado: loading -->
+                <div id="persona-loading" style="display: none; text-align: center; padding: 48px;">
+                    <div class="spinner" style="margin: 0 auto 16px;"></div>
+                    <p style="color: var(--text-secondary);">Investigando...</p>
+                </div>
+
+                <!-- Resultados -->
+                <div id="persona-results" style="display: none;">
+
+                    <!-- Dos columnas: Teléfono | Redes sociales -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+
+                        <!-- Columna teléfono -->
+                        <div class="card" id="persona-phone-card">
+                            <div class="card-header" style="background: var(--bg-tertiary); display: flex; align-items: center; gap: 8px;">
+                                <span>&#128222;</span>
+                                <span style="font-weight: 600;">Teléfono</span>
+                                <span id="persona-phone-badge" style="margin-left: auto; font-size: 11px; padding: 2px 8px; border-radius: 4px; background: var(--bg-secondary); color: var(--text-secondary);"></span>
+                            </div>
+                            <div id="persona-phone-content" style="padding: 16px;">
+                                <p style="color: var(--text-secondary); font-size: 13px;">No se consultó teléfono.</p>
+                            </div>
+                        </div>
+
+                        <!-- Columna redes sociales -->
+                        <div class="card" id="persona-social-card">
+                            <div class="card-header" style="background: var(--bg-tertiary); display: flex; align-items: center; gap: 8px;">
+                                <span>&#127760;</span>
+                                <span style="font-weight: 600;">Redes Sociales</span>
+                                <span id="persona-social-badge" style="margin-left: auto; font-size: 11px; padding: 2px 8px; border-radius: 4px; background: var(--bg-secondary); color: var(--text-secondary);"></span>
+                            </div>
+                            <div id="persona-social-content" style="padding: 16px;">
+                                <p style="color: var(--text-secondary); font-size: 13px;">No se consultó username.</p>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Email section -->
+                    <div class="card" id="persona-email-card" style="margin-bottom: 20px;">
+                        <div class="card-header" style="background: var(--bg-tertiary); display: flex; align-items: center; gap: 8px;">
+                            <span>&#9993;&#65039;</span>
+                            <span style="font-weight: 600;">Email</span>
+                            <span id="persona-email-badge" style="margin-left: auto; font-size: 11px; padding: 2px 8px; border-radius: 4px; background: var(--bg-secondary); color: var(--text-secondary);"></span>
+                        </div>
+                        <div id="persona-email-content" style="padding: 16px;">
+                            <p style="color: var(--text-secondary); font-size: 13px;">No se consultó email.</p>
+                        </div>
+                    </div>
+
+                    <!-- Análisis IA -->
+                    <div class="card" id="persona-ai-card" style="display: none; margin-bottom: 20px;">
+                        <div class="card-header" style="background: var(--bg-tertiary);">
+                            <span style="font-weight: 600;">&#129302; Análisis IA</span>
+                        </div>
+                        <div id="persona-ai-content" style="padding: 16px; white-space: pre-wrap; font-size: 13px; line-height: 1.6;"></div>
+                    </div>
+
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Modal Nuevo Caso -->
+    <div id="modal-new-case" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Crear Nuevo Caso</h3>
+            </div>
+            <form onsubmit="event.preventDefault(); createNewCase();">
+                <div class="form-group">
+                    <label class="form-label">Título del Caso</label>
+                    <input type="text" id="new-case-title" class="form-input" placeholder="Ej: Investigación Phishing Banco" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Descripción</label>
+                    <textarea id="new-case-desc" class="form-input" rows="3" placeholder="Descripción breve del incidente..."></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeNewCaseModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btn-create-case">
+                        <span class="spinner"></span>
+                        <span class="btn-text">Crear Caso</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // =====================================================
+        // STATE
+        // =====================================================
+        let _lastEnrichResult = null;   // last enrich_ioc response
+        let _currentCaseId = null;      // case being viewed in timeline
+        let _casesCache = [];           // cached cases for dropdowns
+
+        // =====================================================
+        // UTILITIES
+        // =====================================================
+
+        function showLoading(msg) {
+            document.getElementById('loading-message').textContent = msg || 'Procesando...';
+            document.getElementById('loading-overlay').classList.add('active');
+        }
+
+        function hideLoading() {
+            document.getElementById('loading-overlay').classList.remove('active');
+        }
+
+        function showError(msg) {
+            const toast = document.getElementById('error-toast');
+            document.getElementById('error-toast-text').textContent = msg;
+            toast.classList.add('active');
+            setTimeout(() => toast.classList.remove('active'), 7000);
+        }
+
+        function hideError() {
+            document.getElementById('error-toast').classList.remove('active');
+        }
+
+        function showSuccess(msg) {
+            const toast = document.getElementById('success-toast');
+            document.getElementById('success-toast-text').textContent = msg;
+            toast.classList.add('active');
+            setTimeout(() => toast.classList.remove('active'), 4000);
+        }
+
+        function setBtnLoading(btnId, loading) {
+            const btn = document.getElementById(btnId);
+            if (!btn) return;
+            if (loading) {
+                btn.classList.add('loading');
+                btn.disabled = true;
+            } else {
+                btn.classList.remove('loading');
+                btn.disabled = false;
+            }
+        }
+
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+
+        // =====================================================
+        // NAVIGATION
+        // =====================================================
+
+        function navigateTo(viewName) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+
+            document.getElementById('view-' + viewName).classList.add('active');
+
+            const navItems = document.querySelectorAll('.nav-item');
+            if (viewName === 'enrich') navItems[0].classList.add('active');
+            if (viewName === 'cases') { navItems[1].classList.add('active'); loadCases(); }
+            if (viewName === 'config') { navItems[2].classList.add('active'); loadConfig(); }
+            if (viewName === 'email') navItems[3].classList.add('active');
+            if (viewName === 'persona') { navItems[4].classList.add('active'); loadPersonaCases(); }
+        }
+
+        // =====================================================
+        // STATS
+        // =====================================================
+
+        async function loadStats() {
+            try {
+                const result = await window.pywebview.api.get_stats();
+                if (result.success) {
+                    document.getElementById('stat-iocs').textContent = result.total_iocs;
+                    document.getElementById('stat-cases').textContent = result.total_cases;
+                    document.getElementById('stat-open').textContent = result.open_cases;
+                    document.getElementById('stat-enrichments').textContent = result.total_enrichments;
+                }
+            } catch (e) {
+                // Stats are non-critical — silent fail
+            }
+        }
+
+        // =====================================================
+        // VIEW 1: ENRICH IOC
+        // =====================================================
+
+        async function analyzeIOC() {
+            const iocValue = document.getElementById('ioc-input').value.trim();
+            if (!iocValue) {
+                showError('Por favor ingresa un IOC válido');
+                return;
+            }
+
+            setBtnLoading('btn-analyze', true);
+            showLoading('Enriqueciendo IOC contra múltiples fuentes...');
+
+            // Hide previous results
+            document.getElementById('results-container').classList.add('hidden');
+            document.getElementById('empty-results').classList.add('hidden');
+            document.getElementById('ai-panel').classList.add('hidden');
+            document.getElementById('save-to-case-row').classList.add('hidden');
+
+            try {
+                const result = await window.pywebview.api.enrich_ioc(iocValue);
+
+                if (!result.success) {
+                    showError(result.error || 'Error al analizar el IOC');
+                    document.getElementById('empty-results').classList.remove('hidden');
+                    return;
+                }
+
+                _lastEnrichResult = result;
+                renderEnrichResults(result);
+
+                // Show save-to-case row and populate dropdown
+                await populateCaseDropdown('case-select-enrich');
+                document.getElementById('save-to-case-row').classList.remove('hidden');
+
+                await loadStats();
+
+            } catch (e) {
+                showError('Error inesperado: ' + e.toString());
+                document.getElementById('empty-results').classList.remove('hidden');
+            } finally {
+                setBtnLoading('btn-analyze', false);
+                hideLoading();
+            }
+        }
+
+        function renderEnrichResults(result) {
+            const container = document.getElementById('results-container');
+            const grid = document.getElementById('results-grid');
+            const badge = document.getElementById('result-ioc-badge');
+
+            badge.textContent = result.ioc ? result.ioc.type : '';
+            grid.innerHTML = '';
+
+            if (!result.enrichments || result.enrichments.length === 0) {
+                grid.innerHTML = '<div class="empty-state"><div class="empty-icon">&#128203;</div><p>No se obtuvieron resultados de enriquecimiento.</p></div>';
+            } else {
+                result.enrichments.forEach(e => {
+                    grid.appendChild(createEnrichCard(e));
+                });
+            }
+
+            container.classList.remove('hidden');
+            document.getElementById('empty-results').classList.add('hidden');
+
+            if (result.analysis) {
+                renderAnalysis(result.analysis);
+            }
+        }
+
+        const SOURCE_ICONS = {
+            ipinfo: '&#127758;',
+            abuseipdb: '&#128737;&#65039;',
+            virustotal: '&#128300;',
+            shodan: '&#127760;',
+            otx: '&#128161;',
+            urlscan: '&#128279;',
+            threatfox: '&#128561;',
+            whois: '&#128196;',
+            hibp: '&#128274;',
+        };
+
+        function createEnrichCard(enrichment) {
+            const card = document.createElement('div');
+            card.className = 'enrich-card';
+
+            const severityClass = 'severity-' + (enrichment.severity || 'info');
+            const iconKey = (enrichment.source || '').toLowerCase().replace(/[^a-z]/g, '');
+            const icon = SOURCE_ICONS[iconKey] || '&#128269;';
+
+            // Extract a few representative fields from raw_data for display
+            const rawData = enrichment.raw_data || {};
+            let detailsHtml = '';
+            const maxFields = 5;
+            let count = 0;
+            for (const [k, v] of Object.entries(rawData)) {
+                if (count >= maxFields) break;
+                if (v === null || v === undefined || v === '') continue;
+                const displayVal = typeof v === 'object' ? JSON.stringify(v).substring(0, 60) : String(v).substring(0, 80);
+                detailsHtml += `
+                    <div class="data-row">
+                        <span class="data-label">${escapeHtml(k)}</span>
+                        <span class="data-value" title="${escapeHtml(String(v))}">${escapeHtml(displayVal)}</span>
+                    </div>`;
+                count++;
+            }
+
+            if (!detailsHtml) {
+                detailsHtml = `<div class="data-row"><span class="data-label" style="width:100%">${escapeHtml(enrichment.summary || 'Sin datos')}</span></div>`;
+            }
+
+            card.innerHTML = `
+                <div class="card-header">
+                    <div class="card-source">
+                        <div class="source-icon">${icon}</div>
+                        <span>${escapeHtml(enrichment.source || 'Desconocido')}</span>
+                    </div>
+                    <span class="severity-badge ${severityClass}">${escapeHtml(enrichment.severity || 'info')}</span>
+                </div>
+                <div class="card-body">
+                    <div class="data-row" style="margin-bottom: 14px; border-bottom: 1px solid var(--border-muted); padding-bottom: 10px;">
+                        <span class="data-label" style="flex:1; color: var(--text-primary);">${escapeHtml(enrichment.summary || '')}</span>
+                    </div>
+                    ${detailsHtml}
+                </div>
+                <div class="card-footer">
+                    Consultado: ${enrichment.enriched_at ? new Date(enrichment.enriched_at).toLocaleString('es-AR') : '—'}
+                </div>`;
+
+            return card;
+        }
+
+        function renderAnalysis(text) {
+            const panel = document.getElementById('ai-panel');
+            const container = document.getElementById('ai-content');
+
+            const formatted = text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/\n/g, '<br>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+            container.innerHTML = '<p>' + formatted + '</p>';
+            panel.classList.remove('hidden');
+        }
+
+        function clearResults() {
+            document.getElementById('ioc-input').value = '';
+            document.getElementById('results-container').classList.add('hidden');
+            document.getElementById('ai-panel').classList.add('hidden');
+            document.getElementById('empty-results').classList.remove('hidden');
+            document.getElementById('save-to-case-row').classList.add('hidden');
+            _lastEnrichResult = null;
+        }
+
+        async function enrichAndSave() {
+            const iocValue = document.getElementById('ioc-input').value.trim();
+            const caseId = parseInt(document.getElementById('case-select-enrich').value);
+
+            if (!iocValue) { showError('No hay IOC para guardar'); return; }
+            if (!caseId) { showError('Selecciona un caso de la lista'); return; }
+
+            setBtnLoading('btn-save-case', true);
+            showLoading('Guardando IOC en el caso...');
+
+            try {
+                const result = await window.pywebview.api.enrich_and_save(iocValue, caseId);
+
+                if (!result.success) {
+                    showError(result.error || 'Error al guardar');
+                    return;
+                }
+
+                showSuccess('IOC guardado en el caso correctamente');
+                _lastEnrichResult = result;
+                renderEnrichResults(result);
+                await loadStats();
+
+            } catch (e) {
+                showError('Error inesperado: ' + e.toString());
+            } finally {
+                setBtnLoading('btn-save-case', false);
+                hideLoading();
+            }
+        }
+
+        // =====================================================
+        // VIEW 2: CASES
+        // =====================================================
+
+        async function loadCases() {
+            try {
+                const result = await window.pywebview.api.get_cases();
+                if (!result.success) {
+                    showError(result.error || 'Error al cargar casos');
+                    return;
+                }
+                _casesCache = result.cases || [];
+                renderCasesTable(_casesCache);
+            } catch (e) {
+                showError('Error al cargar casos: ' + e.toString());
+            }
+        }
+
+        function renderCasesTable(cases) {
+            const tbody = document.getElementById('cases-tbody');
+            const count = document.getElementById('cases-count');
+
+            tbody.innerHTML = '';
+            count.textContent = cases.length;
+
+            if (cases.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 40px; color: var(--text-muted);">No hay casos registrados aún</td></tr>`;
+                return;
+            }
+
+            cases.forEach(c => {
+                const statusClass = c.status === 'open' ? 'status-open' :
+                                    c.status === 'closed' ? 'status-closed' : 'status-investigating';
+                const statusText = c.status === 'open' ? 'Abierto' :
+                                   c.status === 'closed' ? 'Cerrado' : 'Investigando';
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><span class="case-id">#${c.id}</span></td>
+                    <td>${escapeHtml(c.name)}</td>
+                    <td>${c.ioc_count || 0}</td>
+                    <td><span class="case-status ${statusClass}">${statusText}</span></td>
+                    <td style="font-family: var(--font-mono); font-size: 12px;">${c.created_at ? c.created_at.substring(0,16) : '—'}</td>
+                    <td>
+                        <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;"
+                            onclick="showCaseTimeline(${c.id})">
+                            Ver Timeline
+                        </button>
+                    </td>`;
+                tbody.appendChild(row);
+            });
+        }
+
+        async function showCaseTimeline(caseId) {
+            _currentCaseId = caseId;
+            showLoading('Cargando caso...');
+
+            try {
+                const result = await window.pywebview.api.get_case(caseId);
+                if (!result.success) { showError(result.error); return; }
+
+                const c = result.case;
+                document.getElementById('timeline-title').textContent = `#${c.id}: ${c.name}`;
+                document.getElementById('timeline-subtitle').textContent =
+                    (c.description || '') + ' — ' + (c.ioc_count || 0) + ' IOCs';
+
+                // Show/hide close-case button based on status
+                document.getElementById('btn-close-case').style.display =
+                    c.status === 'closed' ? 'none' : '';
+
+                renderTimeline(result.case.timeline || []);
+                document.getElementById('case-timeline').classList.add('active');
+                document.getElementById('case-timeline').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } catch (e) {
+                showError('Error cargando caso: ' + e.toString());
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function renderTimeline(events) {
+            const container = document.getElementById('timeline-content');
+            container.innerHTML = '';
+
+            if (events.length === 0) {
+                container.innerHTML = '<div style="color: var(--text-muted); padding: 16px 0;">Sin eventos registrados aún.</div>';
+                return;
+            }
+
+            events.forEach(event => {
+                const div = document.createElement('div');
+                div.className = 'timeline-item';
+
+                const typeLabel = {
+                    ioc_added: '&#128203; IOC Agregado',
+                    enrichment: '&#128300; Enriquecimiento',
+                    note: '&#128203; Nota',
+                }[event.event_type] || event.event_type;
+
+                div.innerHTML = `
+                    <div class="timeline-time">${event.timestamp || '—'}</div>
+                    <div class="timeline-content">
+                        <div class="timeline-title">${typeLabel}</div>
+                        <div style="color: var(--text-secondary);">${escapeHtml(event.description || '')}</div>
+                        ${event.detail ? `<div style="color: var(--text-muted); font-size: 12px; margin-top: 4px;">${escapeHtml(event.detail)}</div>` : ''}
+                    </div>`;
+                container.appendChild(div);
+            });
+        }
+
+        function closeTimeline() {
+            document.getElementById('case-timeline').classList.remove('active');
+            _currentCaseId = null;
+        }
+
+        async function closeCurrentCase() {
+            if (!_currentCaseId) return;
+            if (!confirm('¿Cerrar este caso? Esta acción no se puede deshacer.')) return;
+
+            try {
+                const result = await window.pywebview.api.close_case(_currentCaseId);
+                if (!result.success) { showError(result.error); return; }
+                showSuccess('Caso cerrado correctamente');
+                closeTimeline();
+                await loadCases();
+                await loadStats();
+            } catch (e) {
+                showError('Error al cerrar caso: ' + e.toString());
+            }
+        }
+
+        async function addNoteToCase() {
+            if (!_currentCaseId) return;
+            const content = document.getElementById('case-note-input').value.trim();
+            if (!content) return;
+
+            try {
+                const result = await window.pywebview.api.add_case_note(_currentCaseId, content);
+                if (!result.success) { showError(result.error); return; }
+                document.getElementById('case-note-input').value = '';
+                showSuccess('Nota agregada');
+                await showCaseTimeline(_currentCaseId);
+            } catch (e) {
+                showError('Error al agregar nota: ' + e.toString());
+            }
+        }
+
+        async function exportCaseObsidian() {
+            if (!_currentCaseId) return;
+
+            // Ask user for output directory via a simple prompt (pywebview has no native dir picker by default)
+            const outputDir = prompt('Directorio de exportación (ruta absoluta):', '~/obsidian/centinela');
+            if (!outputDir) return;
+
+            showLoading('Exportando notas Obsidian...');
+            try {
+                const result = await window.pywebview.api.export_case_obsidian(_currentCaseId, outputDir);
+                if (!result.success) { showError(result.error); return; }
+                showSuccess(`${result.files.length} nota(s) exportada(s) a ${outputDir}`);
+            } catch (e) {
+                showError('Error al exportar: ' + e.toString());
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Modal Nuevo Caso
+        function openNewCaseModal() {
+            document.getElementById('modal-new-case').classList.add('active');
+            document.getElementById('new-case-title').focus();
+        }
+
+        function closeNewCaseModal() {
+            document.getElementById('modal-new-case').classList.remove('active');
+            document.querySelector('#modal-new-case form').reset();
+        }
+
+        async function createNewCase() {
+            const name = document.getElementById('new-case-title').value.trim();
+            const desc = document.getElementById('new-case-desc').value.trim();
+
+            if (!name) return;
+
+            setBtnLoading('btn-create-case', true);
+            try {
+                const result = await window.pywebview.api.create_case(name, desc);
+                if (!result.success) { showError(result.error); return; }
+
+                closeNewCaseModal();
+                showSuccess(`Caso "${name}" creado correctamente`);
+                await loadCases();
+                await loadStats();
+            } catch (e) {
+                showError('Error al crear caso: ' + e.toString());
+            } finally {
+                setBtnLoading('btn-create-case', false);
+            }
+        }
+
+        async function populateCaseDropdown(selectId) {
+            const select = document.getElementById(selectId);
+            // Always refresh
+            try {
+                const result = await window.pywebview.api.get_cases();
+                if (result.success) {
+                    _casesCache = result.cases || [];
+                }
+            } catch (_) {}
+
+            // Rebuild options
+            while (select.options.length > 1) select.remove(1);
+            _casesCache
+                .filter(c => c.status !== 'closed')
+                .forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.id;
+                    opt.textContent = `#${c.id} — ${c.name}`;
+                    select.appendChild(opt);
+                });
+        }
+
+        // =====================================================
+        // VIEW 3: CONFIG
+        // =====================================================
+
+        async function loadConfig() {
+            try {
+                const result = await window.pywebview.api.get_config();
+                if (!result.success) return;
+
+                const cfg = result.config;
+                // API keys — only populate if there's a masked value (means a key exists)
+                setInputIfMasked('api-abuseipdb', cfg.abuseipdb_key);
+                setInputIfMasked('api-virustotal', cfg.virustotal_key);
+                setInputIfMasked('api-shodan', cfg.shodan_key);
+                setInputIfMasked('api-otx', cfg.otx_key);
+                setInputIfMasked('api-urlscan', cfg.urlscan_key);
+                setInputIfMasked('api-hibp', cfg.hibp_key);
+                setInputIfMasked('api-greynoise', cfg.greynoise_key);
+                setInputIfMasked('api-ipqs', cfg.ipqs_key);
+                setInputIfMasked('api-numverify', cfg.numverify_key);
+                setInputIfMasked('api-emailrep', cfg.emailrep_key);
+                setInputIfMasked('api-googlesb', cfg.googlesb_key);
+                setInputIfMasked('api-phishtank', cfg.phishtank_key);
+                setInputIfMasked('api-pulsedive', cfg.pulsedive_key);
+
+                document.getElementById('ollama-url').value = cfg.ollama_base_url || '';
+                document.getElementById('ollama-model').value = cfg.ollama_model || '';
+            } catch (e) {
+                // Config load fail is non-fatal
+            }
+        }
+
+        function setInputIfMasked(inputId, maskedValue) {
+            const el = document.getElementById(inputId);
+            if (maskedValue) {
+                el.value = maskedValue;   // show masked e.g. "****abcd"
+                el.placeholder = maskedValue;
+            }
+        }
+
+        async function saveConfig() {
+            setBtnLoading('btn-save-config', true);
+
+            const updates = {};
+
+            const abuseipdb = document.getElementById('api-abuseipdb').value;
+            const virustotal = document.getElementById('api-virustotal').value;
+            const shodan = document.getElementById('api-shodan').value;
+            const otx = document.getElementById('api-otx').value;
+            const urlscan = document.getElementById('api-urlscan').value;
+            const hibp = document.getElementById('api-hibp').value;
+            const greynoise = document.getElementById('api-greynoise').value;
+            const ipqs = document.getElementById('api-ipqs').value;
+            const numverify = document.getElementById('api-numverify').value;
+            const emailrep = document.getElementById('api-emailrep').value;
+            const googlesb = document.getElementById('api-googlesb').value;
+            const phishtank = document.getElementById('api-phishtank').value;
+            const pulsedive = document.getElementById('api-pulsedive').value;
+            const ollamaUrl = document.getElementById('ollama-url').value;
+            const ollamaModel = document.getElementById('ollama-model').value;
+
+            if (abuseipdb) updates['CENTINELA_ABUSEIPDB_KEY'] = abuseipdb;
+            if (virustotal) updates['CENTINELA_VIRUSTOTAL_KEY'] = virustotal;
+            if (shodan) updates['CENTINELA_SHODAN_KEY'] = shodan;
+            if (otx) updates['CENTINELA_OTX_KEY'] = otx;
+            if (urlscan) updates['CENTINELA_URLSCAN_KEY'] = urlscan;
+            if (hibp) updates['CENTINELA_HIBP_KEY'] = hibp;
+            if (greynoise) updates['CENTINELA_GREYNOISE_KEY'] = greynoise;
+            if (ipqs) updates['CENTINELA_IPQS_KEY'] = ipqs;
+            if (numverify) updates['CENTINELA_NUMVERIFY_KEY'] = numverify;
+            if (emailrep) updates['CENTINELA_EMAILREP_KEY'] = emailrep;
+            if (googlesb) updates['CENTINELA_GOOGLESB_KEY'] = googlesb;
+            if (phishtank) updates['CENTINELA_PHISHTANK_KEY'] = phishtank;
+            if (pulsedive) updates['CENTINELA_PULSEDIVE_KEY'] = pulsedive;
+            if (ollamaUrl) updates['CENTINELA_OLLAMA_BASE_URL'] = ollamaUrl;
+            if (ollamaModel) updates['CENTINELA_OLLAMA_MODEL'] = ollamaModel;
+
+            try {
+                const result = await window.pywebview.api.save_config(updates);
+                if (!result.success) {
+                    showError(result.error || 'Error al guardar configuración');
+                    return;
+                }
+                showSuccess('Configuración guardada correctamente');
+            } catch (e) {
+                showError('Error al guardar configuración: ' + e.toString());
+            } finally {
+                setBtnLoading('btn-save-config', false);
+            }
+        }
+
+        // =====================================================
+        // HELPERS
+        // =====================================================
+
+        async function openExternalUrl(url) {
+            if (window.pywebview && window.pywebview.api) {
+                await window.pywebview.api.open_url(url);
+            } else {
+                window.open(url, '_blank');
+            }
+        }
+
+        function escapeHtml(text) {
+            if (text === null || text === undefined) return '';
+            return String(text)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        // =====================================================
+        // VIEW 4: EMAIL ANALYZER
+        // =====================================================
+
+        let _selectedEmailPath = null;
+        let _lastEmailAnalysis = null;
+
+        async function openEmailFilePicker() {
+            const r = await window.pywebview.api.open_file_dialog();
+            if (r && r.success && r.file_path) {
+                setSelectedEmailFile(r.file_path);
+            } else if (r && r.error) {
+                showError('Error al abrir el selector: ' + r.error);
+            }
+        }
+
+        function setSelectedEmailFile(path) {
+            _selectedEmailPath = path;
+            const name = path.split(/[\\/]/).pop();
+            document.getElementById('email-selected-name').textContent = name;
+            document.getElementById('email-selected-file').style.display = 'flex';
+            document.getElementById('btn-analyze-email').disabled = false;
+            document.getElementById('email-dropzone').style.borderColor = 'var(--accent-cyan)';
+        }
+
+        function clearSelectedEmail() {
+            _selectedEmailPath = null;
+            document.getElementById('email-selected-file').style.display = 'none';
+            document.getElementById('btn-analyze-email').disabled = true;
+            document.getElementById('email-dropzone').style.borderColor = '';
+        }
+
+        async function openPdfDirPicker() {
+            const r = await window.pywebview.api.open_directory_dialog();
+            if (r && r.success && r.dir_path) {
+                document.getElementById('email-pdf-dir').value = r.dir_path;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Toggle fila de directorio PDF
+            const pdfCheck = document.getElementById('email-export-pdf');
+            if (pdfCheck) {
+                pdfCheck.addEventListener('change', () => {
+                    document.getElementById('email-pdf-dir-row').style.display = pdfCheck.checked ? 'flex' : 'none';
+                });
+            }
+
+            // Drag & drop
+            const dz = document.getElementById('email-dropzone');
+            if (dz) {
+                dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
+                dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+                dz.addEventListener('drop', e => {
+                    e.preventDefault();
+                    dz.classList.remove('drag-over');
+                    const file = e.dataTransfer.files[0];
+                    if (file && file.name.toLowerCase().endsWith('.eml')) {
+                        setSelectedEmailFile(file.path || file.name);
+                    } else if (file) {
+                        showError('Solo se aceptan archivos .eml');
+                    }
+                });
+                dz.addEventListener('click', openEmailFilePicker);
+            }
+
+            // Observar cuando view-email se muestra para poblar select de casos
+            const emailView = document.getElementById('view-email');
+            if (emailView) {
+                const observer = new MutationObserver(() => {
+                    if (emailView.style.display !== 'none') populateEmailCaseSelect();
+                });
+                observer.observe(emailView, { attributes: true, attributeFilter: ['style'] });
+            }
+        });
+
+        async function analyzeEmail() {
+            if (!_selectedEmailPath) { showError('Seleccioná un archivo .eml primero'); return; }
+
+            const caseId = document.getElementById('email-case-select').value || null;
+            const noAi = !document.getElementById('email-use-ai').checked;
+            const exportPdf = document.getElementById('email-export-pdf').checked;
+            const pdfDir = exportPdf ? (document.getElementById('email-pdf-dir').value || null) : null;
+
+            if (exportPdf && !pdfDir) { showError('Seleccioná un directorio para el PDF'); return; }
+
+            showLoading('Analizando email...');
+
+            try {
+                const r = await window.pywebview.api.analyze_email_file(
+                    _selectedEmailPath,
+                    caseId ? parseInt(caseId) : null,
+                    noAi,
+                    pdfDir
+                );
+
+                hideLoading();
+
+                if (!r.success) { showError(r.error || 'Error en el análisis'); return; }
+
+                _lastEmailAnalysis = r;
+                renderEmailResults(r);
+                if (r.pdf_path) showSuccess('PDF exportado: ' + r.pdf_path.split(/[\\/]/).pop());
+
+            } catch (e) {
+                hideLoading();
+                showError('Error inesperado: ' + e.message);
+            }
+        }
+
+        function renderEmailResults(r) {
+            const a = r.analysis;
+
+            document.getElementById('email-upload-section').style.display = 'none';
+            document.getElementById('email-results-section').style.display = 'block';
+
+            // Nombre archivo
+            const fname = _selectedEmailPath ? _selectedEmailPath.split(/[\\/]/).pop() : '';
+            document.getElementById('email-result-filename').textContent = fname;
+
+            // Score
+            const score = (a.phishing_score && a.phishing_score.total != null) ? a.phishing_score.total : 0;
+            const scoreColor = score >= 7 ? 'var(--severity-critical)' : score >= 4 ? 'var(--severity-high)' : 'var(--severity-low)';
+            document.getElementById('email-score-value').textContent = score.toFixed(1) + ' / 10';
+            document.getElementById('email-score-value').style.color = scoreColor;
+            document.getElementById('email-score-bar').style.width = (score / 10 * 100) + '%';
+            document.getElementById('email-score-bar').style.background = scoreColor;
+
+            const indicators = (a.phishing_score && a.phishing_score.indicators) ? a.phishing_score.indicators : [];
+            document.getElementById('email-score-indicators').innerHTML = indicators.length
+                ? indicators.map(i => `<div style="font-size:12px;color:var(--text-secondary);padding:2px 0;">• ${escapeHtml(i)}</div>`).join('')
+                : '<div style="font-size:12px;color:var(--severity-low);">Sin indicadores de riesgo</div>';
+
+            // IA
+            const aiDiv = document.getElementById('email-ai-content');
+            if (a.ai_classification) {
+                const conf = a.ai_confidence != null ? Math.round(a.ai_confidence * 100) + '%' : '—';
+                const cls = a.ai_classification.toUpperCase();
+                const clsColor = a.ai_classification === 'phishing' ? 'var(--severity-critical)'
+                               : a.ai_classification === 'spam'     ? 'var(--severity-high)'
+                               :                                      'var(--severity-low)';
+                const techniques = (a.ai_techniques || []).join(', ') || '—';
+                aiDiv.innerHTML = `
+                    <div style="margin-bottom:8px;">
+                        <span style="font-size:22px;font-weight:700;color:${clsColor};">${escapeHtml(cls)}</span>
+                        <span style="font-size:13px;color:var(--text-secondary);margin-left:8px;">confianza: ${conf}</span>
+                    </div>
+                    <div style="font-size:12px;color:var(--text-secondary);">Técnicas: <span style="color:var(--text-primary);">${escapeHtml(techniques)}</span></div>
+                `;
+            } else {
+                aiDiv.innerHTML = '<span style="color:var(--text-secondary);font-size:13px;">Análisis IA no disponible (--no-ai)</span>';
+            }
+
+            // Headers
+            const h = a.headers || {};
+            const replyToHtml = h.reply_to
+                ? `<span style="color:var(--severity-critical);">⚠ ${escapeHtml(h.reply_to)}</span>`
+                : '<span style="color:var(--text-secondary);">—</span>';
+            document.getElementById('email-headers-table').innerHTML = [
+                ['De',        escapeHtml(h.from_addr || '—')],
+                ['Para',      escapeHtml((h.to_addr || []).join(', ') || '—')],
+                ['Asunto',    `<strong>${escapeHtml(h.subject || '—')}</strong>`],
+                ['Fecha',     escapeHtml(h.date || '—')],
+                ['Reply-To',  replyToHtml],
+                ['Message-ID',`<span style="font-family:monospace;font-size:11px;">${escapeHtml(h.message_id || '—')}</span>`],
+            ].map(([k, v]) => `<tr class="email-header-row"><td>${k}</td><td>${v}</td></tr>`).join('');
+
+            // Auth badges
+            const auth = a.auth || {};
+            ['spf', 'dkim', 'dmarc'].forEach(proto => {
+                const el = document.getElementById('badge-' + proto);
+                const val = auth[proto] || 'none';
+                el.textContent = proto.toUpperCase() + ': ' + val.toUpperCase();
+                el.style.cssText = `background:${getAuthColor(val)};color:white;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;`;
+            });
+
+            // IOCs
+            const iocs = a.iocs_found || [];
+            document.getElementById('email-ioc-count').textContent = iocs.length + ' IOC' + (iocs.length !== 1 ? 's' : '');
+            const enrichments = a.enrichments || {};
+
+            if (iocs.length === 0) {
+              document.getElementById('email-iocs-content').innerHTML =
+                '<span style="color:var(--text-secondary);font-size:13px;">No se encontraron IOCs en el cuerpo del email</span>';
+            } else {
+              const rows = iocs.map(ioc => {
+                const iocEnrichments = enrichments[ioc.value] || [];
+
+                // Calcular severidad máxima
+                const severityOrder = { critical: 5, high: 4, medium: 3, low: 2, info: 1 };
+                const maxSev = iocEnrichments.reduce((max, e) => {
+                  return (severityOrder[e.severity] || 0) > (severityOrder[max] || 0) ? e.severity : max;
+                }, 'info');
+
+                const sevColors = {
+                  critical: '#da3633', high: '#d29922', medium: '#58a6ff', low: '#39d353', info: '#8b949e'
+                };
+                const sevColor = sevColors[maxSev] || '#8b949e';
+
+                // Filas de enrichment
+                const enrichRows = iocEnrichments.map(e => `
+                  <tr style="background:var(--bg-primary);">
+                    <td colspan="2" style="padding:4px 8px 4px 24px;">
+                      <div style="display:flex;align-items:flex-start;gap:8px;">
+                        <span style="font-size:10px;font-weight:600;padding:1px 5px;border-radius:3px;background:${sevColors[e.severity]||'#8b949e'};color:white;white-space:nowrap;margin-top:1px;">${escapeHtml(e.severity.toUpperCase())}</span>
+                        <span style="font-size:11px;color:var(--text-secondary);font-weight:600;white-space:nowrap;min-width:70px;">${escapeHtml(e.source)}</span>
+                        <span style="font-size:11px;color:var(--text-primary);">${escapeHtml(e.summary)}</span>
+                      </div>
+                    </td>
+                  </tr>
+                `).join('');
+
+                return `
+                  <tr style="border-top:1px solid var(--border-color);">
+                    <td style="padding:8px 8px 8px 0;width:90px;vertical-align:top;">
+                      <div style="display:flex;align-items:center;gap:6px;">
+                        ${iocEnrichments.length > 0 ? `<span style="width:8px;height:8px;border-radius:50%;background:${sevColor};display:inline-block;flex-shrink:0;"></span>` : ''}
+                        <span style="background:var(--bg-tertiary);color:var(--accent-primary);padding:2px 6px;border-radius:3px;font-size:11px;font-family:monospace;">${escapeHtml(ioc.type)}</span>
+                      </div>
+                    </td>
+                    <td style="padding:8px 8px;font-family:monospace;font-size:12px;word-break:break-all;vertical-align:top;">${escapeHtml(ioc.value)}</td>
+                  </tr>
+                  ${enrichRows}
+                  ${iocEnrichments.length === 0 ? `
+                  <tr style="background:var(--bg-primary);">
+                    <td colspan="2" style="padding:3px 8px 6px 24px;">
+                      <span style="font-size:11px;color:var(--text-secondary);font-style:italic;">Sin datos de enrichment</span>
+                    </td>
+                  </tr>` : ''}
+                `;
+              }).join('');
+
+              document.getElementById('email-iocs-content').innerHTML =
+                `<table style="width:100%;border-collapse:collapse;">${rows}</table>`;
+            }
+
+            // Recomendaciones
+            const recs = a.ai_recommendations || [];
+            if (recs.length > 0) {
+                document.getElementById('email-recommendations-card').style.display = 'block';
+                document.getElementById('email-recommendations-content').innerHTML = recs
+                    .map((rec, i) => `<div style="padding:4px 0;font-size:13px;"><span style="color:var(--accent-cyan);font-weight:600;">${i+1}.</span> ${escapeHtml(rec)}</div>`)
+                    .join('');
+            }
+
+            // Adjuntos
+            const attachments = a.attachments || [];
+            document.getElementById('email-attachments-content').innerHTML = attachments.length === 0
+                ? '<span style="color:var(--text-secondary);font-size:13px;">Sin adjuntos</span>'
+                : `<table style="width:100%;border-collapse:collapse;">
+                    <thead><tr style="border-bottom:1px solid var(--border-default);">
+                        ${['Archivo','Tipo','Tamaño','Riesgo'].map(h => `<th style="text-align:left;padding:0 8px 6px 0;font-size:11px;color:var(--text-secondary);font-weight:500;">${h}</th>`).join('')}
+                    </tr></thead>
+                    <tbody>
+                        ${attachments.map(att => {
+                            const size = att.size_bytes > 1024 ? (att.size_bytes / 1024).toFixed(1) + ' KB' : att.size_bytes + ' B';
+                            const risk = att.is_executable
+                                ? '<span style="color:var(--severity-critical);font-weight:600;">⚠ EJECUTABLE</span>'
+                                : '<span style="color:var(--severity-low);">OK</span>';
+                            return `<tr style="border-bottom:1px solid var(--border-default);">
+                                <td style="padding:6px 8px 6px 0;font-size:13px;">${escapeHtml(att.filename)}</td>
+                                <td style="padding:6px 8px;font-size:11px;color:var(--text-secondary);">${escapeHtml(att.mime_type)}</td>
+                                <td style="padding:6px 8px;font-size:12px;">${size}</td>
+                                <td style="padding:6px 8px;">${risk}</td>
+                            </tr>`;
+                        }).join('')}
+                    </tbody>
+                   </table>`;
+
+            // Botón guardar en caso
+            const caseId = document.getElementById('email-case-select').value;
+            if (caseId || r.analysis_id) {
+                document.getElementById('btn-save-email-case').style.display = 'inline-flex';
+            }
+        }
+
+        function getAuthColor(status) {
+            switch ((status || '').toLowerCase()) {
+                case 'pass':                      return '#238636';
+                case 'fail':                      return '#da3633';
+                case 'softfail': case 'permerror': return '#9e6a03';
+                default:                          return '#8b949e';
+            }
+        }
+
+        function showEmailUpload() {
+            document.getElementById('email-upload-section').style.display = 'block';
+            document.getElementById('email-results-section').style.display = 'none';
+            _lastEmailAnalysis = null;
+        }
+
+        async function exportEmailPdf() {
+            const r = await window.pywebview.api.open_directory_dialog();
+            if (!r || !r.success || !r.dir_path) return;
+
+            const filePath = _selectedEmailPath
+                || (_lastEmailAnalysis && _lastEmailAnalysis.analysis && _lastEmailAnalysis.analysis.file_path);
+            if (!filePath) { showError('No hay análisis disponible'); return; }
+
+            showLoading('Generando PDF...');
+            try {
+                const result = await window.pywebview.api.analyze_email_file(filePath, null, true, r.dir_path);
+                hideLoading();
+                if (result.success && result.pdf_path) {
+                    showSuccess('PDF exportado: ' + result.pdf_path.split(/[\\/]/).pop());
+                } else {
+                    showError(result.error || 'Error al exportar PDF');
+                }
+            } catch (e) {
+                hideLoading();
+                showError('Error: ' + e.message);
+            }
+        }
+
+        function saveEmailAnalysisToCase() {
+            // El análisis ya se guardó en el caso si se pasó case_id en analyzeEmail()
+            showSuccess('El email ya fue guardado en el caso seleccionado durante el análisis.');
+        }
+
+        async function populateEmailCaseSelect() {
+            const sel = document.getElementById('email-case-select');
+            if (!sel) return;
+            try {
+                const r = await window.pywebview.api.get_cases();
+                if (r && r.success) {
+                    sel.innerHTML = '<option value="">Sin caso</option>'
+                        + (r.cases || []).map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+                }
+            } catch (e) { /* silencioso */ }
+        }
+
+        // =====================================================
+        // INIT
+        // =====================================================
+
+        window.addEventListener('pywebviewready', async () => {
+            await Promise.allSettled([
+                loadStats(),
+                loadCases(),
+                loadConfig(),
+            ]);
+        });
+
+        // Fallback: if pywebviewready already fired before this script ran
+        if (window.pywebview) {
+            Promise.allSettled([loadStats(), loadCases(), loadConfig()]);
+        }
+
+        // Close modals on backdrop click
+        document.getElementById('modal-new-case').addEventListener('click', function(e) {
+            if (e.target === this) closeNewCaseModal();
+        });
+
+        // Enter key in IOC input triggers analyze (Ctrl+Enter or Shift+Enter inserts newline)
+        document.getElementById('ioc-input').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey) {
+                e.preventDefault();
+                analyzeIOC();
+            }
+        });
+
+        // =====================================================
+        // VIEW 5: PERSONA OSINT
+        // =====================================================
+
+        async function loadPersonaCases() {
+            try {
+                const result = await window.pywebview.api.get_cases();
+                const select = document.getElementById('persona-case-select');
+                if (result.success && result.cases) {
+                    const existing = select.innerHTML;
+                    select.innerHTML = '<option value="">Sin caso</option>' +
+                        result.cases.map(c => `<option value="${c.id}">#${c.id} — ${escapeHtml(c.name)}</option>`).join('');
+                }
+            } catch (e) {}
+        }
+
+        async function enrichPerson() {
+            const phone = document.getElementById('persona-phone').value.trim();
+            const username = document.getElementById('persona-username').value.trim();
+            const email = document.getElementById('persona-email').value.trim();
+            const name = document.getElementById('persona-name').value.trim();
+            const noAi = document.getElementById('persona-no-ai').checked;
+            const caseId = document.getElementById('persona-case-select').value;
+
+            if (!phone && !username && !email) {
+                showToast('Ingresá al menos un teléfono, username o email', 'error');
+                return;
+            }
+
+            // Show loading
+            document.getElementById('persona-empty').style.display = 'none';
+            document.getElementById('persona-results').style.display = 'none';
+            document.getElementById('persona-loading').style.display = 'block';
+            document.getElementById('btn-persona-enrich').disabled = true;
+
+            try {
+                const result = await window.pywebview.api.enrich_person(
+                    phone, username, email, name, noAi, caseId ? parseInt(caseId) : null
+                );
+
+                document.getElementById('persona-loading').style.display = 'none';
+                document.getElementById('btn-persona-enrich').disabled = false;
+
+                if (!result.success) {
+                    showToast(result.error || 'Error desconocido', 'error');
+                    document.getElementById('persona-empty').style.display = 'block';
+                    return;
+                }
+
+                // Render phone results
+                const phoneContent = document.getElementById('persona-phone-content');
+                const phoneBadge = document.getElementById('persona-phone-badge');
+                if (result.phone_results && result.phone_results.length > 0) {
+                    phoneBadge.textContent = result.phone_results.length + ' fuentes';
+                    phoneBadge.style.background = 'rgba(0,180,216,0.1)';
+                    phoneBadge.style.color = 'var(--accent-cyan)';
+                    phoneContent.innerHTML = result.phone_results.map(r => `
+                        <div style="padding: 8px 0; border-bottom: 1px solid var(--border-subtle);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                <span style="font-family: monospace; font-size: 12px; color: var(--accent-cyan);">${escapeHtml(r.source)}</span>
+                                <span class="severity-badge severity-${r.severity}">${r.severity}</span>
+                            </div>
+                            <div style="font-size: 12px; color: var(--text-secondary); white-space: pre-wrap;">${escapeHtml(r.summary)}</div>
+                        </div>
+                    `).join('');
+                } else if (phone) {
+                    phoneBadge.textContent = 'sin datos';
+                    phoneContent.innerHTML = '<p style="color: var(--text-secondary); font-size: 13px;">No se obtuvieron resultados para este número.</p>';
+                }
+
+                // Render username/social results
+                const socialContent = document.getElementById('persona-social-content');
+                const socialBadge = document.getElementById('persona-social-badge');
+                if (result.username_results && result.username_results.length > 0) {
+                    // Find whats_my_name result for the found accounts list
+                    const wmnResult = result.username_results.find(r => r.source === 'whats_my_name');
+                    const foundCount = wmnResult ? (wmnResult.raw_data?.found_count || 0) : 0;
+
+                    socialBadge.textContent = foundCount + ' cuentas encontradas';
+                    socialBadge.style.background = foundCount > 0 ? 'rgba(0,180,216,0.1)' : 'var(--bg-secondary)';
+                    socialBadge.style.color = foundCount > 0 ? 'var(--accent-cyan)' : 'var(--text-secondary)';
+
+                    if (wmnResult && wmnResult.raw_data?.accounts?.length > 0) {
+                        const accounts = wmnResult.raw_data.accounts;
+                        socialContent.innerHTML = `
+                            <div style="margin-bottom: 8px; font-size: 12px; color: var(--text-secondary);">
+                                ${foundCount} cuentas encontradas para <strong style="color: var(--text-primary);">${escapeHtml(username)}</strong>
+                            </div>
+                            <div style="max-height: 320px; overflow-y: auto;">
+                                ${accounts.map(a => `
+                                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--border-subtle);">
+                                        <span style="font-size: 13px; color: var(--text-primary);">${escapeHtml(a.site)}</span>
+                                        <a href="#" data-url="${escapeHtml(a.url)}" style="font-size: 11px; color: var(--accent-cyan); font-family: monospace; text-decoration: none; cursor: pointer;"
+                                           onclick="event.preventDefault(); openExternalUrl(this.dataset.url)">
+                                            ver ↗
+                                        </a>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `;
+                    } else {
+                        socialContent.innerHTML = '<p style="color: var(--text-secondary); font-size: 13px;">No se encontraron cuentas para este username.</p>';
+                    }
+                } else if (username) {
+                    socialBadge.textContent = 'sin datos';
+                    socialContent.innerHTML = '<p style="color: var(--text-secondary); font-size: 13px;">No se obtuvieron resultados para este username.</p>';
+                }
+
+                // Render email results
+                const emailContent = document.getElementById('persona-email-content');
+                const emailBadge = document.getElementById('persona-email-badge');
+                if (result.email_results && result.email_results.length > 0) {
+                    emailBadge.textContent = result.email_results.length + ' fuentes';
+                    emailBadge.style.background = 'rgba(0,180,216,0.1)';
+                    emailBadge.style.color = 'var(--accent-cyan)';
+                    emailContent.innerHTML = result.email_results.map(r => `
+                        <div style="padding: 8px 0; border-bottom: 1px solid var(--border-subtle);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                <span style="font-family: monospace; font-size: 12px; color: var(--accent-cyan);">${escapeHtml(r.source)}</span>
+                                <span class="severity-badge severity-${r.severity}">${r.severity}</span>
+                            </div>
+                            <div style="font-size: 12px; color: var(--text-secondary); white-space: pre-wrap;">${escapeHtml(r.summary)}</div>
+                        </div>
+                    `).join('');
+                } else if (email) {
+                    emailBadge.textContent = 'sin datos';
+                    emailContent.innerHTML = '<p style="color: var(--text-secondary); font-size: 13px;">No se obtuvieron resultados para este email.</p>';
+                } else {
+                    emailContent.innerHTML = '<p style="color: var(--text-secondary); font-size: 13px;">No se consultó email.</p>';
+                }
+
+                // Render AI analysis
+                if (result.analysis) {
+                    document.getElementById('persona-ai-card').style.display = 'block';
+                    document.getElementById('persona-ai-content').textContent = result.analysis;
+                } else {
+                    document.getElementById('persona-ai-card').style.display = 'none';
+                }
+
+                document.getElementById('persona-results').style.display = 'block';
+
+                if (caseId) {
+                    showToast('Investigación guardada en el caso', 'success');
+                }
+
+            } catch (err) {
+                document.getElementById('persona-loading').style.display = 'none';
+                document.getElementById('btn-persona-enrich').disabled = false;
+                document.getElementById('persona-empty').style.display = 'block';
+                showToast('Error: ' + err.message, 'error');
+            }
+        }
+    </script>
+</body>
+</html>
