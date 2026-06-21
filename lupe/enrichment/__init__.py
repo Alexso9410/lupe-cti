@@ -30,6 +30,11 @@ from lupe.enrichment.holehe import HolehePlugin
 from lupe.enrichment.google_safebrowsing import GoogleSafeBrowsingPlugin
 from lupe.enrichment.phishtank import PhishTankPlugin
 from lupe.enrichment.pulsedive import PulsedivePlugin
+from lupe.enrichment.blocklist_de import BlocklistDePlugin
+from lupe.enrichment.spamhaus import SpamhausPlugin
+from lupe.enrichment.crtsh import CrtShPlugin
+from lupe.enrichment.hybrid_analysis import HybridAnalysisPlugin
+from lupe.enrichment.censys import CensysPlugin
 from lupe.models import IOC, EnrichmentResult
 
 _CONCURRENCY_LIMIT = 5
@@ -49,6 +54,8 @@ def _build_plugins(settings: Settings) -> list[EnrichmentPlugin]:
         CertShPlugin(),
         CIRCLHashlookupPlugin(),
         HolehePlugin(),
+        BlocklistDePlugin(),
+        CrtShPlugin(),
     ]
 
     # EmailRep: siempre activo (funciona sin key con cuota baja)
@@ -93,6 +100,15 @@ def _build_plugins(settings: Settings) -> list[EnrichmentPlugin]:
 
     if settings.numverify_key:
         plugins.append(NumVerifyPlugin(api_key=settings.numverify_key))
+
+    if settings.spamhaus_key:
+        plugins.append(SpamhausPlugin(api_key=settings.spamhaus_key))
+
+    if settings.hybrid_analysis_key:
+        plugins.append(HybridAnalysisPlugin(api_key=settings.hybrid_analysis_key))
+
+    if settings.censys_id and settings.censys_secret:
+        plugins.append(CensysPlugin(censys_id=settings.censys_id, censys_secret=settings.censys_secret))
 
     return plugins
 
