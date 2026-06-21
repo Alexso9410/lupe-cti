@@ -1,6 +1,6 @@
-# Apply Progress: lupe-cti-v1 — PR-21 Flet Migration COMPLETE
+# Apply Progress: lupe-cti-v1 — PR-23/24/25 View Integration COMPLETE
 
-## Status: `complete` — All 4 Phases + PR-19..PR-21 done, v1.0.0 tagged
+## Status: `complete` — All 4 Phases + PR-19..PR-25 done
 
 ## PR Summary
 
@@ -24,6 +24,10 @@
 | PR-18 | `feature/pr-18-docs` | ✅ | `98388cf` | Docs: README, CHANGELOG, CONTRIBUTING, SECURITY, LICENSE, CLAUDE.md, Makefile, py.typed |
 | PR-20 | (direct on `lupe-cti-v1`) | ✅ | `ca94304`..`c91211b` | Post-verify cleanup: remove legacy desktop, rename bridge, clean refs, PNG logos, systemd |
 | PR-21 | `feature/pr-21-flet-migration` | ✅ | `00bf3ba` | Replace Textual TUI with Flet desktop app (Material Design 3) |
+| PR-22 | `feature/pr-22-flet-api-fixes` | ✅ | `eb462c6` | Flet 0.85.3 API fixes |
+| PR-23 | `feature/pr-23-misp-view` | ✅ | `359c16f` | Connect MISPView to MISPClient (pull/push) |
+| PR-24 | `feature/pr-24-email-view` | ✅ | `d9d77c5` | Add EmailView with file picker and analyzer integration |
+| PR-25 | `feature/pr-25-enrich-view` | ✅ | `6989474` | Connect EnrichView to run_enrichment with results table |
 
 ## Phase 4 PR Details (PR-18)
 
@@ -147,11 +151,11 @@ User tested Textual TUI on Windows and it did not render correctly in their term
 
 ## Metrics (Cumulative)
 
-- **Total tasks completed**: 67/67 (Phases 1-4) + PR-19 housekeeping + PR-20 post-verify + PR-21 Flet migration
-- **Total PRs**: 19 (PR-0 to PR-21, including PR-19)
-- **Total commits on tracker**: 28 (26 feature + 2 merge commits)
-- **Cumulative lines**: +9,438 / -7,183 (from main, incl. PR-21 Flet migration)
-- **Tests passing**: 312 passed, 2 skipped (= 314 total)
+- **Total tasks completed**: 67/67 (Phases 1-4) + PR-19..PR-25
+- **Total PRs**: 25 (PR-0 to PR-25)
+- **Total commits on tracker**: 37 (34 feature + 3 merge commits)
+- **Cumulative lines**: +10,550 / -7,242 (from main, incl. PR-23/24/25 view integration)
+- **Tests passing**: 351 passed, 2 skipped (= 353 total)
 - **Ruff errors**: 0
 - **Coverage**: 46.47% (threshold: 25%)
 
@@ -224,8 +228,92 @@ User tested Textual TUI on Windows and it did not render correctly in their term
 
 ## Status
 
-- **Status**: `complete` — All 4 Phases + PR-19 + PR-20 done
+- **Status**: `complete` — All 4 Phases + PR-19..PR-25 done
 - **Apply complete**: Yes
 - **Next phases**: verify (user decision), archive
 - **Tag**: `v1.0.0` created locally (NOT pushed)
 - **Blocked by**: Nothing
+
+---
+
+## PR-22 Details: Flet 0.85.3 API Fixes
+
+### Commits
+
+| Hash | Message |
+|------|---------|
+| `f05baff` | `fix: correct Flet 0.85.3 API usage in views (alignment, page args, border, padding)` |
+| `eb462c6` | `Merge PR-22: Flet 0.85.3 API fixes` |
+
+---
+
+## PR-23 Details: MISPView Functional
+
+### Commits
+
+| Hash | Message |
+|------|---------|
+| `ef965c0` | `test: add MISP view integration tests` |
+| `359c16f` | `feat: connect MISPView to MISPClient (pull/push)` |
+
+### Changes Summary
+
+| File | Action | Description |
+|------|--------|-------------|
+| `lupe/flet/views/misp.py` | Modified | Connected to MISPClient: pull indicators, push IOC, loading state, results DataTable |
+| `tests/test_flet_misp_view.py` | Created | 15 tests: structure, imports, pull/push, loading state |
+
+### TDD Cycle Evidence
+
+| Task | Test File | Layer | RED | GREEN | REFACTOR |
+|------|-----------|-------|-----|-------|----------|
+| PR-23 | `test_flet_misp_view.py` | Unit | ✅ 10/15 fail | ✅ 15/15 pass | ✅ ruff clean |
+
+---
+
+## PR-24 Details: EmailView Functional
+
+### Commits
+
+| Hash | Message |
+|------|---------|
+| `29d4c23` | `test: add Email view tests with .eml fixture` |
+| `d9d77c5` | `feat: add EmailView with file picker and analyzer integration` |
+
+### Changes Summary
+
+| File | Action | Description |
+|------|--------|-------------|
+| `lupe/flet/views/email.py` | Created | EmailView with FilePicker, analyze_email integration, Markdown output |
+| `lupe/flet/app.py` | Modified | Added email view to NavigationRail (between MISP and Plugins) |
+| `tests/test_flet_email_view.py` | Created | 13 tests: structure, imports, analyze, navigation |
+
+### TDD Cycle Evidence
+
+| Task | Test File | Layer | RED | GREEN | REFACTOR |
+|------|-----------|-------|-----|-------|----------|
+| PR-24 | `test_flet_email_view.py` | Unit | ✅ 10/13 fail | ✅ 13/13 pass | ✅ ruff clean |
+
+---
+
+## PR-25 Details: EnrichView Functional
+
+### Commits
+
+| Hash | Message |
+|------|---------|
+| `001fdb7` | `test: add Enrich view tests with run_enrichment mock` |
+| `6989474` | `feat: connect EnrichView to run_enrichment with results table` |
+
+### Changes Summary
+
+| File | Action | Description |
+|------|--------|-------------|
+| `lupe/flet/views/enrich.py` | Modified | Connected to run_enrichment + detect_ioc: IOC detection, enrichment, results DataTable with severity colors |
+| `tests/test_flet_enrich_view.py` | Created | 11 tests: structure, imports, enrichment, loading state |
+
+### TDD Cycle Evidence
+
+| Task | Test File | Layer | RED | GREEN | REFACTOR |
+|------|-----------|-------|-----|-------|----------|
+| PR-25 | `test_flet_enrich_view.py` | Unit | ✅ 7/11 fail | ✅ 11/11 pass | ✅ ruff clean |
