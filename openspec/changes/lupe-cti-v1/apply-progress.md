@@ -1,6 +1,6 @@
-# Apply Progress: lupe-cti-v1 — PR-20 Post-verify Cleanup COMPLETE
+# Apply Progress: lupe-cti-v1 — PR-21 Flet Migration COMPLETE
 
-## Status: `complete` — All 4 Phases + PR-19 + PR-20 done, v1.0.0 tagged
+## Status: `complete` — All 4 Phases + PR-19..PR-21 done, v1.0.0 tagged
 
 ## PR Summary
 
@@ -23,6 +23,7 @@
 | PR-19 | `feature/pr-19-ruff-cleanup` | ✅ | `016463c` | Ruff cleanup: 247 errors fixed, 0 remaining |
 | PR-18 | `feature/pr-18-docs` | ✅ | `98388cf` | Docs: README, CHANGELOG, CONTRIBUTING, SECURITY, LICENSE, CLAUDE.md, Makefile, py.typed |
 | PR-20 | (direct on `lupe-cti-v1`) | ✅ | `ca94304`..`c91211b` | Post-verify cleanup: remove legacy desktop, rename bridge, clean refs, PNG logos, systemd |
+| PR-21 | `feature/pr-21-flet-migration` | ✅ | `00bf3ba` | Replace Textual TUI with Flet desktop app (Material Design 3) |
 
 ## Phase 4 PR Details (PR-18)
 
@@ -97,13 +98,60 @@
 3. **GAP 1 - PNG logos**: All 7 PNG variants generated programmatically with Pillow.
 4. **GAP 2 - systemd unit**: `assets/systemd/lupe-watch.service` created with security hardening (NoNewPrivileges, ProtectSystem, ProtectHome).
 
+## PR-21 Details: Textual → Flet Desktop App Migration
+
+### Commits
+
+| Hash | Message |
+|------|---------|
+| `00bf3ba` | `refactor: replace Textual TUI with Flet desktop app (PR-21)` |
+| (merge) | `merge: PR-21 Textual → Flet desktop app migration` |
+
+### Changes Summary
+
+| File | Action | Description |
+|------|--------|-------------|
+| `lupe/tui/` (entire dir) | Deleted | Removed Textual TUI (10 files) |
+| `lupe/flet/__init__.py` | Created | Flet package init |
+| `lupe/flet/app.py` | Created | Main Flet app with NavigationRail, 6 views, dark theme |
+| `lupe/flet/theme.py` | Created | Theme constants: MATRIX_GREEN, CYAN, DARK_BG, etc. |
+| `lupe/flet/views/__init__.py` | Created | Views package init |
+| `lupe/flet/views/home.py` | Created | HomeView with LUPE banner, navigation cards |
+| `lupe/flet/views/enrich.py` | Created | EnrichView placeholder with IOC input |
+| `lupe/flet/views/settings.py` | Created | SettingsView with 19 API key fields, signup links, persistence |
+| `lupe/flet/views/misp.py` | Created | MISPView placeholder with pull/push controls |
+| `lupe/flet/views/plugins.py` | Created | PluginsView placeholder with DataTable |
+| `lupe/flet/views/cases.py` | Created | CasesView placeholder with DataTable |
+| `tests/test_tui_screens.py` | Deleted | Replaced by test_flet_app.py |
+| `tests/test_flet_app.py` | Created | 24 new tests for Flet app |
+| `tests/test_tui_settings.py` | Modified | Updated imports from lupe.tui → lupe.flet |
+| `pyproject.toml` | Modified | textual>=0.47 → flet>=0.21, entry point updated |
+| `CLAUDE.md` | Modified | Updated references from Textual TUI to Flet desktop app |
+| `README.md` | Modified | Updated features, architecture, dependencies |
+| `.github/dependabot.yml` | Modified | textual → flet in dependency groups |
+
+### Motivation
+
+User tested Textual TUI on Windows and it did not render correctly in their terminal. After evaluating alternatives (Flet, NiceGUI, PySide6, DearPyGui), Flet was chosen because:
+- Native (no WebView2/WebKitGTK dependency)
+- Material Design 3, modern look
+- Cross-platform identical (Windows + Linux)
+- Excellent performance (Skia GPU)
+- Clean Python API
+
+### TDD Cycle Evidence
+
+| Task | Test File | Layer | RED | GREEN | REFACTOR |
+|------|-----------|-------|-----|-------|----------|
+| PR-21 | `test_flet_app.py` | Unit | ✅ 24/24 fail | ✅ 24/24 pass | ✅ ruff clean |
+
 ## Metrics (Cumulative)
 
-- **Total tasks completed**: 67/67 (Phases 1-4) + PR-19 housekeeping + PR-20 post-verify cleanup
-- **Total PRs**: 18 (PR-0 to PR-20, including PR-19)
-- **Total commits on tracker**: 26 (24 feature + 2 merge commits)
-- **Cumulative lines**: +8,336 / -6,282 (from main, incl. PR-20 desktop removal)
-- **Tests passing**: 303 passed, 2 skipped (= 305 total)
+- **Total tasks completed**: 67/67 (Phases 1-4) + PR-19 housekeeping + PR-20 post-verify + PR-21 Flet migration
+- **Total PRs**: 19 (PR-0 to PR-21, including PR-19)
+- **Total commits on tracker**: 28 (26 feature + 2 merge commits)
+- **Cumulative lines**: +9,438 / -7,183 (from main, incl. PR-21 Flet migration)
+- **Tests passing**: 312 passed, 2 skipped (= 314 total)
 - **Ruff errors**: 0
 - **Coverage**: 46.47% (threshold: 25%)
 
