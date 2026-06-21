@@ -7,8 +7,11 @@ import flet as ft
 from lupe.flet.theme import CYAN, MATRIX_GREEN
 
 
-def build_misp_view() -> ft.Control:
+def build_misp_view(page: ft.Page) -> ft.Control:
     """Build the MISP view placeholder.
+
+    Args:
+        page: The Flet page (for future use).
 
     Returns:
         A Flet Column control for the MISP view.

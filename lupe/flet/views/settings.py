@@ -294,7 +294,7 @@ def build_settings_view(page: ft.Page) -> ft.Control:
                     scroll=ft.ScrollMode.AUTO,
                 ),
                 expand=True,
-                padding=ft.padding.only(top=8),
+                padding=ft.Padding(top=8, bottom=8),
             ),
         ],
         spacing=8,

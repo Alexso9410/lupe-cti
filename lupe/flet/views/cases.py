@@ -7,8 +7,11 @@ import flet as ft
 from lupe.flet.theme import CYAN, MATRIX_GREEN
 
 
-def build_cases_view() -> ft.Control:
+def build_cases_view(page: ft.Page) -> ft.Control:
     """Build the cases view placeholder.
+
+    Args:
+        page: The Flet page (for future use).
 
     Returns:
         A Flet Column control for the cases view.
@@ -34,7 +37,7 @@ def build_cases_view() -> ft.Control:
             ft.DataColumn(ft.Text("Created", color=CYAN, weight=ft.FontWeight.BOLD)),
         ],
         rows=rows,
-        border=ft.border.all(1, ft.Colors.WHITE24),
+        border=ft.Border.all(1, ft.Colors.WHITE24),
         bgcolor="#141414",
     )
 
@@ -71,7 +74,7 @@ def build_cases_view() -> ft.Control:
             ),
             ft.Container(
                 content=table,
-                padding=ft.padding.only(top=12),
+                padding=ft.Padding(top=12, bottom=12),
                 expand=True,
             ),
         ],

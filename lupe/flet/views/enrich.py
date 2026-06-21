@@ -7,8 +7,11 @@ import flet as ft
 from lupe.flet.theme import CYAN, MATRIX_GREEN
 
 
-def build_enrich_view() -> ft.Control:
+def build_enrich_view(page: ft.Page) -> ft.Control:
     """Build the enrich view placeholder.
+
+    Args:
+        page: The Flet page (for future use).
 
     Returns:
         A Flet Column control for the enrich view.
@@ -47,7 +50,7 @@ def build_enrich_view() -> ft.Control:
                     color=ft.Colors.WHITE38,
                     italic=True,
                 ),
-                padding=ft.padding.only(top=16),
+                padding=ft.Padding(top=16, bottom=16),
                 expand=True,
             ),
         ],
