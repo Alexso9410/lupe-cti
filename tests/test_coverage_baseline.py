@@ -26,6 +26,6 @@ class TestCoverageBaseline:
         data = tomllib.loads(pyproject.read_text(encoding="utf-8"))
         coverage = data.get("tool", {}).get("coverage", {})
         run_config = coverage.get("run", {})
-        assert "centinela" in run_config.get("source", []), (
-            "coverage.run.source must include 'centinela'"
+        assert "lupe" in run_config.get("source", []), (
+            "coverage.run.source must include 'lupe'"
         )

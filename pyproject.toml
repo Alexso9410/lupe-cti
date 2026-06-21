@@ -2,10 +2,13 @@
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool.hatch.build.targets.wheel]
+packages = ["lupe"]
+
 [project]
-name = "centinela"
+name = "lupe-cti"
 version = "0.1.0"
-description = "IOC Enrichment & Investigation CLI — Heimdall Security"
+description = "Lupe CTI — Cyber Threat Intelligence for OSINT & Forensics"
 requires-python = ">=3.10"
 dependencies = [
     "typer>=0.9.0",
@@ -23,15 +26,15 @@ dependencies = [
 dev = ["pytest>=8.0", "pytest-asyncio>=0.23", "respx>=0.21", "pytest-cov>=5.0"]
 
 [project.scripts]
-centinela = "centinela.cli:app"
-centinela-desktop = "centinela.desktop.app:main"
+lupe = "lupe.cli:app"
+lupe-desktop = "lupe.desktop.app:main"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 
 [tool.coverage.run]
-source = ["centinela"]
-omit = ["tests/*", "centinela/desktop/*"]
+source = ["lupe"]
+omit = ["tests/*", "lupe/desktop/*"]
 
 [tool.coverage.report]
 fail_under = 25

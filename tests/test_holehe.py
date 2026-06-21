@@ -1,9 +1,9 @@
-import pytest
+﻿import pytest
 import respx
 import httpx
-from centinela.enrichment.holehe import HolehePlugin
-from centinela.models import IOC, IOCType, Severity
-from centinela.enrichment import holehe
+from lupe.enrichment.holehe import HolehePlugin
+from lupe.models import IOC, IOCType, Severity
+from lupe.enrichment import holehe
 
 
 class TestHolehePlugin:

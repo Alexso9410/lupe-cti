@@ -1,8 +1,8 @@
-import pytest
+﻿import pytest
 import respx
 import httpx
-from centinela.enrichment.emailrep import EmailRepPlugin
-from centinela.models import IOC, IOCType, Severity
+from lupe.enrichment.emailrep import EmailRepPlugin
+from lupe.models import IOC, IOCType, Severity
 
 
 class TestEmailRepPlugin:

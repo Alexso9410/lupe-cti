@@ -1,10 +1,10 @@
-import json
+﻿import json
 import pytest
 import respx
 import httpx
 
-from centinela.enrichment.google_safebrowsing import GoogleSafeBrowsingPlugin
-from centinela.models import IOC, IOCType, Severity
+from lupe.enrichment.google_safebrowsing import GoogleSafeBrowsingPlugin
+from lupe.models import IOC, IOCType, Severity
 
 
 class TestGoogleSafeBrowsingPlugin:

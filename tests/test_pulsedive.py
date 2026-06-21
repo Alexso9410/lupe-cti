@@ -1,8 +1,8 @@
-import pytest
+﻿import pytest
 import respx
 import httpx
-from centinela.enrichment.pulsedive import PulsedivePlugin
-from centinela.models import IOC, IOCType, Severity
+from lupe.enrichment.pulsedive import PulsedivePlugin
+from lupe.models import IOC, IOCType, Severity
 
 
 class TestPulsedivePlugin:

@@ -1,9 +1,9 @@
-import pytest
+﻿import pytest
 import respx
 import httpx
 from datetime import datetime, timezone, timedelta
-from centinela.enrichment.certsh import CertShPlugin
-from centinela.models import IOC, IOCType, Severity
+from lupe.enrichment.certsh import CertShPlugin
+from lupe.models import IOC, IOCType, Severity
 
 class TestCertShPlugin:
     @pytest.fixture

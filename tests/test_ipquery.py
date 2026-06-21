@@ -1,8 +1,8 @@
-import pytest
+﻿import pytest
 import respx
 import httpx
-from centinela.enrichment.ipquery import IPQueryPlugin
-from centinela.models import IOC, IOCType, Severity
+from lupe.enrichment.ipquery import IPQueryPlugin
+from lupe.models import IOC, IOCType, Severity
 from datetime import datetime, timezone
 
 

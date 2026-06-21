@@ -1,4 +1,4 @@
-"""Tests for legacy enrichment plugins without coverage (PR-0, Task 0.2)."""
+﻿"""Tests for legacy enrichment plugins without coverage (PR-0, Task 0.2)."""
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -7,12 +7,12 @@ import httpx
 import pytest
 import respx
 
-from centinela.enrichment.whois_plugin import WhoisPlugin
-from centinela.enrichment.ipinfo import IpInfoPlugin
-from centinela.enrichment.threatfox import ThreatFoxPlugin
-from centinela.enrichment.urlhaus import URLhausPlugin
-from centinela.enrichment.malwarebazaar import MalwareBazaarPlugin
-from centinela.models import IOC, IOCType, Severity
+from lupe.enrichment.whois_plugin import WhoisPlugin
+from lupe.enrichment.ipinfo import IpInfoPlugin
+from lupe.enrichment.threatfox import ThreatFoxPlugin
+from lupe.enrichment.urlhaus import URLhausPlugin
+from lupe.enrichment.malwarebazaar import MalwareBazaarPlugin
+from lupe.models import IOC, IOCType, Severity
 
 
 class TestWhoisPlugin:
