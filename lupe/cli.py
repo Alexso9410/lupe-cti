@@ -1008,3 +1008,44 @@ def config_test() -> None:
             )
 
     console.print()
+
+
+# ---------------------------------------------------------------------------
+# migrate-from-centinela command
+# ---------------------------------------------------------------------------
+
+
+@app.command("migrate-from-centinela")
+def migrate_from_centinela() -> None:
+    """Migrate legacy Centinela DB to Lupe CTI XDG path."""
+    from lupe.migrate import migrate_from_centinela as _do_migrate
+    from lupe.migrate import _LEGACY_DB_PATH
+
+    console.print("\n[bold]Lupe CTI[/bold] — Migration from Centinela\n")
+
+    if not _LEGACY_DB_PATH.exists():
+        console.print(
+            f"  [yellow]Legacy DB not found at:[/yellow] {_LEGACY_DB_PATH}"
+        )
+        console.print("  Nothing to migrate.")
+        raise typer.Exit(code=1)
+
+    console.print(f"  [bold]Source:[/bold] {_LEGACY_DB_PATH}")
+    result = _do_migrate()
+
+    if result.get("error"):
+        console.print(f"  [bold red]Error:[/bold red] {result['error']}")
+        raise typer.Exit(code=1)
+
+    console.print(f"  [bold]Target:[/bold] {result['target']}")
+    console.print(f"  [bold]Backup:[/bold] {result['backup_path']}")
+    console.print()
+
+    if result["tables"]:
+        console.print("  [bold]Tables migrated:[/bold]")
+        for table, count in result["tables"].items():
+            console.print(f"    {table}: {count} rows")
+
+    console.print()
+    console.print("  [green]Migration complete![/green]")
+    console.print()
