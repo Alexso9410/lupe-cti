@@ -41,12 +41,12 @@ class TestLogoAssets:
 
     def test_desktop_file_exists(self):
         """Linux .desktop file exists."""
-        desktop_path = Path(__file__).parent.parent / "lupe" / "desktop" / "lupe.desktop"
+        desktop_path = Path(__file__).parent.parent / "assets" / "desktop" / "lupe.desktop"
         assert desktop_path.exists()
 
     def test_desktop_file_is_valid(self):
         ".desktop file contains required fields."
-        desktop_path = Path(__file__).parent.parent / "lupe" / "desktop" / "lupe.desktop"
+        desktop_path = Path(__file__).parent.parent / "assets" / "desktop" / "lupe.desktop"
         content = desktop_path.read_text(encoding="utf-8")
         assert "[Desktop Entry]" in content
         assert "Name=Lupe CTI" in content

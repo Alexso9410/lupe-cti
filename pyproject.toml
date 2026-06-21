@@ -76,7 +76,7 @@ asyncio_mode = "auto"
 
 [tool.coverage.run]
 source = ["lupe"]
-omit = ["tests/*", "lupe/desktop/*"]
+omit = ["tests/*"]
 
 [tool.coverage.report]
 fail_under = 25
