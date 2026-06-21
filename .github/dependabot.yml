@@ -13,7 +13,7 @@ updates:
           - "pydantic"
           - "pydantic-settings"
           - "platformdirs"
-          - "textual"
+          - "flet"
           - "reportlab"
           - "phonenumbers"
       dev-deps:

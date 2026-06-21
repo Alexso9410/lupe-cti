@@ -20,7 +20,7 @@ lupe config show
 lupe misp pull --days 7
 lupe migrate-from-centinela
 
-# Desktop TUI
+# Desktop app
 lupe-desktop
 
 # Run all tests
@@ -55,7 +55,7 @@ make all
 
 ### Entry Points
 - `lupe/cli.py` — Typer CLI with sub-apps: `config`, `case`, `person`, `misp`, and root commands (`enrich`, `email`)
-- `lupe/tui/app.py` — Textual TUI with 6 screens (Home, Enrich, Settings, MISP, Plugins, Cases)
+- `lupe/flet/app.py` — Flet desktop app with 6 views (Home, Enrich, Settings, MISP, Plugins, Cases)
 
 ### Core Data Flow
 1. **IOC Detection** (`lupe/ioc_detect.py`) — regex-based auto-detection of IOC type (priority: SHA256 > SHA1 > MD5 > URL > email > phone > IPv4 > IPv6 > domain)
@@ -116,4 +116,4 @@ Six tables: `iocs`, `enrichments`, `analyses`, `cases`, `case_iocs`, `case_notes
 
 Tests live in `tests/`. `pytest-asyncio` is configured with `asyncio_mode = "auto"` — no `@pytest.mark.asyncio` needed. Use `respx` for mocking `httpx` calls in enrichment plugin tests.
 
-Current status: 305 tests passing, 0 ruff errors.
+Current status: 312 tests passing, 0 ruff errors.

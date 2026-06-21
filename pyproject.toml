@@ -43,7 +43,7 @@ dependencies = [
     "reportlab>=4.0",
     "phonenumbers>=8.13.0",
     "platformdirs>=4.0",
-    "textual>=0.47",
+    "flet>=0.21",
 ]
 
 [project.optional-dependencies]
@@ -62,7 +62,7 @@ dev = [
 
 [project.scripts]
 lupe = "lupe.cli:app"
-lupe-desktop = "lupe.tui.app:run"
+lupe-desktop = "lupe.flet.app:main"
 
 [project.urls]
 Homepage = "https://github.com/lupe-cti/lupe"

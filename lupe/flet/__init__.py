@@ -1,0 +1,3 @@
+"""Lupe CTI Flet desktop application package."""
+
+from __future__ import annotations
