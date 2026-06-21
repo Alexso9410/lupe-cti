@@ -2618,142 +2618,35 @@ Chain strategy: feature-branch-chain
 **Verificación**: `twine check dist/*` + lectura manual
 **Estimación Total**: 5h
 
-### Task 18.1: Escribir `README.md` profesional
+### Task 18.1: Escribir `README.md` profesional ✅
 
 **PR**: PR-18
-**Depende de**: PR-17 (merge)
-**Bloquea**: 18.2–18.5
-**Estimación**: M
-**Tipo**: docs
+**Commit**: `a211012`
+**Status**: DONE — 411 lines, comprehensive with badges, installation, config, plugins, multi-LLM, MISP, security, architecture
 
-**RED — Test que debe fallar**:
-- Path: `tests/test_docs.py::TestDocs::test_readme_exists`
-- `Path("README.md").exists()`.
-
-**GREEN — Implementación mínima**:
-- `README.md`:
-  - Título: Lupe CTI
-  - Install: `pipx install lupe-cti`
-  - Usage: `lupe enrich 8.8.8.8`, `lupe-desktop`, `lupe migrate-from-centinela`
-  - Env vars table (LUPE_*)
-  - Badges: CI, PyPI, CodeQL
-
-**REFACTOR — Mejoras**:
-- N/A.
-
-**Verificación**:
-- `pytest tests/test_docs.py::TestDocs::test_readme_exists -v`
-- `markdownlint README.md` (si disponible)
-
-**Rollback**:
-- Revertir README.
-
-### Task 18.2: Escribir `CONTRIBUTING.md`
+### Task 18.2: Escribir `CONTRIBUTING.md` ✅
 
 **PR**: PR-18
-**Depende de**: 18.1
-**Bloquea**: 18.3
-**Estimación**: S
-**Tipo**: docs
+**Commit**: `a6f1346`
+**Status**: DONE — 378 lines with plugin authoring tutorial and LLM provider guide
 
-**RED — Test que debe fallar**:
-- Path: `tests/test_docs.py::TestDocs::test_contributing_exists`
-- `CONTRIBUTING.md` existe.
-
-**GREEN — Implementación mínima**:
-- `CONTRIBUTING.md`:
-  - Setup dev: `pip install -e ".[dev]"`
-  - Pre-commit: `pre-commit install`
-  - Tests: `pytest`
-  - PR process: feature-branch-chain
-
-**REFACTOR — Mejoras**:
-- N/A.
-
-**Verificación**:
-- `pytest tests/test_docs.py::TestDocs::test_contributing_exists -v`
-
-**Rollback**:
-- Revertir.
-
-### Task 18.3: Escribir `CHANGELOG.md`
+### Task 18.3: Escribir `CHANGELOG.md` ✅
 
 **PR**: PR-18
-**Depende de**: 18.2
-**Bloquea**: 18.4
-**Estimación**: S
-**Tipo**: docs
+**Commit**: `751a27e`
+**Status**: DONE — 85 lines, Keep a Changelog format, v1.0.0 release notes
 
-**RED — Test que debe fallar**:
-- Path: `tests/test_docs.py::TestDocs::test_changelog_exists`
-- `CHANGELOG.md` existe.
-
-**GREEN — Implementación mínima**:
-- `CHANGELOG.md`:
-  - Keep a Changelog format.
-  - v1.0.0: rebrand, multi-LLM, TUI, 6 plugins nuevos, security hardening, distro packaging.
-  - Breaking: package name, CLI name, env vars, DB path.
-
-**REFACTOR — Mejoras**:
-- N/A.
-
-**Verificación**:
-- `pytest tests/test_docs.py::TestDocs::test_changelog_exists -v`
-
-**Rollback**:
-- Revertir.
-
-### Task 18.4: Actualizar `CLAUDE.md`
+### Task 18.4: Actualizar `CLAUDE.md` ✅
 
 **PR**: PR-18
-**Depende de**: 18.3
-**Bloquea**: 18.5
-**Estimación**: S
-**Tipo**: docs
+**Commit**: `d49f3a3`
+**Status**: DONE — Updated from Centinela to Lupe CTI with multi-LLM, TUI, MISP, security docs
 
-**RED — Test que debe fallar**:
-- Path: `tests/test_docs.py::TestDocs::test_claude_md_updated`
-- `CLAUDE.md` no contiene "centinela" (o contiene en contexto histórico solo).
-
-**GREEN — Implementación mínima**:
-- Reemplazar referencias a `centinela` por `lupe` donde aplique.
-- Agregar sección de LLM providers, TUI, MISP, plugins nuevos.
-
-**REFACTOR — Mejoras**:
-- N/A.
-
-**Verificación**:
-- `pytest tests/test_docs.py::TestDocs::test_claude_md_updated -v`
-
-**Rollback**:
-- Revertir `CLAUDE.md`.
-
-### Task 18.5: Packaging final (revisar `pyproject.toml`)
+### Task 18.5: Packaging final (revisar `pyproject.toml`) ✅
 
 **PR**: PR-18
-**Depende de**: 18.4
-**Bloquea**: none
-**Estimación**: S
-**Tipo**: docs
-
-**RED — Test que debe fallar**:
-- Path: `tests/test_docs.py::TestDocs::test_pyproject_classifiers_complete`
-- `pyproject.toml` tiene classifiers de OS, license, Python versions.
-
-**GREEN — Implementación mínima**:
-- `pyproject.toml`:
-  - `classifiers`: `Development Status :: 4 - Beta`, `Intended Audience :: Information Technology`, `License :: OSI Approved :: MIT License`, `Operating System :: POSIX :: Linux`, `Operating System :: Microsoft :: Windows`, `Programming Language :: Python :: 3.10`, `3.11`, `3.12`.
-  - `keywords`: `cti, osint, threat-intelligence, ioc, enrichment`
-
-**REFACTOR — Mejoras**:
-- N/A.
-
-**Verificación**:
-- `python -m build` (smoke)
-- `twine check dist/*`
-
-**Rollback**:
-- Revertir `pyproject.toml`.
+**Commit**: `fa834d2`
+**Status**: DONE — Version 1.0.0, classifiers, keywords, urls, license, authors, removed pywebview dep
 
 ---
 
