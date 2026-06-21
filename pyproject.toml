@@ -20,6 +20,7 @@ dependencies = [
     "pywebview>=5.0",  # installed: 6.1
     "reportlab>=4.0",
     "phonenumbers>=8.13.0",
+    "platformdirs>=4.0",
 ]
 
 [project.optional-dependencies]
