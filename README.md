@@ -29,7 +29,7 @@ Unlike monolithic threat intel platforms, Lupe CTI runs locally, respects your d
 
 - **IOC Enrichment** — 25+ built-in plugins for IP, domain, URL, hash, email, phone, and username lookups
 - **Multi-LLM Analysis** — AI-powered analysis via Ollama (local), OpenAI, Anthropic, or OpenRouter
-- **Interactive TUI** — Terminal User Interface built with Textual for visual exploration
+- **Desktop App** — Native desktop GUI built with Flet (Material Design 3) for visual exploration
 - **MISP Integration** — Pull/push indicators to/from MISP instances via raw REST API
 - **Security-First** — HTTPS-only transport, IOC validation, secret redaction, token-bucket rate limiting
 - **XDG-Compliant** — Data, config, and cache directories follow platform conventions (Linux, Windows, macOS)
@@ -87,7 +87,7 @@ lupe enrich example.com
 # Enrich a hash
 lupe enrich 44d88612fea8a8f36de82e1278abb02f
 
-# Launch the interactive TUI
+# Launch the desktop app
 lupe-desktop
 
 # Pull indicators from MISP
@@ -130,7 +130,7 @@ Lupe CTI uses environment variables with the `LUPE_` prefix. You can set them in
 
 ### Settings File
 
-Lupe CTI stores its configuration in `~/.config/lupe/lupe.toml` (XDG-compliant). On Windows: `%APPDATA%\Lupe\lupe.toml`. The TUI settings panel provides a visual editor for all API keys.
+Lupe CTI stores its configuration in `~/.config/lupe/lupe.toml` (XDG-compliant). On Windows: `%APPDATA%\Lupe\lupe.toml`. The desktop app settings panel provides a visual editor for all API keys.
 
 ### Getting API Keys
 
@@ -328,10 +328,10 @@ lupe/
     obsidian.py       # Obsidian Markdown
     json_export.py    # JSON
     pdf_report.py     # PDF (ReportLab)
-  tui/                # Terminal UI (Textual)
-    app.py            # Main TUI application
+  flet/               # Desktop app (Flet)
+    app.py            # Main Flet application
     theme.py          # Color palette
-    screens/          # TUI screens
+    views/            # App views (Home, Enrich, Settings, MISP, Plugins, Cases)
 ```
 
 For detailed design documentation, see [openspec/changes/lupe-cti-v1/design.md](openspec/changes/lupe-cti-v1/design.md).
@@ -425,7 +425,7 @@ Lupe CTI stands on the shoulders of the open-source threat intelligence communit
 
 - [abuse.ch](https://abuse.ch/) — ThreatFox, URLhaus, MalwareBazaar
 - [MISP Project](https://www.misp-project.org/) — Threat intelligence sharing platform
-- [Textual](https://textual.textualize.io/) — TUI framework
+- [Flet](https://flet.dev/) — Desktop app framework (Material Design 3)
 - [Typer](https://typer.tiangolo.com/) — CLI framework
 - [httpx](https://www.python-httpx.org/) — Async HTTP client
 - [platformdirs](https://github.com/platformdirs/platformdirs) — Cross-platform directory resolution
