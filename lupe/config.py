@@ -1,12 +1,58 @@
 from __future__ import annotations
 
+import sys
 from functools import lru_cache
 from pathlib import Path
 
+import platformdirs
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 ENV_PREFIX = "LUPE_"
+_APP_NAME = "lupe"
+
+
+def get_data_dir() -> Path:
+    """Return the user data directory for Lupe CTI.
+
+    Linux: ~/.local/share/lupe
+    Windows: %LOCALAPPDATA%\\Lupe
+    macOS: ~/Library/Application Support/lupe
+    """
+    return Path(platformdirs.user_data_dir(_APP_NAME, appauthor=False))
+
+
+def get_config_dir() -> Path:
+    """Return the user config directory for Lupe CTI.
+
+    Linux: ~/.config/lupe
+    Windows: %APPDATA%\\Lupe
+    macOS: ~/Library/Application Support/lupe
+    """
+    return Path(platformdirs.user_config_dir(_APP_NAME, appauthor=False))
+
+
+def get_cache_dir() -> Path:
+    """Return the user cache directory for Lupe CTI.
+
+    Linux: ~/.cache/lupe
+    Windows: %LOCALAPPDATA%\\Lupe\\Cache
+    macOS: ~/Library/Caches/lupe
+    """
+    return Path(platformdirs.user_cache_dir(_APP_NAME, appauthor=False))
+
+
+def ensure_dirs() -> None:
+    """Create data, config, and cache directories if they don't exist.
+
+    On Linux, also sets chmod 700 on the config directory for security.
+    """
+    for d in (get_data_dir(), get_config_dir(), get_cache_dir()):
+        d.mkdir(parents=True, exist_ok=True)
+
+    # Restrict config dir permissions on Unix
+    if sys.platform != "win32":
+        get_config_dir().chmod(0o700)
 
 
 class Settings(BaseSettings):
@@ -19,7 +65,7 @@ class Settings(BaseSettings):
 
     ollama_base_url: str = "http://localhost:11434"
     ollama_model: str = "gemma4:31b-cloud"
-    db_path: str = "~/.centinela/centinela.db"
+    db_path: str = ""  # Empty = use platformdirs default
 
     abuseipdb_key: str | None = None
     virustotal_key: str | None = None
@@ -38,7 +84,9 @@ class Settings(BaseSettings):
     @field_validator("db_path", mode="before")
     @classmethod
     def expand_db_path(cls, v: str) -> str:
-        """Expand ~ in db_path to the actual home directory."""
+        """Resolve db_path: empty string uses platformdirs default."""
+        if not v:
+            return str(get_data_dir() / "lupe.db")
         return str(Path(v).expanduser())
 
 

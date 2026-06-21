@@ -8,11 +8,12 @@ from pathlib import Path
 
 import httpx
 
+from lupe.config import get_cache_dir
 from lupe.enrichment.base import EnrichmentPlugin
 from lupe.models import IOC, IOCType, EnrichmentResult, Severity
 
 _WMN_URL = "https://raw.githubusercontent.com/WebBreacher/WhatsMyName/main/wmn-data.json"
-_CACHE_PATH = Path.home() / ".centinela" / "wmn-data.json"
+_CACHE_PATH = get_cache_dir() / "wmn-data.json"
 _CACHE_TTL_SECONDS = 86400
 _INNER_CONCURRENCY = 10
 _REQUEST_TIMEOUT = 8.0
