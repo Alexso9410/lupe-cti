@@ -43,7 +43,7 @@ def _try_import_agent_writer():
     return getattr(module, "AgentWriter", None)
 
 
-class CentinelaAgentBridge:
+class LupeAgentBridge:
     """Reports Lupe CTI enrichment progress to the Heimdall agent-dashboard.
 
     This bridge is a noop when:
@@ -53,7 +53,7 @@ class CentinelaAgentBridge:
 
     Usage::
 
-        bridge = CentinelaAgentBridge()
+        bridge = LupeAgentBridge()
         bridge.start_enrichment("185.220.101.34", plugin_count=4)
         bridge.plugin_complete("ipinfo", current=1, total=4)
         bridge.enrichment_done("185.220.101.34", result_count=4)
