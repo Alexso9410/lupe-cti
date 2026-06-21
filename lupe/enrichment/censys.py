@@ -8,12 +8,12 @@ Uses HTTP Basic auth (id:secret).
 from __future__ import annotations
 
 import logging
+from datetime import datetime
 
 import httpx
 
 from lupe.enrichment.base import EnrichmentPlugin
-from lupe.models import IOC, IOCType, EnrichmentResult, Severity
-from datetime import datetime
+from lupe.models import IOC, EnrichmentResult, IOCType, Severity
 
 logger = logging.getLogger(__name__)
 
@@ -29,9 +29,7 @@ class CensysPlugin(EnrichmentPlugin):
         self._censys_id = censys_id
         self._censys_secret = censys_secret
 
-    async def enrich(
-        self, ioc: IOC, client: httpx.AsyncClient
-    ) -> EnrichmentResult | None:
+    async def enrich(self, ioc: IOC, client: httpx.AsyncClient) -> EnrichmentResult | None:
         """Query Censys for host or certificate data."""
         if not self._censys_id or not self._censys_secret:
             return None
@@ -82,7 +80,11 @@ class CensysPlugin(EnrichmentPlugin):
                 source="censys",
                 ioc_value=ioc.value,
                 severity=Severity.info,
-                summary=f"{len(services)} service(s), OS: {operating_system.get('product', 'unknown')}, AS: {autonomous_system.get('asn', 'unknown')}",
+                summary=(
+                    f"{len(services)} service(s), "
+                    f"OS: {operating_system.get('product', 'unknown')}, "
+                    f"AS: {autonomous_system.get('asn', 'unknown')}"
+                ),
                 raw_data={
                     "services": service_names[:20],
                     "open_ports": open_ports[:20],

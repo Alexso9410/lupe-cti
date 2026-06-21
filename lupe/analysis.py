@@ -1,4 +1,4 @@
-﻿"""AI analysis module — delegates to configured LLM provider."""
+"""AI analysis module — delegates to configured LLM provider."""
 
 from __future__ import annotations
 
@@ -11,7 +11,8 @@ from lupe.models import IOC, EnrichmentResult
 logger = logging.getLogger(__name__)
 
 _SYSTEM_PROMPT = """\
-Sos un analista de ciberinteligencia senior. Analizá los resultados de enriquecimiento de este IOC y proporcioná:
+Sos un analista de ciberinteligencia senior.
+Analizá los resultados de enriquecimiento de este IOC y proporcioná:
 
 1. **Puntuación de riesgo**: 0 a 10 (0 = benigno, 10 = amenaza crítica confirmada)
 2. **Técnicas MITRE ATT&CK** asociadas (si aplican)
@@ -31,9 +32,7 @@ def _build_user_message(ioc: IOC, enrichments: list[EnrichmentResult]) -> str:
         "Resultados de enriquecimiento:",
     ]
     for result in enrichments:
-        lines.append(
-            f"- [{result.source}] Severidad: {result.severity.value} | {result.summary}"
-        )
+        lines.append(f"- [{result.source}] Severidad: {result.severity.value} | {result.summary}")
 
     # Include raw data summary (capped to keep the prompt lean)
     lines.append("")

@@ -3,6 +3,7 @@
 Replaces sensitive values (API keys, tokens, passwords) with *** to prevent
 credential leakage in logs, tracebacks, and CLI output.
 """
+
 from __future__ import annotations
 
 import re

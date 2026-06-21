@@ -61,9 +61,9 @@ class ReceivedHop(BaseModel):
 
 
 class EmailAuthResults(BaseModel):
-    spf: str   # "pass" | "fail" | "softfail" | "neutral" | "none" | "permerror"
+    spf: str  # "pass" | "fail" | "softfail" | "neutral" | "none" | "permerror"
     dkim: str  # "pass" | "fail" | "none"
-    dmarc: str # "pass" | "fail" | "none"
+    dmarc: str  # "pass" | "fail" | "none"
     spf_domain: str | None = None
     dkim_domain: str | None = None
 

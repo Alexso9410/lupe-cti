@@ -30,9 +30,7 @@ class OpenAIProvider(LLMProvider):
         self._api_key = settings.openai_api_key or ""
         self._model = _DEFAULT_MODEL
 
-    async def generate(
-        self, prompt: str, *, system: str | None = None
-    ) -> str:
+    async def generate(self, prompt: str, *, system: str | None = None) -> str:
         messages: list[dict[str, str]] = []
         if system:
             messages.append({"role": "system", "content": system})
@@ -68,9 +66,7 @@ class OpenAIProvider(LLMProvider):
         except (KeyError, IndexError, ValueError):
             return ""
 
-    async def stream(
-        self, prompt: str, *, system: str | None = None
-    ) -> AsyncIterator[str]:
+    async def stream(self, prompt: str, *, system: str | None = None) -> AsyncIterator[str]:
         messages: list[dict[str, str]] = []
         if system:
             messages.append({"role": "system", "content": system})

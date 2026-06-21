@@ -1,10 +1,9 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import asyncio
 import json
-import sys
 from pathlib import Path
-from typing import Annotated
+from typing import TYPE_CHECKING, Annotated
 
 import typer
 from rich import box
@@ -13,13 +12,16 @@ from rich.panel import Panel
 from rich.table import Table
 
 from lupe.analysis import analyze_ioc
-from lupe.config import Settings, get_settings
+from lupe.config import get_settings
 from lupe.db import Database
 from lupe.email_analyzer import analyze_email
 from lupe.email_parser import parse_eml
 from lupe.enrichment import run_enrichment
 from lupe.ioc_detect import detect_ioc
-from lupe.models import EnrichmentResult, IOC, IOCType, Severity
+from lupe.models import IOC, EnrichmentResult, IOCType, Severity
+
+if TYPE_CHECKING:
+    from lupe.integrations.misp import MISPClient
 
 app = typer.Typer(
     name="lupe",
@@ -123,9 +125,7 @@ def enrich(
     output_json: Annotated[
         bool, typer.Option("--json", help="Output raw JSON instead of a table")
     ] = False,
-    no_ai: Annotated[
-        bool, typer.Option("--no-ai", help="Skip Ollama AI analysis")
-    ] = False,
+    no_ai: Annotated[bool, typer.Option("--no-ai", help="Skip Ollama AI analysis")] = False,
     model: Annotated[
         str | None,
         typer.Option("--model", help="Override the Ollama model for this run"),
@@ -139,8 +139,7 @@ def enrich(
     ioc = detect_ioc(ioc_value)
     if ioc is None:
         err_console.print(
-            f"[bold red]Error:[/bold red] IOC type not recognized for: "
-            f"[yellow]{ioc_value}[/yellow]"
+            f"[bold red]Error:[/bold red] IOC type not recognized for: [yellow]{ioc_value}[/yellow]"
         )
         raise typer.Exit(code=1)
 
@@ -181,9 +180,7 @@ def enrich(
     if not no_ai:
         # AI analysis via Ollama
         try:
-            analysis_text = asyncio.run(
-                analyze_ioc(ioc, results, effective_settings)
-            )
+            analysis_text = asyncio.run(analyze_ioc(ioc, results, effective_settings))
         except KeyboardInterrupt:
             err_console.print("\n[yellow]AI analysis interrupted.[/yellow]")
 
@@ -281,9 +278,7 @@ def bulk(
 
     raw_lines = file.read_text(encoding="utf-8").splitlines()
     ioc_values = [
-        line.strip()
-        for line in raw_lines
-        if line.strip() and not line.strip().startswith("#")
+        line.strip() for line in raw_lines if line.strip() and not line.strip().startswith("#")
     ]
 
     if not ioc_values:
@@ -296,8 +291,7 @@ def bulk(
     saved = 0
 
     console.print(
-        f"\n[bold]Lupe CTI Bulk[/bold] — {len(ioc_values)} IOC(s) from "
-        f"[cyan]{file.name}[/cyan]\n"
+        f"\n[bold]Lupe CTI Bulk[/bold] — {len(ioc_values)} IOC(s) from [cyan]{file.name}[/cyan]\n"
     )
 
     for raw_value in ioc_values:
@@ -324,14 +318,20 @@ def bulk(
             continue
 
         # Highest severity across all results
-        _order = [s.value for s in [
-            Severity.critical, Severity.high, Severity.medium, Severity.low, Severity.info
-        ]]
+        _order = [
+            s.value
+            for s in [
+                Severity.critical,
+                Severity.high,
+                Severity.medium,
+                Severity.low,
+                Severity.info,
+            ]
+        ]
         top = min(results, key=lambda r: _order.index(r.severity.value))
         style = _SEVERITY_STYLE.get(top.severity, "")
         console.print(
-            f"  [{style}]{top.severity.value}[/{style}]  "
-            f"[dim]{len(results)} source(s)[/dim]"
+            f"  [{style}]{top.severity.value}[/{style}]  [dim]{len(results)} source(s)[/dim]"
         )
         enriched += 1
 
@@ -388,9 +388,7 @@ def email_analyze(
         int | None,
         typer.Option("--case", help="Vincular resultados a este caso"),
     ] = None,
-    no_ai: Annotated[
-        bool, typer.Option("--no-ai", help="Omitir análisis de IA")
-    ] = False,
+    no_ai: Annotated[bool, typer.Option("--no-ai", help="Omitir análisis de IA")] = False,
     export_pdf: Annotated[
         Path | None,
         typer.Option("--export-pdf", help="Directorio donde guardar el PDF"),
@@ -404,10 +402,7 @@ def email_analyze(
         )
         raise typer.Exit(code=1)
 
-    console.print(
-        f"\n[bold]Lupe CTI[/bold] — Analizando email: "
-        f"[cyan]{eml_file.name}[/cyan]\n"
-    )
+    console.print(f"\n[bold]Lupe CTI[/bold] — Analizando email: [cyan]{eml_file.name}[/cyan]\n")
 
     try:
         parsed = parse_eml(eml_file)
@@ -483,8 +478,7 @@ def email_analyze(
         score_color = "green"
 
     console.print(
-        f"[bold]Phishing Score:[/bold]  "
-        f"[{score_color}]{score:.1f}/10[/{score_color}]  {bar}"
+        f"[bold]Phishing Score:[/bold]  [{score_color}]{score:.1f}/10[/{score_color}]  {bar}"
     )
     console.print()
 
@@ -666,7 +660,9 @@ def case_show(
         db = _get_db()
         case = db.get_case(case_id)
         if case is None:
-            err_console.print(f"[bold red]Error:[/bold red] Case [yellow]{case_id}[/yellow] not found.")
+            err_console.print(
+                f"[bold red]Error:[/bold red] Case [yellow]{case_id}[/yellow] not found."
+            )
             raise typer.Exit(code=1)
         iocs = db.get_case_iocs(case_id)
         timeline = db.get_case_timeline(case_id)
@@ -679,9 +675,7 @@ def case_show(
     s = case["status"]
     st = _STATUS_STYLE.get(s, "")
     header = (
-        f"[bold white]{case['name']}[/bold white]  "
-        f"[{st}]{s}[/{st}]  "
-        f"[dim]id={case['id']}[/dim]\n"
+        f"[bold white]{case['name']}[/bold white]  [{st}]{s}[/{st}]  [dim]id={case['id']}[/dim]\n"
     )
     if case.get("description"):
         header += f"{case['description']}\n"
@@ -707,9 +701,16 @@ def case_show(
         ioc_table.add_column("Top Severity", min_width=12, justify="center")
         ioc_table.add_column("Added", min_width=20)
 
-        _order = [s.value for s in [
-            Severity.critical, Severity.high, Severity.medium, Severity.low, Severity.info
-        ]]
+        _order = [
+            s.value
+            for s in [
+                Severity.critical,
+                Severity.high,
+                Severity.medium,
+                Severity.low,
+                Severity.info,
+            ]
+        ]
 
         for ioc in iocs:
             enrichments = ioc.get("enrichments", [])
@@ -769,7 +770,9 @@ def case_close(
         db = _get_db()
         case = db.get_case(case_id)
         if case is None:
-            err_console.print(f"[bold red]Error:[/bold red] Case [yellow]{case_id}[/yellow] not found.")
+            err_console.print(
+                f"[bold red]Error:[/bold red] Case [yellow]{case_id}[/yellow] not found."
+            )
             raise typer.Exit(code=1)
         db.close_case(case_id)
         console.print(
@@ -793,7 +796,9 @@ def case_add_note(
         db = _get_db()
         case = db.get_case(case_id)
         if case is None:
-            err_console.print(f"[bold red]Error:[/bold red] Case [yellow]{case_id}[/yellow] not found.")
+            err_console.print(
+                f"[bold red]Error:[/bold red] Case [yellow]{case_id}[/yellow] not found."
+            )
             raise typer.Exit(code=1)
         note_id = db.add_case_note(case_id, content)
         console.print(
@@ -814,9 +819,15 @@ def case_add_note(
 
 @person_app.command("enrich")
 def person_enrich(
-    name: Annotated[str | None, typer.Option("--name", "-n", help="Nombre completo (referencia)")] = None,
-    phone: Annotated[str | None, typer.Option("--phone", "-p", help="Número de teléfono (ej: +54 9 2954 123456)")] = None,
-    username: Annotated[str | None, typer.Option("--username", "-u", help="Nombre de usuario")] = None,
+    name: Annotated[
+        str | None, typer.Option("--name", "-n", help="Nombre completo (referencia)")
+    ] = None,
+    phone: Annotated[
+        str | None, typer.Option("--phone", "-p", help="Número de teléfono (ej: +54 9 2954 123456)")
+    ] = None,
+    username: Annotated[
+        str | None, typer.Option("--username", "-u", help="Nombre de usuario")
+    ] = None,
     email: Annotated[str | None, typer.Option("--email", "-e", help="Email a investigar")] = None,
     no_ai: Annotated[bool, typer.Option("--no-ai", help="Omitir análisis AI")] = False,
     case_id: Annotated[int | None, typer.Option("--case", help="ID de caso para guardar")] = None,
@@ -833,7 +844,9 @@ def person_enrich(
     if phone:
         phone_ioc = detect_ioc(phone)
         if phone_ioc is None or phone_ioc.type != IOCType.phone:
-            console.print(f"[red]'{phone}' no es un número de teléfono válido. Usá formato +XX...[/red]")
+            console.print(
+                f"[red]'{phone}' no es un número de teléfono válido. Usá formato +XX...[/red]"
+            )
             raise typer.Exit(1)
         with console.status(f"[bold cyan]Enriqueciendo teléfono {phone}...[/bold cyan]"):
             phone_results = asyncio.run(run_enrichment(phone_ioc, settings))
@@ -957,7 +970,9 @@ def config_set(
     env_path.write_text("\n".join(new_lines) + "\n", encoding="utf-8")
 
     action = "Updated" if updated else "Added"
-    console.print(f"[green]{action}[/green] [bold]{key_upper}[/bold] in [cyan]{env_path.resolve()}[/cyan]")
+    console.print(
+        f"[green]{action}[/green] [bold]{key_upper}[/bold] in [cyan]{env_path.resolve()}[/cyan]"
+    )
 
 
 @config_app.command("test")
@@ -969,11 +984,23 @@ def config_test() -> None:
 
     checks: list[tuple[str, str | None, str]] = [
         ("AbuseIPDB", settings.abuseipdb_key, "https://api.abuseipdb.com/api/v2/check"),
-        ("VirusTotal", settings.virustotal_key, "https://www.virustotal.com/api/v3/ip_addresses/1.1.1.1"),
+        (
+            "VirusTotal",
+            settings.virustotal_key,
+            "https://www.virustotal.com/api/v3/ip_addresses/1.1.1.1",
+        ),
         ("Shodan", settings.shodan_key, "https://api.shodan.io/api-info"),
         ("OTX", settings.otx_key, "https://otx.alienvault.com/api/v1/user/me"),
-        ("URLScan", settings.urlscan_key, "https://urlscan.io/api/v1/search/?q=domain:example.com&size=1"),
-        ("HIBP", settings.hibp_key, "https://haveibeenpwned.com/api/v3/breachedaccount/test@example.com"),
+        (
+            "URLScan",
+            settings.urlscan_key,
+            "https://urlscan.io/api/v1/search/?q=domain:example.com&size=1",
+        ),
+        (
+            "HIBP",
+            settings.hibp_key,
+            "https://haveibeenpwned.com/api/v3/breachedaccount/test@example.com",
+        ),
         ("URLhaus", "configured", "https://urlhaus-api.abuse.ch/v1/urls/recent/"),
         ("MalwareBazaar", "configured", "https://mb-api.abuse.ch/api/v1/"),
         ("GreyNoise", settings.greynoise_key, "https://api.greynoise.io/v3/community/1.1.1.1"),
@@ -1002,13 +1029,9 @@ def config_test() -> None:
             status_code = 0
 
         if reachable:
-            console.print(
-                f"  [green]{name:<12}[/green]  reachable [dim](HTTP {status_code})[/dim]"
-            )
+            console.print(f"  [green]{name:<12}[/green]  reachable [dim](HTTP {status_code})[/dim]")
         else:
-            console.print(
-                f"  [red]{name:<12}[/red]  unreachable [dim](HTTP {status_code})[/dim]"
-            )
+            console.print(f"  [red]{name:<12}[/red]  unreachable [dim](HTTP {status_code})[/dim]")
 
     console.print()
 
@@ -1021,15 +1044,13 @@ def config_test() -> None:
 @app.command("migrate-from-centinela")
 def migrate_from_centinela() -> None:
     """Migrate legacy Centinela DB to Lupe CTI XDG path."""
-    from lupe.migrate import migrate_from_centinela as _do_migrate
     from lupe.migrate import _LEGACY_DB_PATH
+    from lupe.migrate import migrate_from_centinela as _do_migrate
 
     console.print("\n[bold]Lupe CTI[/bold] — Migration from Centinela\n")
 
     if not _LEGACY_DB_PATH.exists():
-        console.print(
-            f"  [yellow]Legacy DB not found at:[/yellow] {_LEGACY_DB_PATH}"
-        )
+        console.print(f"  [yellow]Legacy DB not found at:[/yellow] {_LEGACY_DB_PATH}")
         console.print("  Nothing to migrate.")
         raise typer.Exit(code=1)
 
@@ -1059,7 +1080,7 @@ def migrate_from_centinela() -> None:
 # ---------------------------------------------------------------------------
 
 
-def _get_misp_client() -> "MISPClient":
+def _get_misp_client() -> MISPClient:
     """Create a MISPClient from settings. Raises typer.Exit if not configured."""
     from lupe.integrations.misp import MISPClient
 
@@ -1148,8 +1169,7 @@ def misp_push(
     ioc = detect_ioc(ioc_value)
     if ioc is None:
         err_console.print(
-            f"[bold red]Error:[/bold red] IOC type not recognized for: "
-            f"[yellow]{ioc_value}[/yellow]"
+            f"[bold red]Error:[/bold red] IOC type not recognized for: [yellow]{ioc_value}[/yellow]"
         )
         raise typer.Exit(code=1)
 
@@ -1160,9 +1180,11 @@ def misp_push(
     try:
         uuid = asyncio.run(
             client.add_indicator(
-                {"type": f"ip-dst" if "ip" in ioc.type.value else ioc.type.value,
-                 "value": ioc.value,
-                 "category": "Network activity"},
+                {
+                    "type": "ip-dst" if "ip" in ioc.type.value else ioc.type.value,
+                    "value": ioc.value,
+                    "category": "Network activity",
+                },
                 tags=tag,
                 info=f"Lupe CTI enrichment: {ioc.value}",
             )

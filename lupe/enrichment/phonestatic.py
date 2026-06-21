@@ -1,12 +1,14 @@
-﻿from __future__ import annotations
+from __future__ import annotations
+
+from datetime import datetime, timezone
 
 import httpx
 import phonenumbers
-from phonenumbers import geocoder, carrier as pn_carrier
-from datetime import datetime, timezone
+from phonenumbers import carrier as pn_carrier
+from phonenumbers import geocoder
 
 from lupe.enrichment.base import EnrichmentPlugin
-from lupe.models import IOC, IOCType, EnrichmentResult, Severity
+from lupe.models import IOC, EnrichmentResult, IOCType, Severity
 
 
 class PhoneStaticPlugin(EnrichmentPlugin):

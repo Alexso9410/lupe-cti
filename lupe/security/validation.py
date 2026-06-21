@@ -1,4 +1,5 @@
 """IOC input validation — length and format guards."""
+
 from __future__ import annotations
 
 # Maximum lengths per IOC type. Exceeding these is always invalid.

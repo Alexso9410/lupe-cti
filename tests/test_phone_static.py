@@ -1,7 +1,7 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
-import pytest
 import httpx
+import pytest
 
 from lupe.enrichment.phonestatic import PhoneStaticPlugin
 from lupe.models import IOC, IOCType, Severity

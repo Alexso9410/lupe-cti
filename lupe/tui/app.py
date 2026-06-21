@@ -5,13 +5,13 @@ from __future__ import annotations
 from textual.app import App, ComposeResult
 from textual.widgets import Footer, Header
 
-from lupe.tui.theme import LupeTheme, MATRIX_GREEN, CYAN, DARK_BG, ERROR_RED
-from lupe.tui.screens.home import HomeScreen
+from lupe.tui.screens.cases import CasesScreen
 from lupe.tui.screens.enrich import EnrichScreen
-from lupe.tui.screens.settings import SettingsScreen
+from lupe.tui.screens.home import HomeScreen
 from lupe.tui.screens.misp import MISPScreen
 from lupe.tui.screens.plugins import PluginsScreen
-from lupe.tui.screens.cases import CasesScreen
+from lupe.tui.screens.settings import SettingsScreen
+from lupe.tui.theme import CYAN, DARK_BG, MATRIX_GREEN
 
 _CSS = f"""
 Screen {{

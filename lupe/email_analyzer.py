@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import asyncio
 import hashlib
@@ -12,27 +12,32 @@ from urllib.parse import urlparse
 import httpx
 
 from lupe.config import Settings
-from lupe.email_parser import parse_eml, ParsedEmail  # noqa: F401 — generado por Kimi
+from lupe.email_parser import (
+    AttachmentInfo as _ParserAttachmentInfo,
+)
+from lupe.email_parser import (
+    AuthResults as _AuthResults,
+)
+from lupe.email_parser import ParsedEmail, parse_eml  # noqa: F401 — generado por Kimi
 from lupe.email_parser import (
     ParsedHeaders as _ParsedHeaders,
-    AuthResults as _AuthResults,
+)
+from lupe.email_parser import (
     ReceivedHop as _ParserReceivedHop,
-    AttachmentInfo as _ParserAttachmentInfo,
 )
 from lupe.enrichment import run_enrichment
 from lupe.ioc_detect import detect_ioc
 from lupe.models import (
+    IOC,
     AttachmentInfo,
     EmailAnalysisResult,
     EmailAuthResults,
     EmailHeaders,
     EnrichmentResult,
-    IOC,
     PhishingScore,
     ReceivedHop,
     Severity,
 )
-
 
 # ---------------------------------------------------------------------------
 # Conversión dataclasses del parser → modelos Pydantic
@@ -85,6 +90,7 @@ def _to_attachment_info(att: _ParserAttachmentInfo) -> AttachmentInfo:
         is_executable=att.is_executable,
     )
 
+
 # ---------------------------------------------------------------------------
 # Constantes
 # ---------------------------------------------------------------------------
@@ -126,9 +132,12 @@ _EXECUTABLE_EXTENSIONS = {
     ".img",
 }
 
-_PHISHING_SYSTEM_PROMPT = """Sos un analista forense especializado en ingeniería social y phishing. Tu tarea es analizar un email sospechoso y producir una evaluación estructurada.
+_PHISHING_SYSTEM_PROMPT = """\
+Sos un analista forense especializado en ingeniería social y phishing.
+Tu tarea es analizar un email sospechoso y producir una evaluación estructurada.
 
-Analizá los datos que te proporciono y respondé EXACTAMENTE en este formato JSON (sin markdown, solo JSON puro):
+Analizá los datos que te proporciono y respondé EXACTAMENTE en este
+formato JSON (sin markdown, solo JSON puro):
 
 {
   "classification": "<phishing|spear-phishing|BEC|spam|legitimate>",
@@ -139,9 +148,13 @@ Analizá los datos que te proporciono y respondé EXACTAMENTE en este formato JS
   "recommendations": ["<acción 1>", "<acción 2>", "<acción 3>"]
 }
 
-Técnicas posibles: pretexting, urgency, authority_spoofing, brand_impersonation, credential_harvesting, malware_delivery, BEC_financial_fraud, social_engineering, domain_spoofing, homograph_attack.
+Técnicas posibles: pretexting, urgency, authority_spoofing,
+brand_impersonation, credential_harvesting, malware_delivery,
+BEC_financial_fraud, social_engineering, domain_spoofing, homograph_attack.
 
-Contexto: el análisis es para la Brigada de Investigaciones de la Policía de La Pampa. Las recomendaciones deben ser accionables y directas. Respondé siempre en español."""
+Contexto: el análisis es para la Brigada de Investigaciones
+de la Policía de La Pampa. Las recomendaciones deben ser
+accionables y directas. Respondé siempre en español."""
 
 # Regex para extracción de IOCs del cuerpo del email
 _RE_URL_IN_BODY = re.compile(r"https?://[^\s<>\"']+", re.IGNORECASE)
@@ -299,7 +312,9 @@ def compute_phishing_score(parsed: ParsedEmail, body: str) -> PhishingScore:
         score_short = shortener_count * 0.5
         total += score_short
         breakdown["url_shorteners"] = score_short
-        indicators.append(f"{shortener_count} URL(s) acortada(s) detectada(s) (ofuscación de destino)")
+        indicators.append(
+            f"{shortener_count} URL(s) acortada(s) detectada(s) (ofuscación de destino)"
+        )
 
     # --- Adjuntos ejecutables ---
     executable_attachments = [a for a in parsed.attachments if a.is_executable]

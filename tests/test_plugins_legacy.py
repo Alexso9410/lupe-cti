@@ -1,17 +1,16 @@
-﻿"""Tests for legacy enrichment plugins without coverage (PR-0, Task 0.2)."""
-from __future__ import annotations
+"""Tests for legacy enrichment plugins without coverage (PR-0, Task 0.2)."""
 
-from datetime import datetime, timezone
+from __future__ import annotations
 
 import httpx
 import pytest
 import respx
 
-from lupe.enrichment.whois_plugin import WhoisPlugin
 from lupe.enrichment.ipinfo import IpInfoPlugin
+from lupe.enrichment.malwarebazaar import MalwareBazaarPlugin
 from lupe.enrichment.threatfox import ThreatFoxPlugin
 from lupe.enrichment.urlhaus import URLhausPlugin
-from lupe.enrichment.malwarebazaar import MalwareBazaarPlugin
+from lupe.enrichment.whois_plugin import WhoisPlugin
 from lupe.models import IOC, IOCType, Severity
 
 
@@ -93,9 +92,7 @@ class TestIpInfoPlugin:
         plugin = IpInfoPlugin()
         ioc = IOC(type=IOCType.ipv4, value="1.2.3.4")
 
-        respx.get("https://ipinfo.io/1.2.3.4/json").mock(
-            return_value=httpx.Response(429)
-        )
+        respx.get("https://ipinfo.io/1.2.3.4/json").mock(return_value=httpx.Response(429))
 
         async with httpx.AsyncClient() as client:
             result = await plugin.enrich(ioc, client)
@@ -111,9 +108,7 @@ class TestIpInfoPlugin:
         plugin = IpInfoPlugin()
         ioc = IOC(type=IOCType.ipv4, value="1.2.3.4")
 
-        respx.get("https://ipinfo.io/1.2.3.4/json").mock(
-            return_value=httpx.Response(500)
-        )
+        respx.get("https://ipinfo.io/1.2.3.4/json").mock(return_value=httpx.Response(500))
 
         async with httpx.AsyncClient() as client:
             result = await plugin.enrich(ioc, client)
@@ -283,7 +278,9 @@ class TestMalwareBazaarPlugin:
                     "query_status": "ok",
                     "data": [
                         {
-                            "sha256_hash": "275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f",
+                            "sha256_hash": (
+                                "275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f"
+                            ),
                             "sha1_hash": "3395856ce81f2b7382dee72602f798b642f14d40",
                             "md5_hash": "44d88612fea8a8f36de82e1278abb02f",
                             "file_type": "exe",

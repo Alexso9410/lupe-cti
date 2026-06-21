@@ -1,10 +1,10 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
 import httpx
 
-from lupe.models import IOC, IOCType, EnrichmentResult
+from lupe.models import IOC, EnrichmentResult, IOCType
 
 
 class EnrichmentPlugin(ABC):
@@ -15,9 +15,7 @@ class EnrichmentPlugin(ABC):
     requires_api_key: bool = False
 
     @abstractmethod
-    async def enrich(
-        self, ioc: IOC, client: httpx.AsyncClient
-    ) -> EnrichmentResult | None:
+    async def enrich(self, ioc: IOC, client: httpx.AsyncClient) -> EnrichmentResult | None:
         """Enrich an IOC. Return None if no useful data found."""
         ...
 

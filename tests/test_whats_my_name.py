@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import json
 import time
@@ -9,15 +9,29 @@ import httpx
 import pytest
 import respx
 
-from lupe.enrichment.whatsMyName import WhatsMyNamePlugin, _load_wmn_dataset
+from lupe.enrichment.whats_my_name import WhatsMyNamePlugin
 from lupe.models import IOC, IOCType, Severity
-
 
 MOCK_WMN_DATA = {
     "sites": [
-        {"name": "GitHub", "uri_check": "https://github.com/{account}", "e_code": 200, "cat": "coding"},
-        {"name": "Twitter", "uri_check": "https://twitter.com/{account}", "e_code": 200, "cat": "social"},
-        {"name": "NonExistent", "uri_check": "https://nonexistent-site-xyz.com/{account}", "e_code": 200, "cat": "other"},
+        {
+            "name": "GitHub",
+            "uri_check": "https://github.com/{account}",
+            "e_code": 200,
+            "cat": "coding",
+        },
+        {
+            "name": "Twitter",
+            "uri_check": "https://twitter.com/{account}",
+            "e_code": 200,
+            "cat": "social",
+        },
+        {
+            "name": "NonExistent",
+            "uri_check": "https://nonexistent-site-xyz.com/{account}",
+            "e_code": 200,
+            "cat": "other",
+        },
     ]
 }
 
@@ -26,7 +40,7 @@ MOCK_WMN_DATA = {
 def clear_cache(tmp_path: Path) -> None:
     """Fixture to patch cache path to a temp directory."""
     cache_path = tmp_path / "wmn-data.json"
-    with patch("lupe.enrichment.whatsMyName._CACHE_PATH", cache_path):
+    with patch("lupe.enrichment.whats_my_name._CACHE_PATH", cache_path):
         yield cache_path
 
 
@@ -39,19 +53,15 @@ class TestWhatsMyNamePlugin:
     @respx.mock
     async def test_finds_accounts_on_matching_sites(self, clear_cache: Path) -> None:
         # Mock the dataset URL
-        dataset_route = respx.get("https://raw.githubusercontent.com/WebBreacher/WhatsMyName/main/wmn-data.json").mock(
-            return_value=httpx.Response(200, json=MOCK_WMN_DATA)
-        )
+        respx.get(
+            "https://raw.githubusercontent.com/WebBreacher/WhatsMyName/main/wmn-data.json"
+        ).mock(return_value=httpx.Response(200, json=MOCK_WMN_DATA))
         # Mock GitHub returns 200 (account exists)
-        github_route = respx.head("https://github.com/testuser").mock(
-            return_value=httpx.Response(200)
-        )
+        respx.head("https://github.com/testuser").mock(return_value=httpx.Response(200))
         # Mock Twitter returns 404 (account doesn't exist)
-        twitter_route = respx.head("https://twitter.com/testuser").mock(
-            return_value=httpx.Response(404)
-        )
+        respx.head("https://twitter.com/testuser").mock(return_value=httpx.Response(404))
         # Mock NonExistent raises ConnectError
-        nonexistent_route = respx.head("https://nonexistent-site-xyz.com/testuser").mock(
+        respx.head("https://nonexistent-site-xyz.com/testuser").mock(
             side_effect=httpx.ConnectError("Connection failed")
         )
 
@@ -71,13 +81,15 @@ class TestWhatsMyNamePlugin:
     @respx.mock
     async def test_no_accounts_found(self, clear_cache: Path) -> None:
         # Mock the dataset URL
-        respx.get("https://raw.githubusercontent.com/WebBreacher/WhatsMyName/main/wmn-data.json").mock(
-            return_value=httpx.Response(200, json=MOCK_WMN_DATA)
-        )
+        respx.get(
+            "https://raw.githubusercontent.com/WebBreacher/WhatsMyName/main/wmn-data.json"
+        ).mock(return_value=httpx.Response(200, json=MOCK_WMN_DATA))
         # All sites return 404
         respx.head("https://github.com/unknownuser").mock(return_value=httpx.Response(404))
         respx.head("https://twitter.com/unknownuser").mock(return_value=httpx.Response(404))
-        respx.head("https://nonexistent-site-xyz.com/unknownuser").mock(return_value=httpx.Response(404))
+        respx.head("https://nonexistent-site-xyz.com/unknownuser").mock(
+            return_value=httpx.Response(404)
+        )
 
         plugin = WhatsMyNamePlugin()
         ioc = IOC(type=IOCType.username, value="unknownuser")
@@ -93,9 +105,9 @@ class TestWhatsMyNamePlugin:
     @respx.mock
     async def test_dataset_cached_after_fetch(self, clear_cache: Path) -> None:
         # Mock the dataset URL
-        respx.get("https://raw.githubusercontent.com/WebBreacher/WhatsMyName/main/wmn-data.json").mock(
-            return_value=httpx.Response(200, json=MOCK_WMN_DATA)
-        )
+        respx.get(
+            "https://raw.githubusercontent.com/WebBreacher/WhatsMyName/main/wmn-data.json"
+        ).mock(return_value=httpx.Response(200, json=MOCK_WMN_DATA))
         # All sites return 404 for simplicity
         respx.route().mock(return_value=httpx.Response(404))
 
@@ -120,12 +132,13 @@ class TestWhatsMyNamePlugin:
         clear_cache.write_text(json.dumps(MOCK_WMN_DATA), encoding="utf-8")
         # Set modification time to 25 hours ago
         import os
+
         os.utime(clear_cache, (stale_time, stale_time))
 
         # Mock GitHub dataset URL to fail
-        respx.get("https://raw.githubusercontent.com/WebBreacher/WhatsMyName/main/wmn-data.json").mock(
-            side_effect=httpx.ConnectError("Connection failed")
-        )
+        respx.get(
+            "https://raw.githubusercontent.com/WebBreacher/WhatsMyName/main/wmn-data.json"
+        ).mock(side_effect=httpx.ConnectError("Connection failed"))
         # Mock site checks
         respx.head("https://github.com/testuser").mock(return_value=httpx.Response(200))
         respx.route().mock(return_value=httpx.Response(404))
@@ -148,9 +161,9 @@ class TestWhatsMyNamePlugin:
             clear_cache.unlink()
 
         # Mock GitHub to fail
-        respx.get("https://raw.githubusercontent.com/WebBreacher/WhatsMyName/main/wmn-data.json").mock(
-            side_effect=httpx.ConnectError("Connection failed")
-        )
+        respx.get(
+            "https://raw.githubusercontent.com/WebBreacher/WhatsMyName/main/wmn-data.json"
+        ).mock(side_effect=httpx.ConnectError("Connection failed"))
 
         plugin = WhatsMyNamePlugin()
         ioc = IOC(type=IOCType.username, value="testuser")

@@ -1,11 +1,11 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from datetime import datetime, timezone
 
 import httpx
 
 from lupe.enrichment.base import EnrichmentPlugin
-from lupe.models import IOC, IOCType, EnrichmentResult, Severity
+from lupe.models import IOC, EnrichmentResult, IOCType, Severity
 
 _IPINFO_URL = "https://ipinfo.io/{ip}/json"
 
@@ -15,9 +15,7 @@ class IpInfoPlugin(EnrichmentPlugin):
     supported_ioc_types: set[IOCType] = {IOCType.ipv4, IOCType.ipv6}
     requires_api_key = False
 
-    async def enrich(
-        self, ioc: IOC, client: httpx.AsyncClient
-    ) -> EnrichmentResult | None:
+    async def enrich(self, ioc: IOC, client: httpx.AsyncClient) -> EnrichmentResult | None:
         """Fetch geolocation and ASN data from ipinfo.io."""
         url = _IPINFO_URL.format(ip=ioc.value)
         try:

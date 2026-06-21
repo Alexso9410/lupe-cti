@@ -1,11 +1,11 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from datetime import datetime, timezone
 
 import httpx
 
 from lupe.enrichment.base import EnrichmentPlugin
-from lupe.models import IOC, IOCType, EnrichmentResult, Severity
+from lupe.models import IOC, EnrichmentResult, IOCType, Severity
 
 _URLSCAN_SEARCH = "https://urlscan.io/api/v1/search/"
 
@@ -40,9 +40,7 @@ class URLScanPlugin(EnrichmentPlugin):
     def __init__(self, api_key: str) -> None:
         self._api_key = api_key
 
-    async def enrich(
-        self, ioc: IOC, client: httpx.AsyncClient
-    ) -> EnrichmentResult | None:
+    async def enrich(self, ioc: IOC, client: httpx.AsyncClient) -> EnrichmentResult | None:
         """Search urlscan.io for scan history, verdicts, and targeted brands."""
         query = _build_query(ioc)
         headers = {"API-Key": self._api_key}
@@ -81,7 +79,6 @@ class URLScanPlugin(EnrichmentPlugin):
         brands: set[str] = set()
 
         for entry in results:
-            page: dict = entry.get("page", {})
             verdicts: dict = entry.get("verdicts", {})
             overall: dict = verdicts.get("overall", {})
 
@@ -114,6 +111,11 @@ class URLScanPlugin(EnrichmentPlugin):
             ioc_value=ioc.value,
             severity=_verdict_to_severity(worst_verdict, worst_score),
             summary=" | ".join(parts),
-            raw_data={"total": total, "verdict": worst_verdict, "score": worst_score, "brands": list(brands)},
+            raw_data={
+                "total": total,
+                "verdict": worst_verdict,
+                "score": worst_score,
+                "brands": list(brands),
+            },
             enriched_at=datetime.now(tz=timezone.utc),
         )

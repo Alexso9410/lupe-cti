@@ -6,6 +6,7 @@ Usage:
 
 This is an opt-in, one-time migration. It does NOT run automatically.
 """
+
 from __future__ import annotations
 
 import shutil
@@ -15,7 +16,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from lupe.config import get_data_dir
-
 
 _LEGACY_DB_PATH = Path.home() / ".centinela" / "centinela.db"
 

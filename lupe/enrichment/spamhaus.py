@@ -7,12 +7,12 @@ API: https://api.spamhaus.org/api/v2/
 from __future__ import annotations
 
 import logging
+from datetime import datetime
 
 import httpx
 
 from lupe.enrichment.base import EnrichmentPlugin
-from lupe.models import IOC, IOCType, EnrichmentResult, Severity
-from datetime import datetime
+from lupe.models import IOC, EnrichmentResult, IOCType, Severity
 
 logger = logging.getLogger(__name__)
 
@@ -27,9 +27,7 @@ class SpamhausPlugin(EnrichmentPlugin):
     def __init__(self, api_key: str = "") -> None:
         self._api_key = api_key
 
-    async def enrich(
-        self, ioc: IOC, client: httpx.AsyncClient
-    ) -> EnrichmentResult | None:
+    async def enrich(self, ioc: IOC, client: httpx.AsyncClient) -> EnrichmentResult | None:
         """Query Spamhaus for IP or domain reputation."""
         if not self._api_key:
             return None
@@ -75,9 +73,12 @@ class SpamhausPlugin(EnrichmentPlugin):
             return None
 
         severity = (
-            Severity.critical if threat_score >= 8
-            else Severity.high if threat_score >= 5
-            else Severity.medium if threat_score >= 2
+            Severity.critical
+            if threat_score >= 8
+            else Severity.high
+            if threat_score >= 5
+            else Severity.medium
+            if threat_score >= 2
             else Severity.low
         )
 

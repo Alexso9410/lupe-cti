@@ -1,9 +1,9 @@
-﻿import pytest
-import respx
 import httpx
+import pytest
+import respx
+
 from lupe.enrichment.ipquery import IPQueryPlugin
 from lupe.models import IOC, IOCType, Severity
-from datetime import datetime, timezone
 
 
 class TestIPQueryPlugin:
@@ -130,9 +130,7 @@ class TestIPQueryPlugin:
 
     @respx.mock
     async def test_returns_none_on_500(self, plugin, ioc_ipv4):
-        respx.get("https://api.ipquery.io/1.2.3.4").mock(
-            return_value=httpx.Response(500)
-        )
+        respx.get("https://api.ipquery.io/1.2.3.4").mock(return_value=httpx.Response(500))
         async with httpx.AsyncClient() as client:
             result = await plugin.enrich(ioc_ipv4, client)
         assert result is None

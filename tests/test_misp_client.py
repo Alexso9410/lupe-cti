@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+import httpx
 import pytest
 import respx
-import httpx
 
 
 class TestMISPClient:
@@ -76,7 +76,7 @@ class TestMISPClient:
     @pytest.mark.asyncio
     async def test_get_indicators_auth_error(self):
         """get_indicators raises MISPAuthError on 401."""
-        from lupe.integrations.misp import MISPClient, MISPAuthError
+        from lupe.integrations.misp import MISPAuthError, MISPClient
 
         respx.post("https://misp.example.com/attributes/restSearch").mock(
             return_value=httpx.Response(401, json={"message": "Unauthorized"}),
@@ -140,6 +140,7 @@ class TestMISPCLI:
     def test_misp_pull_help(self):
         """lupe misp pull --help works."""
         from typer.testing import CliRunner
+
         from lupe.cli import app
 
         runner = CliRunner()
@@ -149,6 +150,7 @@ class TestMISPCLI:
     def test_misp_push_help(self):
         """lupe misp push --help works."""
         from typer.testing import CliRunner
+
         from lupe.cli import app
 
         runner = CliRunner()
@@ -158,6 +160,7 @@ class TestMISPCLI:
     def test_misp_pull_no_config_shows_error(self):
         """lupe misp pull shows error when MISP not configured."""
         from typer.testing import CliRunner
+
         from lupe.cli import app
 
         runner = CliRunner()

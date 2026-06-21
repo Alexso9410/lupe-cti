@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import asyncio
 
@@ -7,34 +7,34 @@ import httpx
 from lupe.config import Settings
 from lupe.enrichment.abuseipdb import AbuseIPDBPlugin
 from lupe.enrichment.base import EnrichmentPlugin
-from lupe.enrichment.hibp import HaveIBeenPwnedPlugin
-from lupe.enrichment.ipinfo import IpInfoPlugin
-from lupe.enrichment.otx import OTXPlugin
-from lupe.enrichment.shodan import ShodanPlugin
-from lupe.enrichment.threatfox import ThreatFoxPlugin
-from lupe.enrichment.urlscan import URLScanPlugin
-from lupe.enrichment.virustotal import VirusTotalPlugin
-from lupe.enrichment.greynoise import GreyNoisePlugin
-from lupe.enrichment.ipqs import IPQSPlugin, IPQSPhonePlugin
-from lupe.enrichment.numverify import NumVerifyPlugin
-from lupe.enrichment.phonestatic import PhoneStaticPlugin
-from lupe.enrichment.whatsMyName import WhatsMyNamePlugin
-from lupe.enrichment.malwarebazaar import MalwareBazaarPlugin
-from lupe.enrichment.urlhaus import URLhausPlugin
-from lupe.enrichment.whois_plugin import WhoisPlugin
-from lupe.enrichment.ipquery import IPQueryPlugin
+from lupe.enrichment.blocklist_de import BlocklistDePlugin
+from lupe.enrichment.censys import CensysPlugin
 from lupe.enrichment.certsh import CertShPlugin
 from lupe.enrichment.circl_hashlookup import CIRCLHashlookupPlugin
-from lupe.enrichment.emailrep import EmailRepPlugin
-from lupe.enrichment.holehe import HolehePlugin
-from lupe.enrichment.google_safebrowsing import GoogleSafeBrowsingPlugin
-from lupe.enrichment.phishtank import PhishTankPlugin
-from lupe.enrichment.pulsedive import PulsedivePlugin
-from lupe.enrichment.blocklist_de import BlocklistDePlugin
-from lupe.enrichment.spamhaus import SpamhausPlugin
 from lupe.enrichment.crtsh import CrtShPlugin
+from lupe.enrichment.emailrep import EmailRepPlugin
+from lupe.enrichment.google_safebrowsing import GoogleSafeBrowsingPlugin
+from lupe.enrichment.greynoise import GreyNoisePlugin
+from lupe.enrichment.hibp import HaveIBeenPwnedPlugin
+from lupe.enrichment.holehe import HolehePlugin
 from lupe.enrichment.hybrid_analysis import HybridAnalysisPlugin
-from lupe.enrichment.censys import CensysPlugin
+from lupe.enrichment.ipinfo import IpInfoPlugin
+from lupe.enrichment.ipqs import IPQSPhonePlugin, IPQSPlugin
+from lupe.enrichment.ipquery import IPQueryPlugin
+from lupe.enrichment.malwarebazaar import MalwareBazaarPlugin
+from lupe.enrichment.numverify import NumVerifyPlugin
+from lupe.enrichment.otx import OTXPlugin
+from lupe.enrichment.phishtank import PhishTankPlugin
+from lupe.enrichment.phonestatic import PhoneStaticPlugin
+from lupe.enrichment.pulsedive import PulsedivePlugin
+from lupe.enrichment.shodan import ShodanPlugin
+from lupe.enrichment.spamhaus import SpamhausPlugin
+from lupe.enrichment.threatfox import ThreatFoxPlugin
+from lupe.enrichment.urlhaus import URLhausPlugin
+from lupe.enrichment.urlscan import URLScanPlugin
+from lupe.enrichment.virustotal import VirusTotalPlugin
+from lupe.enrichment.whats_my_name import WhatsMyNamePlugin
+from lupe.enrichment.whois_plugin import WhoisPlugin
 from lupe.models import IOC, EnrichmentResult
 
 _CONCURRENCY_LIMIT = 5
@@ -108,7 +108,9 @@ def _build_plugins(settings: Settings) -> list[EnrichmentPlugin]:
         plugins.append(HybridAnalysisPlugin(api_key=settings.hybrid_analysis_key))
 
     if settings.censys_id and settings.censys_secret:
-        plugins.append(CensysPlugin(censys_id=settings.censys_id, censys_secret=settings.censys_secret))
+        plugins.append(
+            CensysPlugin(censys_id=settings.censys_id, censys_secret=settings.censys_secret)
+        )
 
     return plugins
 

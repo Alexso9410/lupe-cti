@@ -1,11 +1,11 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from datetime import datetime, timezone
 
 import httpx
 
 from lupe.enrichment.base import EnrichmentPlugin
-from lupe.models import IOC, IOCType, EnrichmentResult, Severity
+from lupe.models import IOC, EnrichmentResult, IOCType, Severity
 
 
 class GoogleSafeBrowsingPlugin(EnrichmentPlugin):
@@ -18,9 +18,7 @@ class GoogleSafeBrowsingPlugin(EnrichmentPlugin):
     def __init__(self, api_key: str) -> None:
         self._api_key = api_key
 
-    async def enrich(
-        self, ioc: IOC, client: httpx.AsyncClient
-    ) -> EnrichmentResult | None:
+    async def enrich(self, ioc: IOC, client: httpx.AsyncClient) -> EnrichmentResult | None:
         url_to_check = ioc.value
         if ioc.type == IOCType.domain:
             url_to_check = f"https://{ioc.value}"
@@ -69,8 +67,7 @@ class GoogleSafeBrowsingPlugin(EnrichmentPlugin):
             severity = Severity.medium
 
         summary = (
-            f"Google SafeBrowsing: AMENAZA DETECTADA "
-            f"| tipo={threat_type} | plataforma={platform}"
+            f"Google SafeBrowsing: AMENAZA DETECTADA | tipo={threat_type} | plataforma={platform}"
         )
 
         return EnrichmentResult(

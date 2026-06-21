@@ -1,7 +1,8 @@
-﻿import json
+import json
+
+import httpx
 import pytest
 import respx
-import httpx
 
 from lupe.enrichment.google_safebrowsing import GoogleSafeBrowsingPlugin
 from lupe.models import IOC, IOCType, Severity
@@ -24,14 +25,21 @@ class TestGoogleSafeBrowsingPlugin:
     async def test_malware_detection_url(self, plugin, url_ioc):
         respx.post(
             "https://safebrowsing.googleapis.com/v4/threatMatches:find?key=test-api-key"
-        ).mock(return_value=httpx.Response(200, json={
-            "matches": [{
-                "threatType": "MALWARE",
-                "platformType": "ANY_PLATFORM",
-                "threat": {"url": "http://malicious-site.example/malware"},
-                "threatEntryType": "URL",
-            }]
-        }))
+        ).mock(
+            return_value=httpx.Response(
+                200,
+                json={
+                    "matches": [
+                        {
+                            "threatType": "MALWARE",
+                            "platformType": "ANY_PLATFORM",
+                            "threat": {"url": "http://malicious-site.example/malware"},
+                            "threatEntryType": "URL",
+                        }
+                    ]
+                },
+            )
+        )
         async with httpx.AsyncClient() as client:
             result = await plugin.enrich(url_ioc, client)
         assert result is not None
@@ -43,14 +51,21 @@ class TestGoogleSafeBrowsingPlugin:
     async def test_social_engineering_detection(self, plugin, url_ioc):
         respx.post(
             "https://safebrowsing.googleapis.com/v4/threatMatches:find?key=test-api-key"
-        ).mock(return_value=httpx.Response(200, json={
-            "matches": [{
-                "threatType": "SOCIAL_ENGINEERING",
-                "platformType": "ANY_PLATFORM",
-                "threat": {"url": "http://malicious-site.example/phishing"},
-                "threatEntryType": "URL",
-            }]
-        }))
+        ).mock(
+            return_value=httpx.Response(
+                200,
+                json={
+                    "matches": [
+                        {
+                            "threatType": "SOCIAL_ENGINEERING",
+                            "platformType": "ANY_PLATFORM",
+                            "threat": {"url": "http://malicious-site.example/phishing"},
+                            "threatEntryType": "URL",
+                        }
+                    ]
+                },
+            )
+        )
         async with httpx.AsyncClient() as client:
             result = await plugin.enrich(url_ioc, client)
         assert result is not None
@@ -61,14 +76,21 @@ class TestGoogleSafeBrowsingPlugin:
     async def test_unwanted_software(self, plugin, url_ioc):
         respx.post(
             "https://safebrowsing.googleapis.com/v4/threatMatches:find?key=test-api-key"
-        ).mock(return_value=httpx.Response(200, json={
-            "matches": [{
-                "threatType": "UNWANTED_SOFTWARE",
-                "platformType": "ANY_PLATFORM",
-                "threat": {"url": url_ioc.value},
-                "threatEntryType": "URL",
-            }]
-        }))
+        ).mock(
+            return_value=httpx.Response(
+                200,
+                json={
+                    "matches": [
+                        {
+                            "threatType": "UNWANTED_SOFTWARE",
+                            "platformType": "ANY_PLATFORM",
+                            "threat": {"url": url_ioc.value},
+                            "threatEntryType": "URL",
+                        }
+                    ]
+                },
+            )
+        )
         async with httpx.AsyncClient() as client:
             result = await plugin.enrich(url_ioc, client)
         assert result is not None
@@ -96,14 +118,21 @@ class TestGoogleSafeBrowsingPlugin:
     async def test_domain_check(self, plugin, domain_ioc):
         respx.post(
             "https://safebrowsing.googleapis.com/v4/threatMatches:find?key=test-api-key"
-        ).mock(return_value=httpx.Response(200, json={
-            "matches": [{
-                "threatType": "MALWARE",
-                "platformType": "ANY_PLATFORM",
-                "threat": {"url": "https://evil-domain.example"},
-                "threatEntryType": "URL",
-            }]
-        }))
+        ).mock(
+            return_value=httpx.Response(
+                200,
+                json={
+                    "matches": [
+                        {
+                            "threatType": "MALWARE",
+                            "platformType": "ANY_PLATFORM",
+                            "threat": {"url": "https://evil-domain.example"},
+                            "threatEntryType": "URL",
+                        }
+                    ]
+                },
+            )
+        )
         async with httpx.AsyncClient() as client:
             result = await plugin.enrich(domain_ioc, client)
         assert result is not None
@@ -125,12 +154,25 @@ class TestGoogleSafeBrowsingPlugin:
     async def test_raw_data_contains_matches(self, plugin, url_ioc):
         respx.post(
             "https://safebrowsing.googleapis.com/v4/threatMatches:find?key=test-api-key"
-        ).mock(return_value=httpx.Response(200, json={
-            "matches": [
-                {"threatType": "MALWARE", "platformType": "ANY_PLATFORM", "threat": {"url": url_ioc.value}},
-                {"threatType": "SOCIAL_ENGINEERING", "platformType": "ANY_PLATFORM", "threat": {"url": url_ioc.value}},
-            ]
-        }))
+        ).mock(
+            return_value=httpx.Response(
+                200,
+                json={
+                    "matches": [
+                        {
+                            "threatType": "MALWARE",
+                            "platformType": "ANY_PLATFORM",
+                            "threat": {"url": url_ioc.value},
+                        },
+                        {
+                            "threatType": "SOCIAL_ENGINEERING",
+                            "platformType": "ANY_PLATFORM",
+                            "threat": {"url": url_ioc.value},
+                        },
+                    ]
+                },
+            )
+        )
         async with httpx.AsyncClient() as client:
             result = await plugin.enrich(url_ioc, client)
         assert len(result.raw_data["matches"]) == 2

@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 from textual.app import ComposeResult
-from textual.screen import Screen
-from textual.widgets import Footer, Header, Static, Input, Button, TextArea
 from textual.containers import Vertical
+from textual.screen import Screen
+from textual.widgets import Button, Footer, Header, Input, Static, TextArea
 
 
 class EnrichScreen(Screen):
@@ -29,7 +29,9 @@ class EnrichScreen(Screen):
     def compose(self) -> ComposeResult:
         yield Header()
         yield Vertical(
-            Static("[bold #00FFFF]Enrich IOC[/bold #00FFFF] — Enter an IP, domain, hash, URL, or email"),
+            Static(
+                "[bold #00FFFF]Enrich IOC[/bold #00FFFF] — Enter an IP, domain, hash, URL, or email"
+            ),
             Input(placeholder="Enter IOC value...", id="ioc-input"),
             Button("Enrich", id="btn-enrich-run", variant="primary"),
             TextArea(id="enrich-output", read_only=True),

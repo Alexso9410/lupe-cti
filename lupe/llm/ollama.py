@@ -32,9 +32,7 @@ class OllamaProvider(LLMProvider):
         self._base_url = settings.ollama_base_url.rstrip("/")
         self._model = settings.ollama_model
 
-    async def generate(
-        self, prompt: str, *, system: str | None = None
-    ) -> str:
+    async def generate(self, prompt: str, *, system: str | None = None) -> str:
         messages: list[dict[str, str]] = []
         if system:
             messages.append({"role": "system", "content": system})
@@ -65,9 +63,7 @@ class OllamaProvider(LLMProvider):
         except (KeyError, IndexError, ValueError):
             return ""
 
-    async def stream(
-        self, prompt: str, *, system: str | None = None
-    ) -> AsyncIterator[str]:
+    async def stream(self, prompt: str, *, system: str | None = None) -> AsyncIterator[str]:
         messages: list[dict[str, str]] = []
         if system:
             messages.append({"role": "system", "content": system})

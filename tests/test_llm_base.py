@@ -34,8 +34,8 @@ class TestLLMRegistry:
 
     def test_registry_factory_returns_ollama(self, monkeypatch):
         """get_provider('ollama', settings) returns an OllamaProvider instance."""
-        from lupe.llm.registry import get_provider
         from lupe.config import Settings
+        from lupe.llm.registry import get_provider
 
         # Ensure no API keys interfere
         monkeypatch.delenv("LUPE_LLM_PROVIDER", raising=False)
@@ -49,8 +49,8 @@ class TestLLMRegistry:
 
     def test_registry_factory_returns_null_for_unknown(self, monkeypatch):
         """get_provider('unknown', settings) returns a NullProvider."""
-        from lupe.llm.registry import get_provider
         from lupe.config import Settings
+        from lupe.llm.registry import get_provider
 
         settings = Settings()
         provider = get_provider("unknown", settings)
@@ -59,8 +59,8 @@ class TestLLMRegistry:
 
     def test_registry_factory_returns_null_for_empty(self, monkeypatch):
         """get_provider('', settings) returns a NullProvider."""
-        from lupe.llm.registry import get_provider
         from lupe.config import Settings
+        from lupe.llm.registry import get_provider
 
         settings = Settings()
         provider = get_provider("", settings)
@@ -69,8 +69,8 @@ class TestLLMRegistry:
 
     def test_registry_factory_returns_openai(self, monkeypatch):
         """get_provider('openai', settings) returns OpenAIProvider."""
-        from lupe.llm.registry import get_provider
         from lupe.config import Settings
+        from lupe.llm.registry import get_provider
 
         settings = Settings(openai_api_key="sk-test1234567890")
         provider = get_provider("openai", settings)
@@ -79,8 +79,8 @@ class TestLLMRegistry:
 
     def test_registry_factory_returns_anthropic(self, monkeypatch):
         """get_provider('anthropic', settings) returns AnthropicProvider."""
-        from lupe.llm.registry import get_provider
         from lupe.config import Settings
+        from lupe.llm.registry import get_provider
 
         settings = Settings(anthropic_api_key="sk-ant-test1234567890")
         provider = get_provider("anthropic", settings)
@@ -89,8 +89,8 @@ class TestLLMRegistry:
 
     def test_registry_factory_returns_openrouter(self, monkeypatch):
         """get_provider('openrouter', settings) returns OpenRouterProvider."""
-        from lupe.llm.registry import get_provider
         from lupe.config import Settings
+        from lupe.llm.registry import get_provider
 
         settings = Settings(openrouter_api_key="sk-or-test1234567890")
         provider = get_provider("openrouter", settings)
@@ -105,8 +105,8 @@ class TestAnalysisDelegation:
     async def test_analysis_returns_none_when_no_enrichments(self):
         """analyze_ioc returns None when enrichment list is empty."""
         from lupe.analysis import analyze_ioc
-        from lupe.models import IOC, IOCType
         from lupe.config import Settings
+        from lupe.models import IOC, IOCType
 
         ioc = IOC(type=IOCType.ipv4, value="8.8.8.8")
         settings = Settings()
@@ -116,10 +116,11 @@ class TestAnalysisDelegation:
     @pytest.mark.asyncio
     async def test_analysis_delegates_to_provider(self, monkeypatch):
         """analyze_ioc uses the configured LLM provider."""
-        from lupe.analysis import analyze_ioc
-        from lupe.models import IOC, IOCType, EnrichmentResult, Severity
-        from lupe.config import Settings
         from datetime import datetime
+
+        from lupe.analysis import analyze_ioc
+        from lupe.config import Settings
+        from lupe.models import IOC, EnrichmentResult, IOCType, Severity
 
         ioc = IOC(type=IOCType.ipv4, value="8.8.8.8")
         enrichments = [

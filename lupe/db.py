@@ -4,7 +4,6 @@ import json
 import sqlite3
 from pathlib import Path
 
-
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS iocs (
     id INTEGER PRIMARY KEY AUTOINCREMENT,

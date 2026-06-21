@@ -1,6 +1,4 @@
-﻿from __future__ import annotations
-
-import pytest
+from __future__ import annotations
 
 from lupe.ioc_detect import detect_ioc
 from lupe.models import IOCType
@@ -120,9 +118,7 @@ class TestHashDetection:
         assert result.type == IOCType.hash_sha1
 
     def test_sha256_hash(self) -> None:
-        result = detect_ioc(
-            "275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f"
-        )
+        result = detect_ioc("275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f")
         assert result is not None
         assert result.type == IOCType.hash_sha256
 

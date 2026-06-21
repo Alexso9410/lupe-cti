@@ -30,9 +30,7 @@ class AnthropicProvider(LLMProvider):
         self._api_key = settings.anthropic_api_key or ""
         self._model = _DEFAULT_MODEL
 
-    async def generate(
-        self, prompt: str, *, system: str | None = None
-    ) -> str:
+    async def generate(self, prompt: str, *, system: str | None = None) -> str:
         messages = [{"role": "user", "content": prompt}]
         payload: dict = {
             "model": self._model,
@@ -68,9 +66,7 @@ class AnthropicProvider(LLMProvider):
         except (KeyError, IndexError, ValueError):
             return ""
 
-    async def stream(
-        self, prompt: str, *, system: str | None = None
-    ) -> AsyncIterator[str]:
+    async def stream(self, prompt: str, *, system: str | None = None) -> AsyncIterator[str]:
         messages = [{"role": "user", "content": prompt}]
         payload: dict = {
             "model": self._model,

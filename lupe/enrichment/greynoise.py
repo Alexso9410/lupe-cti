@@ -1,11 +1,11 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from datetime import datetime, timezone
 
 import httpx
 
 from lupe.enrichment.base import EnrichmentPlugin
-from lupe.models import IOC, IOCType, EnrichmentResult, Severity
+from lupe.models import IOC, EnrichmentResult, IOCType, Severity
 
 _GREYNOISE_URL = "https://api.greynoise.io/v3/community/"
 
@@ -30,9 +30,7 @@ class GreyNoisePlugin(EnrichmentPlugin):
     def __init__(self, api_key: str) -> None:
         self._api_key = api_key
 
-    async def enrich(
-        self, ioc: IOC, client: httpx.AsyncClient
-    ) -> EnrichmentResult | None:
+    async def enrich(self, ioc: IOC, client: httpx.AsyncClient) -> EnrichmentResult | None:
         """Query GreyNoise for IP reputation and mass scanning activity."""
         headers = {"key": self._api_key}
         try:
@@ -62,11 +60,14 @@ class GreyNoisePlugin(EnrichmentPlugin):
         classification = data.get("classification", "unknown")
         name = data.get("name")
         last_seen = data.get("last_seen")
-        message = data.get("message")
 
         severity = _classify_severity(noise, riot, classification)
 
-        summary = f"GreyNoise: classification={classification}, noise={noise}, riot={riot}, name={name}, last_seen={last_seen}"
+        summary = (
+            f"GreyNoise: classification={classification}, "
+            f"noise={noise}, riot={riot}, "
+            f"name={name}, last_seen={last_seen}"
+        )
 
         return EnrichmentResult(
             source=self.name,

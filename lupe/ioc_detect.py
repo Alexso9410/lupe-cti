@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import re
 
@@ -8,19 +8,13 @@ _RE_HASH_MD5 = re.compile(r"^[0-9a-fA-F]{32}$")
 _RE_HASH_SHA1 = re.compile(r"^[0-9a-fA-F]{40}$")
 _RE_HASH_SHA256 = re.compile(r"^[0-9a-fA-F]{64}$")
 _RE_URL = re.compile(r"^https?://", re.IGNORECASE)
-_RE_EMAIL = re.compile(
-    r"^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$"
-)
-_RE_PHONE = re.compile(
-    r"^\+\d{1,3}[\s\-.]?\(?\d{1,4}\)?[\s\-.]?\d{3,5}[\s\-.]?\d{4,7}$"
-)
+_RE_EMAIL = re.compile(r"^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$")
+_RE_PHONE = re.compile(r"^\+\d{1,3}[\s\-.]?\(?\d{1,4}\)?[\s\-.]?\d{3,5}[\s\-.]?\d{4,7}$")
 _RE_DOMAIN = re.compile(
     r"^(?:[a-zA-Z0-9](?:[a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)"
     r"+[a-zA-Z]{2,}$"
 )
-_RE_IPV4_LOOSE = re.compile(
-    r"^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$"
-)
+_RE_IPV4_LOOSE = re.compile(r"^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$")
 _RE_IPV6 = re.compile(
     r"^("
     r"([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}"

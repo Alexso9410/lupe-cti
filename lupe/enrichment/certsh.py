@@ -1,8 +1,12 @@
-﻿from __future__ import annotations
+from __future__ import annotations
+
 from datetime import datetime, timezone
+
 import httpx
+
 from lupe.enrichment.base import EnrichmentPlugin
-from lupe.models import IOC, IOCType, EnrichmentResult, Severity
+from lupe.models import IOC, EnrichmentResult, IOCType, Severity
+
 
 class CertShPlugin(EnrichmentPlugin):
     name = "certsh"
@@ -11,10 +15,7 @@ class CertShPlugin(EnrichmentPlugin):
 
     async def enrich(self, ioc: IOC, client: httpx.AsyncClient) -> EnrichmentResult | None:
         try:
-            resp = await client.get(
-                f"https://crt.sh/?q={ioc.value}&output=json",
-                timeout=20.0
-            )
+            resp = await client.get(f"https://crt.sh/?q={ioc.value}&output=json", timeout=20.0)
             resp.raise_for_status()
             certs = resp.json()
             if not isinstance(certs, list):
@@ -38,7 +39,9 @@ class CertShPlugin(EnrichmentPlugin):
             if not_after_str:
                 try:
                     # Handle typical crt.sh format: "YYYY-MM-DD HH:MM:SS"
-                    not_after = datetime.strptime(not_after_str, "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
+                    not_after = datetime.strptime(not_after_str, "%Y-%m-%d %H:%M:%S").replace(
+                        tzinfo=timezone.utc
+                    )
                     if not_after > now:
                         active_count += 1
                 except (ValueError, TypeError):

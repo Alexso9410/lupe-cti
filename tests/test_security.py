@@ -1,4 +1,5 @@
 """Tests for lupe.security — redaction, validation, HTTPS-only, rate limiting."""
+
 from __future__ import annotations
 
 import asyncio

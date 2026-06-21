@@ -1,11 +1,11 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from datetime import datetime, timezone
 
 import httpx
 
 from lupe.enrichment.base import EnrichmentPlugin
-from lupe.models import IOC, IOCType, EnrichmentResult, Severity
+from lupe.models import IOC, EnrichmentResult, IOCType, Severity
 
 _HIBP_URL = "https://haveibeenpwned.com/api/v3/breachedaccount/{email}"
 
@@ -28,9 +28,7 @@ class HaveIBeenPwnedPlugin(EnrichmentPlugin):
     def __init__(self, api_key: str) -> None:
         self._api_key = api_key
 
-    async def enrich(
-        self, ioc: IOC, client: httpx.AsyncClient
-    ) -> EnrichmentResult | None:
+    async def enrich(self, ioc: IOC, client: httpx.AsyncClient) -> EnrichmentResult | None:
         """Query Have I Been Pwned for email address breach exposure."""
         url = _HIBP_URL.format(email=ioc.value)
         headers = {
@@ -40,9 +38,7 @@ class HaveIBeenPwnedPlugin(EnrichmentPlugin):
         params = {"truncateResponse": "false"}
 
         try:
-            response = await client.get(
-                url, headers=headers, params=params, timeout=15.0
-            )
+            response = await client.get(url, headers=headers, params=params, timeout=15.0)
         except httpx.RequestError:
             return None
 

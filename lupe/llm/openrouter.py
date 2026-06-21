@@ -31,9 +31,7 @@ class OpenRouterProvider(LLMProvider):
         self._base_url = settings.openrouter_base_url.rstrip("/")
         self._model = _DEFAULT_MODEL
 
-    async def generate(
-        self, prompt: str, *, system: str | None = None
-    ) -> str:
+    async def generate(self, prompt: str, *, system: str | None = None) -> str:
         messages: list[dict[str, str]] = []
         if system:
             messages.append({"role": "system", "content": system})
@@ -52,9 +50,7 @@ class OpenRouterProvider(LLMProvider):
 
         try:
             async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    url, json=payload, headers=headers, timeout=120.0
-                )
+                response = await client.post(url, json=payload, headers=headers, timeout=120.0)
         except httpx.RequestError:
             return ""
 
@@ -67,9 +63,7 @@ class OpenRouterProvider(LLMProvider):
         except (KeyError, IndexError, ValueError):
             return ""
 
-    async def stream(
-        self, prompt: str, *, system: str | None = None
-    ) -> AsyncIterator[str]:
+    async def stream(self, prompt: str, *, system: str | None = None) -> AsyncIterator[str]:
         messages: list[dict[str, str]] = []
         if system:
             messages.append({"role": "system", "content": system})

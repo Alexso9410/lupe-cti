@@ -5,29 +5,29 @@ Heimdall Security - Professional email analysis reports.
 """
 
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from lupe.models import EmailAnalysisResult
 
-from pathlib import Path
-from datetime import datetime
 import re
-from reportlab.lib import colors
-from reportlab.lib.colors import HexColor, white, black
+from datetime import datetime
+from pathlib import Path
+
+from reportlab.lib.colors import HexColor, black, white
 from reportlab.lib.pagesizes import A4
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.units import pt
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.pdfgen.canvas import Canvas
 from reportlab.platypus import (
+    Flowable,
+    HRFlowable,
+    Paragraph,
     SimpleDocTemplate,
+    Spacer,
     Table,
     TableStyle,
-    Paragraph,
-    Spacer,
-    HRFlowable,
-    Flowable,
 )
-from reportlab.pdfgen.canvas import Canvas
 
 # Heimdall Security Color Palette
 COLOR_ACCENT = HexColor("#00D4FF")  # cyan Heimdall
@@ -104,10 +104,10 @@ def _get_severity_color(severity: str) -> HexColor:
 
 def _create_circle_bullet(color: HexColor) -> str:
     """Create a colored circle bullet for table display."""
-    return f"<font color=\"{color.hexval()}\">&#9679;</font>"
+    return f'<font color="{color.hexval()}">&#9679;</font>'
 
 
-def generate_email_report(result: "EmailAnalysisResult", output_dir: str) -> str:
+def generate_email_report(result: EmailAnalysisResult, output_dir: str) -> str:
     """Generate PDF report of phishing email analysis.
 
     Args:
@@ -175,22 +175,22 @@ def generate_email_report(result: "EmailAnalysisResult", output_dir: str) -> str
             ),
             Paragraph(
                 f"<b>INFORME DE ANÁLISIS DE EMAIL SOSPECHOSO</b><br/>"
-                f"<font size=\"9\">Fecha: {current_date}</font><br/>"
-                f"<font size=\"9\">Caso: {case_id}</font>",
-                ParagraphStyle(
-                    "HeaderRight", parent=styles["Normal"], alignment=2, fontSize=10
-                ),
+                f'<font size="9">Fecha: {current_date}</font><br/>'
+                f'<font size="9">Caso: {case_id}</font>',
+                ParagraphStyle("HeaderRight", parent=styles["Normal"], alignment=2, fontSize=10),
             ),
         ]
     ]
 
     header_table = Table(header_data, colWidths=[250, 250])
     header_table.setStyle(
-        TableStyle([
-            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-            ("LEFTPADDING", (0, 0), (-1, -1), 0),
-            ("RIGHTPADDING", (0, 0), (-1, -1), 0),
-        ])
+        TableStyle(
+            [
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+            ]
+        )
     )
 
     elements.append(header_table)
@@ -204,7 +204,9 @@ def generate_email_report(result: "EmailAnalysisResult", output_dir: str) -> str
     reply_to_warning = ""
     reply_to_color = black
     if result.headers.reply_to and result.headers.from_:
-        reply_domain = result.headers.reply_to.split("@")[-1] if "@" in result.headers.reply_to else ""
+        reply_domain = (
+            result.headers.reply_to.split("@")[-1] if "@" in result.headers.reply_to else ""
+        )
         from_domain = result.headers.from_.split("@")[-1] if "@" in result.headers.from_ else ""
         if reply_domain and from_domain and reply_domain != from_domain:
             reply_to_warning = " &#9888; DOMINIO DIFERENTE"
@@ -213,26 +215,37 @@ def generate_email_report(result: "EmailAnalysisResult", output_dir: str) -> str
     metadata_data = [
         [Paragraph("De:", label_style), Paragraph(result.headers.from_ or "N/A", styles["Normal"])],
         [Paragraph("Para:", label_style), Paragraph(result.headers.to or "N/A", styles["Normal"])],
-        [Paragraph("Asunto:", label_style), Paragraph(result.headers.subject or "N/A", styles["Normal"])],
-        [Paragraph("Fecha:", label_style), Paragraph(result.headers.date or "N/A", styles["Normal"])],
+        [
+            Paragraph("Asunto:", label_style),
+            Paragraph(result.headers.subject or "N/A", styles["Normal"]),
+        ],
+        [
+            Paragraph("Fecha:", label_style),
+            Paragraph(result.headers.date or "N/A", styles["Normal"]),
+        ],
         [
             Paragraph("Reply-To:", label_style),
             Paragraph(
-                f"<font color=\"{reply_to_color.hexval()}\">"
+                f'<font color="{reply_to_color.hexval()}">'
                 f"{result.headers.reply_to or 'N/A'}{reply_to_warning}</font>",
                 styles["Normal"],
             ),
         ],
-        [Paragraph("Message-ID:", label_style), Paragraph(result.headers.message_id or "N/A", styles["Normal"])],
+        [
+            Paragraph("Message-ID:", label_style),
+            Paragraph(result.headers.message_id or "N/A", styles["Normal"]),
+        ],
     ]
 
     metadata_table = Table(metadata_data, colWidths=[100, 400])
     metadata_table.setStyle(
-        TableStyle([
-            ("VALIGN", (0, 0), (-1, -1), "TOP"),
-            ("TOPPADDING", (0, 0), (-1, -1), 4),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-        ])
+        TableStyle(
+            [
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("TOPPADDING", (0, 0), (-1, -1), 4),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+            ]
+        )
     )
     elements.append(metadata_table)
 
@@ -263,12 +276,14 @@ def generate_email_report(result: "EmailAnalysisResult", output_dir: str) -> str
 
     auth_table = Table(auth_data, colWidths=[150, 150, 150], hAlign="CENTER")
     auth_table.setStyle(
-        TableStyle([
-            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-            ("TOPPADDING", (0, 0), (-1, -1), 6),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
-        ])
+        TableStyle(
+            [
+                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("TOPPADDING", (0, 0), (-1, -1), 6),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+            ]
+        )
     )
     elements.append(auth_table)
 
@@ -299,24 +314,30 @@ def generate_email_report(result: "EmailAnalysisResult", output_dir: str) -> str
 
     # Indicators table
     if result.scores and result.scores.indicators:
-        indicators_data = [[Paragraph("<b>Indicador</b>", label_style), Paragraph("<b>Valor</b>", label_style)]]
+        indicators_data = [
+            [Paragraph("<b>Indicador</b>", label_style), Paragraph("<b>Valor</b>", label_style)]
+        ]
         for indicator in result.scores.indicators:
             name = getattr(indicator, "name", str(indicator))
             value = getattr(indicator, "value", "")
-            indicators_data.append([
-                Paragraph(name, styles["Normal"]),
-                Paragraph(str(value), styles["Normal"]),
-            ])
+            indicators_data.append(
+                [
+                    Paragraph(name, styles["Normal"]),
+                    Paragraph(str(value), styles["Normal"]),
+                ]
+            )
 
         indicators_table = Table(indicators_data, colWidths=[250, 250])
         indicators_table.setStyle(
-            TableStyle([
-                ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                ("TOPPADDING", (0, 0), (-1, -1), 4),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-                ("BACKGROUND", (0, 0), (-1, 0), COLOR_DARK),
-                ("TEXTCOLOR", (0, 0), (-1, 0), white),
-            ])
+            TableStyle(
+                [
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                    ("TOPPADDING", (0, 0), (-1, -1), 4),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+                    ("BACKGROUND", (0, 0), (-1, 0), COLOR_DARK),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), white),
+                ]
+            )
         )
         elements.append(indicators_table)
 
@@ -334,25 +355,29 @@ def generate_email_report(result: "EmailAnalysisResult", output_dir: str) -> str
         for ioc in result.iocs:
             severity = getattr(ioc, "severity", "info")
             severity_color = _get_severity_color(severity)
-            iocs_data.append([
-                Paragraph(getattr(ioc, "type", "N/A"), styles["Normal"]),
-                Paragraph(getattr(ioc, "value", "N/A"), styles["Normal"]),
-                Paragraph(
-                    f"<font color=\"{severity_color.hexval()}\">{severity.upper()}</font>",
-                    styles["Normal"],
-                ),
-            ])
+            iocs_data.append(
+                [
+                    Paragraph(getattr(ioc, "type", "N/A"), styles["Normal"]),
+                    Paragraph(getattr(ioc, "value", "N/A"), styles["Normal"]),
+                    Paragraph(
+                        f'<font color="{severity_color.hexval()}">{severity.upper()}</font>',
+                        styles["Normal"],
+                    ),
+                ]
+            )
 
         iocs_table = Table(iocs_data, colWidths=[100, 300, 100])
         iocs_table.setStyle(
-            TableStyle([
-                ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                ("TOPPADDING", (0, 0), (-1, -1), 4),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-                ("BACKGROUND", (0, 0), (-1, 0), COLOR_DARK),
-                ("TEXTCOLOR", (0, 0), (-1, 0), white),
-                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [white, COLOR_BG_ROW]),
-            ])
+            TableStyle(
+                [
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                    ("TOPPADDING", (0, 0), (-1, -1), 4),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+                    ("BACKGROUND", (0, 0), (-1, 0), COLOR_DARK),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), white),
+                    ("ROWBACKGROUNDS", (0, 1), (-1, -1), [white, COLOR_BG_ROW]),
+                ]
+            )
         )
         elements.append(iocs_table)
     else:
@@ -367,17 +392,25 @@ def generate_email_report(result: "EmailAnalysisResult", output_dir: str) -> str
         confidence = getattr(ai, "confidence", 0)
 
         ai_data = [
-            [Paragraph("<b>Clasificación:</b>", label_style), Paragraph(classification, styles["Normal"])],
-            [Paragraph("<b>Confianza:</b>", label_style), Paragraph(f"{confidence:.0%}", styles["Normal"])],
+            [
+                Paragraph("<b>Clasificación:</b>", label_style),
+                Paragraph(classification, styles["Normal"]),
+            ],
+            [
+                Paragraph("<b>Confianza:</b>", label_style),
+                Paragraph(f"{confidence:.0%}", styles["Normal"]),
+            ],
         ]
 
         ai_table = Table(ai_data, colWidths=[120, 380])
         ai_table.setStyle(
-            TableStyle([
-                ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                ("TOPPADDING", (0, 0), (-1, -1), 4),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-            ])
+            TableStyle(
+                [
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                    ("TOPPADDING", (0, 0), (-1, -1), 4),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+                ]
+            )
         )
         elements.append(ai_table)
 
@@ -407,13 +440,15 @@ def generate_email_report(result: "EmailAnalysisResult", output_dir: str) -> str
 
             rec_table = Table(rec_data, colWidths=[500])
             rec_table.setStyle(
-                TableStyle([
-                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                    ("TOPPADDING", (0, 0), (-1, -1), 2),
-                    ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
-                    ("BACKGROUND", (0, 0), (-1, 0), COLOR_DARK),
-                    ("TEXTCOLOR", (0, 0), (-1, 0), white),
-                ])
+                TableStyle(
+                    [
+                        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                        ("TOPPADDING", (0, 0), (-1, -1), 2),
+                        ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+                        ("BACKGROUND", (0, 0), (-1, 0), COLOR_DARK),
+                        ("TEXTCOLOR", (0, 0), (-1, 0), white),
+                    ]
+                )
             )
             elements.append(rec_table)
     else:
@@ -440,31 +475,39 @@ def generate_email_report(result: "EmailAnalysisResult", output_dir: str) -> str
             risk = getattr(att, "risk", "unknown")
 
             # Check for executable warning
-            is_exec = mime in ("application/x-executable", "application/x-dosexec") or \
-                      name.endswith((".exe", ".dll", ".bat", ".cmd", ".sh", ".bin"))
-            risk_display = f"<font color=\"{COLOR_RED.hexval()}\">EJECUTABLE</font>" if is_exec else risk
+            is_exec = mime in (
+                "application/x-executable",
+                "application/x-dosexec",
+            ) or name.endswith((".exe", ".dll", ".bat", ".cmd", ".sh", ".bin"))
+            risk_display = (
+                f'<font color="{COLOR_RED.hexval()}">EJECUTABLE</font>' if is_exec else risk
+            )
 
             size_str = f"{size:,} bytes" if size else "N/A"
             sha_short = sha256[:16] + "..." if sha256 else "N/A"
 
-            att_data.append([
-                Paragraph(name, styles["Normal"]),
-                Paragraph(mime, styles["Normal"]),
-                Paragraph(size_str, styles["Normal"]),
-                Paragraph(sha_short, styles["Normal"]),
-                Paragraph(risk_display, styles["Normal"]),
-            ])
+            att_data.append(
+                [
+                    Paragraph(name, styles["Normal"]),
+                    Paragraph(mime, styles["Normal"]),
+                    Paragraph(size_str, styles["Normal"]),
+                    Paragraph(sha_short, styles["Normal"]),
+                    Paragraph(risk_display, styles["Normal"]),
+                ]
+            )
 
         att_table = Table(att_data, colWidths=[120, 100, 80, 120, 80])
         att_table.setStyle(
-            TableStyle([
-                ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                ("TOPPADDING", (0, 0), (-1, -1), 4),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-                ("BACKGROUND", (0, 0), (-1, 0), COLOR_DARK),
-                ("TEXTCOLOR", (0, 0), (-1, 0), white),
-                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [white, COLOR_BG_ROW]),
-            ])
+            TableStyle(
+                [
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                    ("TOPPADDING", (0, 0), (-1, -1), 4),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+                    ("BACKGROUND", (0, 0), (-1, 0), COLOR_DARK),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), white),
+                    ("ROWBACKGROUNDS", (0, 1), (-1, -1), [white, COLOR_BG_ROW]),
+                ]
+            )
         )
         elements.append(att_table)
     else:
@@ -487,7 +530,7 @@ def generate_email_report(result: "EmailAnalysisResult", output_dir: str) -> str
                 for pattern in ["localhost", "127.0.0.1", "private", "internal", "unknown"]
             )
 
-            warning = f" <font color=\"{COLOR_RED.hexval()}\">&#9888;</font>" if is_suspicious else ""
+            warning = f' <font color="{COLOR_RED.hexval()}">&#9888;</font>' if is_suspicious else ""
 
             elements.append(
                 Paragraph(

@@ -7,12 +7,12 @@ API: https://www.hybrid-analysis.com/api/v2/
 from __future__ import annotations
 
 import logging
+from datetime import datetime
 
 import httpx
 
 from lupe.enrichment.base import EnrichmentPlugin
-from lupe.models import IOC, IOCType, EnrichmentResult, Severity
-from datetime import datetime
+from lupe.models import IOC, EnrichmentResult, IOCType, Severity
 
 logger = logging.getLogger(__name__)
 
@@ -27,9 +27,7 @@ class HybridAnalysisPlugin(EnrichmentPlugin):
     def __init__(self, api_key: str = "") -> None:
         self._api_key = api_key
 
-    async def enrich(
-        self, ioc: IOC, client: httpx.AsyncClient
-    ) -> EnrichmentResult | None:
+    async def enrich(self, ioc: IOC, client: httpx.AsyncClient) -> EnrichmentResult | None:
         """Query Hybrid Analysis for hash or URL analysis."""
         if not self._api_key:
             return None
@@ -50,9 +48,7 @@ class HybridAnalysisPlugin(EnrichmentPlugin):
             return None
 
         try:
-            response = await client.post(
-                url, headers=headers, data=data, timeout=30.0
-            )
+            response = await client.post(url, headers=headers, data=data, timeout=30.0)
         except httpx.RequestError:
             logger.debug("Hybrid Analysis request failed for %s", ioc.value)
             return None
@@ -85,7 +81,6 @@ class HybridAnalysisPlugin(EnrichmentPlugin):
         verdict = result_data.get("verdict", "unknown")
         threat_score = result_data.get("threat_score", 0)
         type_ = result_data.get("type_description", "")
-        env = result_data.get("environment_description", "")
 
         severity_map = {
             "malicious": Severity.critical,
@@ -93,7 +88,9 @@ class HybridAnalysisPlugin(EnrichmentPlugin):
             "no specific threat": Severity.low,
             "unknown": Severity.info,
         }
-        severity = severity_map.get(verdict.lower() if isinstance(verdict, str) else "", Severity.medium)
+        severity = severity_map.get(
+            verdict.lower() if isinstance(verdict, str) else "", Severity.medium
+        )
 
         return EnrichmentResult(
             source="hybrid_analysis",

@@ -1,11 +1,11 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from datetime import datetime, timezone
 
 import httpx
 
 from lupe.enrichment.base import EnrichmentPlugin
-from lupe.models import IOC, IOCType, EnrichmentResult, Severity
+from lupe.models import IOC, EnrichmentResult, IOCType, Severity
 
 _ABUSEIPDB_URL = "https://api.abuseipdb.com/api/v2/check"
 
@@ -30,9 +30,7 @@ class AbuseIPDBPlugin(EnrichmentPlugin):
     def __init__(self, api_key: str) -> None:
         self._api_key = api_key
 
-    async def enrich(
-        self, ioc: IOC, client: httpx.AsyncClient
-    ) -> EnrichmentResult | None:
+    async def enrich(self, ioc: IOC, client: httpx.AsyncClient) -> EnrichmentResult | None:
         """Query AbuseIPDB for IP reputation and abuse confidence score."""
         headers = {
             "Key": self._api_key,
@@ -69,7 +67,6 @@ class AbuseIPDBPlugin(EnrichmentPlugin):
         score: int = report_data.get("abuseConfidenceScore", 0)
         total_reports: int = report_data.get("totalReports", 0)
         country: str = report_data.get("countryCode", "N/A")
-        domain: str = report_data.get("domain", "") or "N/A"
         usage_type: str = report_data.get("usageType", "") or "N/A"
         isp: str = report_data.get("isp", "") or "N/A"
 

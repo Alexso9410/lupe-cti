@@ -7,12 +7,12 @@ API: https://crt.sh/?q=<domain>&output=json
 from __future__ import annotations
 
 import logging
+from datetime import datetime
 
 import httpx
 
 from lupe.enrichment.base import EnrichmentPlugin
-from lupe.models import IOC, IOCType, EnrichmentResult, Severity
-from datetime import datetime
+from lupe.models import IOC, EnrichmentResult, IOCType, Severity
 
 logger = logging.getLogger(__name__)
 
@@ -24,9 +24,7 @@ class CrtShPlugin(EnrichmentPlugin):
     supported_ioc_types = {IOCType.domain}
     requires_api_key = False
 
-    async def enrich(
-        self, ioc: IOC, client: httpx.AsyncClient
-    ) -> EnrichmentResult | None:
+    async def enrich(self, ioc: IOC, client: httpx.AsyncClient) -> EnrichmentResult | None:
         """Search crt.sh for certificates issued to the domain."""
         if not self.supports(ioc.type):
             return None

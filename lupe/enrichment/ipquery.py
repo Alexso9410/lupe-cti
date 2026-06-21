@@ -1,11 +1,11 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from datetime import datetime, timezone
 
 import httpx
 
 from lupe.enrichment.base import EnrichmentPlugin
-from lupe.models import IOC, IOCType, EnrichmentResult, Severity
+from lupe.models import IOC, EnrichmentResult, IOCType, Severity
 
 
 class IPQueryPlugin(EnrichmentPlugin):
@@ -13,9 +13,7 @@ class IPQueryPlugin(EnrichmentPlugin):
     supported_ioc_types: set[IOCType] = {IOCType.ipv4, IOCType.ipv6}
     requires_api_key = False
 
-    async def enrich(
-        self, ioc: IOC, client: httpx.AsyncClient
-    ) -> EnrichmentResult | None:
+    async def enrich(self, ioc: IOC, client: httpx.AsyncClient) -> EnrichmentResult | None:
         """Query IPQuery API for IP reputation, geolocation and network data."""
         try:
             resp = await client.get(f"https://api.ipquery.io/{ioc.value}")

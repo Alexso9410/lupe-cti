@@ -1,8 +1,8 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from lupe.models import EnrichmentResult, IOC, Severity
+from lupe.models import IOC, EnrichmentResult, Severity
 
 _SEVERITY_RANK: dict[Severity, int] = {
     Severity.info: 0,

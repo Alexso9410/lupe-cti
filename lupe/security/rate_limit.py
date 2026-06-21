@@ -3,6 +3,7 @@
 Use ``RateLimiter`` to throttle plugin requests and avoid hitting API
 rate limits.  The limiter is async-native and uses ``asyncio.sleep``.
 """
+
 from __future__ import annotations
 
 import asyncio

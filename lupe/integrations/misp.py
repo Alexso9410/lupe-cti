@@ -184,9 +184,7 @@ class MISPClient:
         }
 
         try:
-            attr_resp = await self._client.post(
-                f"/attributes/add/", json=attr_body
-            )
+            attr_resp = await self._client.post("/attributes/add/", json=attr_body)
         except httpx.ConnectError as exc:
             raise MISPConnectionError(f"Cannot connect to MISP: {exc}") from exc
         except httpx.RequestError as exc:

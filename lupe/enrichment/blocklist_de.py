@@ -7,12 +7,12 @@ API: https://lists.blocklist.de/lists/
 from __future__ import annotations
 
 import logging
+from datetime import datetime
 
 import httpx
 
 from lupe.enrichment.base import EnrichmentPlugin
-from lupe.models import IOC, IOCType, EnrichmentResult, Severity
-from datetime import datetime
+from lupe.models import IOC, EnrichmentResult, IOCType, Severity
 
 logger = logging.getLogger(__name__)
 
@@ -37,9 +37,7 @@ class BlocklistDePlugin(EnrichmentPlugin):
     supported_ioc_types = {IOCType.ipv4, IOCType.ipv6}
     requires_api_key = False
 
-    async def enrich(
-        self, ioc: IOC, client: httpx.AsyncClient
-    ) -> EnrichmentResult | None:
+    async def enrich(self, ioc: IOC, client: httpx.AsyncClient) -> EnrichmentResult | None:
         """Check if IP appears in any blocklist.de lists."""
         url = f"https://api.blocklist.de/api.php?ip={ioc.value}&start=1"
 
@@ -67,12 +65,16 @@ class BlocklistDePlugin(EnrichmentPlugin):
         if isinstance(data, dict):
             attacks = data.get("attacks", 0)
             if "blacklists" in data:
-                categories = list(data["blacklists"].keys()) if isinstance(data["blacklists"], dict) else []
+                categories = (
+                    list(data["blacklists"].keys()) if isinstance(data["blacklists"], dict) else []
+                )
 
         if attacks == 0:
             return None
 
-        severity = Severity.high if attacks > 100 else Severity.medium if attacks > 10 else Severity.low
+        severity = (
+            Severity.high if attacks > 100 else Severity.medium if attacks > 10 else Severity.low
+        )
 
         return EnrichmentResult(
             source="blocklist.de",

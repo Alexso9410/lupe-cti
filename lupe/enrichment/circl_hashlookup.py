@@ -1,8 +1,12 @@
-﻿from __future__ import annotations
+from __future__ import annotations
+
 from datetime import datetime, timezone
+
 import httpx
+
 from lupe.enrichment.base import EnrichmentPlugin
-from lupe.models import IOC, IOCType, EnrichmentResult, Severity
+from lupe.models import IOC, EnrichmentResult, IOCType, Severity
+
 
 class CIRCLHashlookupPlugin(EnrichmentPlugin):
     name = "circl_hashlookup"
@@ -29,12 +33,12 @@ class CIRCLHashlookupPlugin(EnrichmentPlugin):
         except Exception:
             return None
 
-        _UNSET = object()
-        known_malicious = data.get("KnownMalicious", _UNSET)
+        _unset = object()
+        known_malicious = data.get("KnownMalicious", _unset)
         filename = data.get("FileName", "unknown")
         file_size = data.get("FileSize", "unknown")
 
-        if known_malicious is _UNSET:
+        if known_malicious is _unset:
             malicious = None
         elif isinstance(known_malicious, str):
             malicious = known_malicious.lower() == "true"
