@@ -1,9 +1,9 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import pytest
 
-from centinela.ioc_detect import detect_ioc
-from centinela.models import IOCType
+from lupe.ioc_detect import detect_ioc
+from lupe.models import IOCType
 
 
 class TestIPv4Detection:

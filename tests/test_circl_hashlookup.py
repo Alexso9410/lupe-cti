@@ -1,8 +1,8 @@
-import pytest
+﻿import pytest
 import respx
 import httpx
-from centinela.enrichment.circl_hashlookup import CIRCLHashlookupPlugin
-from centinela.models import IOC, IOCType, Severity
+from lupe.enrichment.circl_hashlookup import CIRCLHashlookupPlugin
+from lupe.models import IOC, IOCType, Severity
 
 class TestCIRCLHashlookupPlugin:
     @pytest.fixture

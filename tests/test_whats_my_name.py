@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import json
 import time
@@ -9,8 +9,8 @@ import httpx
 import pytest
 import respx
 
-from centinela.enrichment.whatsMyName import WhatsMyNamePlugin, _load_wmn_dataset
-from centinela.models import IOC, IOCType, Severity
+from lupe.enrichment.whatsMyName import WhatsMyNamePlugin, _load_wmn_dataset
+from lupe.models import IOC, IOCType, Severity
 
 
 MOCK_WMN_DATA = {
@@ -26,7 +26,7 @@ MOCK_WMN_DATA = {
 def clear_cache(tmp_path: Path) -> None:
     """Fixture to patch cache path to a temp directory."""
     cache_path = tmp_path / "wmn-data.json"
-    with patch("centinela.enrichment.whatsMyName._CACHE_PATH", cache_path):
+    with patch("lupe.enrichment.whatsMyName._CACHE_PATH", cache_path):
         yield cache_path
 
 

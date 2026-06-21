@@ -1,5 +1,5 @@
-from centinela.enrichment.numverify import NumVerifyPlugin
-from centinela.models import IOC, IOCType
+from lupe.enrichment.numverify import NumVerifyPlugin
+from lupe.models import IOC, IOCType
 import httpx
 import asyncio
 

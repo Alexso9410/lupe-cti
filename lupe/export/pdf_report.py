@@ -1,7 +1,7 @@
-"""
+﻿"""
 PDF Report Generator for Centinela Phishing Analysis Tool.
 
-Heimdall Security - Professional email analysis reports.
+A.D.S Security - Professional email analysis reports.
 """
 
 from __future__ import annotations
@@ -17,7 +17,7 @@ from reportlab.lib import colors
 from reportlab.lib.colors import HexColor, white, black
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.units import pt
+from reportlab.lib.units import inch, cm
 from reportlab.platypus import (
     SimpleDocTemplate,
     Table,
@@ -29,8 +29,8 @@ from reportlab.platypus import (
 )
 from reportlab.pdfgen.canvas import Canvas
 
-# Heimdall Security Color Palette
-COLOR_ACCENT = HexColor("#00D4FF")  # cyan Heimdall
+# A.D.S Security Color Palette
+COLOR_ACCENT = HexColor("#00D4FF")  # cyan A.D.S
 COLOR_RED = HexColor("#FF3B30")
 COLOR_YELLOW = HexColor("#FFD60A")
 COLOR_GREEN = HexColor("#30D158")
@@ -107,6 +107,13 @@ def _create_circle_bullet(color: HexColor) -> str:
     return f"<font color=\"{color.hexval()}\">&#9679;</font>"
 
 
+def _escape_xml(text: str) -> str:
+    """Escape text for safe inclusion in ReportLab Paragraph XML."""
+    if not text:
+        return ""
+    return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
 def generate_email_report(result: "EmailAnalysisResult", output_dir: str) -> str:
     """Generate PDF report of phishing email analysis.
 
@@ -121,7 +128,8 @@ def generate_email_report(result: "EmailAnalysisResult", output_dir: str) -> str
     output_path.mkdir(parents=True, exist_ok=True)
 
     # Generate filename from subject
-    subject_slug = re.sub(r"[^\w\-]", "_", result.headers.subject[:30]).strip("_") or "email"
+    subject_raw = result.headers.subject or "email"
+    subject_slug = re.sub(r"[^\w\-]", "_", subject_raw[:30]).strip("_") or "email"
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"email_analysis_{subject_slug}_{timestamp}.pdf"
     filepath = output_path / filename
@@ -159,13 +167,12 @@ def generate_email_report(result: "EmailAnalysisResult", output_dir: str) -> str
     )
 
     # ========== HEADER ==========
-    case_id = getattr(result, "case_id", "N/A") or "N/A"
     current_date = datetime.now().strftime("%d/%m/%Y %H:%M")
 
     header_data = [
         [
             Paragraph(
-                "<b>HEIMDALL SECURITY</b>",
+                "<b>A.D.S Security</b>",
                 ParagraphStyle(
                     "HeaderTitle",
                     parent=styles["Heading1"],
@@ -174,9 +181,9 @@ def generate_email_report(result: "EmailAnalysisResult", output_dir: str) -> str
                 ),
             ),
             Paragraph(
-                f"<b>INFORME DE ANÁLISIS DE EMAIL SOSPECHOSO</b><br/>"
+                f"<b>INFORME DE ANALISIS DE EMAIL SOSPECHOSO</b><br/>"
                 f"<font size=\"9\">Fecha: {current_date}</font><br/>"
-                f"<font size=\"9\">Caso: {case_id}</font>",
+                f"<font size=\"9\">Archivo: {_escape_xml(result.file_path)}</font>",
                 ParagraphStyle(
                     "HeaderRight", parent=styles["Normal"], alignment=2, fontSize=10
                 ),
@@ -200,30 +207,37 @@ def generate_email_report(result: "EmailAnalysisResult", output_dir: str) -> str
     # ========== SECTION 1: EMAIL METADATA ==========
     elements.append(Paragraph("1. DATOS DEL EMAIL", section_title_style))
 
+    from_addr = result.headers.from_addr or "N/A"
+    to_addr = ", ".join(result.headers.to_addr) if result.headers.to_addr else "N/A"
+    subject = result.headers.subject or "N/A"
+    date = result.headers.date or "N/A"
+    reply_to = result.headers.reply_to or "N/A"
+    message_id = result.headers.message_id or "N/A"
+
     # Check reply-to discrepancy
     reply_to_warning = ""
     reply_to_color = black
-    if result.headers.reply_to and result.headers.from_:
+    if result.headers.reply_to and result.headers.from_addr:
         reply_domain = result.headers.reply_to.split("@")[-1] if "@" in result.headers.reply_to else ""
-        from_domain = result.headers.from_.split("@")[-1] if "@" in result.headers.from_ else ""
+        from_domain = result.headers.from_addr.split("@")[-1] if "@" in result.headers.from_addr else ""
         if reply_domain and from_domain and reply_domain != from_domain:
             reply_to_warning = " &#9888; DOMINIO DIFERENTE"
             reply_to_color = COLOR_RED
 
     metadata_data = [
-        [Paragraph("De:", label_style), Paragraph(result.headers.from_ or "N/A", styles["Normal"])],
-        [Paragraph("Para:", label_style), Paragraph(result.headers.to or "N/A", styles["Normal"])],
-        [Paragraph("Asunto:", label_style), Paragraph(result.headers.subject or "N/A", styles["Normal"])],
-        [Paragraph("Fecha:", label_style), Paragraph(result.headers.date or "N/A", styles["Normal"])],
+        [Paragraph("De:", label_style), Paragraph(_escape_xml(from_addr), styles["Normal"])],
+        [Paragraph("Para:", label_style), Paragraph(_escape_xml(to_addr), styles["Normal"])],
+        [Paragraph("Asunto:", label_style), Paragraph(_escape_xml(subject), styles["Normal"])],
+        [Paragraph("Fecha:", label_style), Paragraph(_escape_xml(date), styles["Normal"])],
         [
             Paragraph("Reply-To:", label_style),
             Paragraph(
                 f"<font color=\"{reply_to_color.hexval()}\">"
-                f"{result.headers.reply_to or 'N/A'}{reply_to_warning}</font>",
+                f"{_escape_xml(reply_to)}{reply_to_warning}</font>",
                 styles["Normal"],
             ),
         ],
-        [Paragraph("Message-ID:", label_style), Paragraph(result.headers.message_id or "N/A", styles["Normal"])],
+        [Paragraph("Message-ID:", label_style), Paragraph(_escape_xml(message_id), styles["Normal"])],
     ]
 
     metadata_table = Table(metadata_data, colWidths=[100, 400])
@@ -237,11 +251,11 @@ def generate_email_report(result: "EmailAnalysisResult", output_dir: str) -> str
     elements.append(metadata_table)
 
     # ========== SECTION 2: AUTHENTICATION ==========
-    elements.append(Paragraph("2. AUTENTICACIÓN", section_title_style))
+    elements.append(Paragraph("2. AUTENTICACION", section_title_style))
 
-    spf_color = _get_auth_status_color(result.authentication.spf)
-    dkim_color = _get_auth_status_color(result.authentication.dkim)
-    dmarc_color = _get_auth_status_color(result.authentication.dmarc)
+    spf_color = _get_auth_status_color(result.auth.spf)
+    dkim_color = _get_auth_status_color(result.auth.dkim)
+    dmarc_color = _get_auth_status_color(result.auth.dmarc)
 
     auth_data = [
         [
@@ -255,9 +269,9 @@ def generate_email_report(result: "EmailAnalysisResult", output_dir: str) -> str
             Paragraph(_create_circle_bullet(dmarc_color), styles["Normal"]),
         ],
         [
-            Paragraph(result.authentication.spf or "N/A", styles["Normal"]),
-            Paragraph(result.authentication.dkim or "N/A", styles["Normal"]),
-            Paragraph(result.authentication.dmarc or "N/A", styles["Normal"]),
+            Paragraph(result.auth.spf or "N/A", styles["Normal"]),
+            Paragraph(result.auth.dkim or "N/A", styles["Normal"]),
+            Paragraph(result.auth.dmarc or "N/A", styles["Normal"]),
         ],
     ]
 
@@ -275,7 +289,7 @@ def generate_email_report(result: "EmailAnalysisResult", output_dir: str) -> str
     # ========== SECTION 3: PHISHING SCORE ==========
     elements.append(Paragraph("3. SCORE DE PHISHING", section_title_style))
 
-    score = result.scores.overall if result.scores else 0
+    score = result.phishing_score.total if result.phishing_score else 0.0
     score_color = COLOR_RED if score >= 7 else COLOR_YELLOW if score >= 4 else COLOR_GREEN
 
     score_text = f"<b>{score:.1f} / 10</b>"
@@ -297,33 +311,48 @@ def generate_email_report(result: "EmailAnalysisResult", output_dir: str) -> str
     elements.append(ScoreBar(score))
     elements.append(Spacer(1, 12))
 
-    # Indicators table
-    if result.scores and result.scores.indicators:
-        indicators_data = [[Paragraph("<b>Indicador</b>", label_style), Paragraph("<b>Valor</b>", label_style)]]
-        for indicator in result.scores.indicators:
-            name = getattr(indicator, "name", str(indicator))
-            value = getattr(indicator, "value", "")
-            indicators_data.append([
-                Paragraph(name, styles["Normal"]),
-                Paragraph(str(value), styles["Normal"]),
+    # Indicators list (indicators is list[str] in the model)
+    if result.phishing_score and result.phishing_score.indicators:
+        elements.append(Paragraph("<b>Indicadores:</b>", label_style))
+        for indicator in result.phishing_score.indicators:
+            elements.append(Paragraph(f"  - {_escape_xml(indicator)}", styles["Normal"]))
+        elements.append(Spacer(1, 4))
+
+    # Score breakdown (breakdown is dict[str, float])
+    if result.phishing_score and result.phishing_score.breakdown:
+        breakdown_data = [
+            [Paragraph("<b>Componente</b>", label_style), Paragraph("<b>Puntaje</b>", label_style)]
+        ]
+        for component, value in result.phishing_score.breakdown.items():
+            breakdown_data.append([
+                Paragraph(_escape_xml(component), styles["Normal"]),
+                Paragraph(f"{value:.1f}", styles["Normal"]),
             ])
 
-        indicators_table = Table(indicators_data, colWidths=[250, 250])
-        indicators_table.setStyle(
+        breakdown_table = Table(breakdown_data, colWidths=[300, 200])
+        breakdown_table.setStyle(
             TableStyle([
                 ("VALIGN", (0, 0), (-1, -1), "TOP"),
                 ("TOPPADDING", (0, 0), (-1, -1), 4),
                 ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
                 ("BACKGROUND", (0, 0), (-1, 0), COLOR_DARK),
                 ("TEXTCOLOR", (0, 0), (-1, 0), white),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [white, COLOR_BG_ROW]),
             ])
         )
-        elements.append(indicators_table)
+        elements.append(breakdown_table)
 
     # ========== SECTION 4: IOCS ==========
     elements.append(Paragraph("4. IOCs ENCONTRADOS", section_title_style))
 
-    if result.iocs and len(result.iocs) > 0:
+    if result.iocs_found and len(result.iocs_found) > 0:
+        # Build enrichment lookup: ioc_value -> list of EnrichmentResult
+        enrichment_lookup: dict = {}
+        if result.enrichments:
+            for _source, enrichment_list in result.enrichments.items():
+                for er in enrichment_list:
+                    enrichment_lookup.setdefault(er.ioc_value, []).append(er)
+
         iocs_data = [
             [
                 Paragraph("<b>Tipo</b>", label_style),
@@ -331,14 +360,25 @@ def generate_email_report(result: "EmailAnalysisResult", output_dir: str) -> str
                 Paragraph("<b>Severidad</b>", label_style),
             ]
         ]
-        for ioc in result.iocs:
-            severity = getattr(ioc, "severity", "info")
+        for ioc in result.iocs_found:
+            ioc_type = ioc.type.value if hasattr(ioc.type, "value") else str(ioc.type)
+            ioc_value = ioc.value or "N/A"
+
+            # Try to get severity from enrichments
+            severity = "info"
+            enrichments_for_ioc = enrichment_lookup.get(ioc_value, [])
+            if enrichments_for_ioc:
+                # Use the highest severity found
+                sev_order = {"info": 0, "low": 1, "medium": 2, "high": 3, "critical": 4}
+                best = max(enrichments_for_ioc, key=lambda e: sev_order.get(e.severity.value, 0))
+                severity = best.severity.value if hasattr(best.severity, "value") else str(best.severity)
+
             severity_color = _get_severity_color(severity)
             iocs_data.append([
-                Paragraph(getattr(ioc, "type", "N/A"), styles["Normal"]),
-                Paragraph(getattr(ioc, "value", "N/A"), styles["Normal"]),
+                Paragraph(_escape_xml(ioc_type), styles["Normal"]),
+                Paragraph(_escape_xml(ioc_value), styles["Normal"]),
                 Paragraph(
-                    f"<font color=\"{severity_color.hexval()}\">{severity.upper()}</font>",
+                    f"<font color=\"{severity_color.hexval()}\">{_escape_xml(severity.upper())}</font>",
                     styles["Normal"],
                 ),
             ])
@@ -359,16 +399,21 @@ def generate_email_report(result: "EmailAnalysisResult", output_dir: str) -> str
         elements.append(Paragraph("No se encontraron IOCs.", styles["Normal"]))
 
     # ========== SECTION 5: AI ANALYSIS ==========
-    elements.append(Paragraph("5. ANÁLISIS DE IA (Kimi)", section_title_style))
+    elements.append(Paragraph("5. ANALISIS DE IA", section_title_style))
 
-    if result.ai_analysis:
-        ai = result.ai_analysis
-        classification = getattr(ai, "classification", "N/A")
-        confidence = getattr(ai, "confidence", 0)
-
+    if result.ai_classification:
         ai_data = [
-            [Paragraph("<b>Clasificación:</b>", label_style), Paragraph(classification, styles["Normal"])],
-            [Paragraph("<b>Confianza:</b>", label_style), Paragraph(f"{confidence:.0%}", styles["Normal"])],
+            [
+                Paragraph("<b>Clasificacion:</b>", label_style),
+                Paragraph(_escape_xml(result.ai_classification), styles["Normal"]),
+            ],
+            [
+                Paragraph("<b>Confianza:</b>", label_style),
+                Paragraph(
+                    f"{result.ai_confidence:.0%}" if result.ai_confidence is not None else "N/A",
+                    styles["Normal"],
+                ),
+            ],
         ]
 
         ai_table = Table(ai_data, colWidths=[120, 380])
@@ -382,28 +427,19 @@ def generate_email_report(result: "EmailAnalysisResult", output_dir: str) -> str
         elements.append(ai_table)
 
         # Techniques
-        techniques = getattr(ai, "techniques", [])
-        if techniques:
+        if result.ai_techniques:
             elements.append(Spacer(1, 8))
-            elements.append(Paragraph("<b>Técnicas detectadas:</b>", label_style))
-            for technique in techniques:
-                elements.append(Paragraph(f"  - {technique}", styles["Normal"]))
-
-        # Reasoning
-        reasoning = getattr(ai, "reasoning", "")
-        if reasoning:
-            elements.append(Spacer(1, 8))
-            elements.append(Paragraph("<b>Análisis:</b>", label_style))
-            elements.append(Paragraph(reasoning, styles["Normal"]))
+            elements.append(Paragraph("<b>Tecnicas detectadas:</b>", label_style))
+            for technique in result.ai_techniques:
+                elements.append(Paragraph(f"  - {_escape_xml(technique)}", styles["Normal"]))
 
         # Recommendations
-        recommendations = getattr(ai, "recommendations", [])
-        if recommendations:
+        if result.ai_recommendations:
             elements.append(Spacer(1, 12))
             elements.append(Paragraph("<b>Recomendaciones:</b>", label_style))
-            rec_data = [[Paragraph("Recomendación", label_style)]]
-            for rec in recommendations:
-                rec_data.append([Paragraph(f"- {rec}", styles["Normal"])])
+            rec_data = [[Paragraph("Recomendacion", label_style)]]
+            for rec in result.ai_recommendations:
+                rec_data.append([Paragraph(f"- {_escape_xml(rec)}", styles["Normal"])])
 
             rec_table = Table(rec_data, colWidths=[500])
             rec_table.setStyle(
@@ -417,7 +453,7 @@ def generate_email_report(result: "EmailAnalysisResult", output_dir: str) -> str
             )
             elements.append(rec_table)
     else:
-        elements.append(Paragraph("No hay análisis de IA disponible.", styles["Normal"]))
+        elements.append(Paragraph("No hay analisis de IA disponible.", styles["Normal"]))
 
     # ========== SECTION 6: ATTACHMENTS ==========
     elements.append(Paragraph("6. ADJUNTOS", section_title_style))
@@ -427,29 +463,30 @@ def generate_email_report(result: "EmailAnalysisResult", output_dir: str) -> str
             [
                 Paragraph("<b>Nombre</b>", label_style),
                 Paragraph("<b>Tipo MIME</b>", label_style),
-                Paragraph("<b>Tamaño</b>", label_style),
+                Paragraph("<b>Tamano</b>", label_style),
                 Paragraph("<b>SHA256</b>", label_style),
                 Paragraph("<b>Riesgo</b>", label_style),
             ]
         ]
         for att in result.attachments:
-            name = getattr(att, "filename", "N/A")
-            mime = getattr(att, "mime_type", "N/A")
-            size = getattr(att, "size", 0)
-            sha256 = getattr(att, "sha256", "")
-            risk = getattr(att, "risk", "unknown")
+            name = att.filename or "N/A"
+            mime = att.mime_type or "N/A"
+            size = att.size_bytes or 0
+            sha256 = att.sha256 or ""
+            is_exec = att.is_executable
 
-            # Check for executable warning
-            is_exec = mime in ("application/x-executable", "application/x-dosexec") or \
-                      name.endswith((".exe", ".dll", ".bat", ".cmd", ".sh", ".bin"))
-            risk_display = f"<font color=\"{COLOR_RED.hexval()}\">EJECUTABLE</font>" if is_exec else risk
+            risk_display = (
+                f"<font color=\"{COLOR_RED.hexval()}\">EJECUTABLE</font>"
+                if is_exec
+                else "Bajo"
+            )
 
             size_str = f"{size:,} bytes" if size else "N/A"
             sha_short = sha256[:16] + "..." if sha256 else "N/A"
 
             att_data.append([
-                Paragraph(name, styles["Normal"]),
-                Paragraph(mime, styles["Normal"]),
+                Paragraph(_escape_xml(name), styles["Normal"]),
+                Paragraph(_escape_xml(mime), styles["Normal"]),
                 Paragraph(size_str, styles["Normal"]),
                 Paragraph(sha_short, styles["Normal"]),
                 Paragraph(risk_display, styles["Normal"]),
@@ -471,38 +508,35 @@ def generate_email_report(result: "EmailAnalysisResult", output_dir: str) -> str
         elements.append(Paragraph("No hay adjuntos.", styles["Normal"]))
 
     # ========== SECTION 7: RECEIVED CHAIN ==========
-    elements.append(Paragraph("7. CADENA DE RECEPCIÓN (Received)", section_title_style))
+    elements.append(Paragraph("7. CADENA DE RECEPCION (Received)", section_title_style))
 
-    if result.headers.received and len(result.headers.received) > 0:
-        for idx, hop in enumerate(result.headers.received, 1):
-            from_match = re.search(r"from\s+([^;]+)", hop, re.IGNORECASE)
-            by_match = re.search(r"by\s+([^;]+)", hop, re.IGNORECASE)
+    if result.received_chain and len(result.received_chain) > 0:
+        for idx, hop in enumerate(result.received_chain, 1):
+            hop_from = _escape_xml(hop.from_host or "unknown")
+            hop_by = _escape_xml(hop.by_host or "unknown")
+            hop_ts = f" | {_escape_xml(hop.timestamp)}" if hop.timestamp else ""
+            hop_country = f" [{_escape_xml(hop.country_code)}]" if hop.country_code else ""
 
-            hop_from = from_match.group(1).strip() if from_match else "unknown"
-            hop_by = by_match.group(1).strip() if by_match else "unknown"
-
-            # Check for suspicious patterns
-            is_suspicious = any(
-                pattern in hop.lower()
-                for pattern in ["localhost", "127.0.0.1", "private", "internal", "unknown"]
+            warning = (
+                f" <font color=\"{COLOR_RED.hexval()}\">&#9888; SOSPECHOSO</font>"
+                if hop.is_suspicious
+                else ""
             )
-
-            warning = f" <font color=\"{COLOR_RED.hexval()}\">&#9888;</font>" if is_suspicious else ""
 
             elements.append(
                 Paragraph(
-                    f"<b>{idx}.</b> From: {hop_from} | By: {hop_by}{warning}",
+                    f"<b>{idx}.</b> From: {hop_from} | By: {hop_by}{hop_ts}{hop_country}{warning}",
                     styles["Normal"],
                 )
             )
     else:
-        elements.append(Paragraph("No hay datos de cadena de recepción.", styles["Normal"]))
+        elements.append(Paragraph("No hay datos de cadena de recepcion.", styles["Normal"]))
 
     # ========== FOOTER CALLBACK ==========
     def add_footer(canvas: Canvas, doc):
         canvas.saveState()
         footer_text = (
-            f"CONFIDENCIAL — HEIMDALL SECURITY | Generado por Centinela v1.0.0 | "
+            f"CONFIDENCIAL -- A.D.S Security | Generado por Centinela v1.0.0 | "
             f"{datetime.now().strftime('%d/%m/%Y %H:%M')}"
         )
         canvas.setFillColor(COLOR_GRAY)
@@ -511,6 +545,10 @@ def generate_email_report(result: "EmailAnalysisResult", output_dir: str) -> str
         canvas.restoreState()
 
     # Build PDF with footer
-    doc.build(elements, onFirstPage=add_footer, onLaterPages=add_footer)
+    try:
+        doc.build(elements, onFirstPage=add_footer, onLaterPages=add_footer)
+    except Exception as e:
+        # If build fails, return error info but don't crash the pipeline
+        raise RuntimeError(f"Error generating PDF report: {e}") from e
 
     return str(filepath)

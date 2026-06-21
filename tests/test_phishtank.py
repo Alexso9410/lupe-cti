@@ -1,8 +1,8 @@
-import pytest
+﻿import pytest
 import respx
 import httpx
-from centinela.enrichment.phishtank import PhishTankPlugin
-from centinela.models import IOC, IOCType, Severity
+from lupe.enrichment.phishtank import PhishTankPlugin
+from lupe.models import IOC, IOCType, Severity
 
 
 class TestPhishTankPlugin:
