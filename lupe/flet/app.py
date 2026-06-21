@@ -11,6 +11,7 @@ from lupe.flet.theme import (
     THEME_MODE,
 )
 from lupe.flet.views.cases import build_cases_view
+from lupe.flet.views.email import build_email_view
 from lupe.flet.views.enrich import build_enrich_view
 from lupe.flet.views.home import build_home_view
 from lupe.flet.views.misp import build_misp_view
@@ -22,6 +23,7 @@ _NAV_ITEMS = [
     ("enrich", "Enrich", ft.Icons.SEARCH),
     ("settings", "Settings", ft.Icons.SETTINGS),
     ("misp", "MISP", ft.Icons.SYNC),
+    ("email", "Email", ft.Icons.EMAIL),
     ("plugins", "Plugins", ft.Icons.EXTENSION),
     ("cases", "Cases", ft.Icons.FOLDER_SPECIAL),
 ]
@@ -81,6 +83,7 @@ class LupeFletApp:
                 "enrich": lambda: build_enrich_view(pg),
                 "settings": lambda: build_settings_view(pg),
                 "misp": lambda: build_misp_view(pg),
+                "email": lambda: build_email_view(pg),
                 "plugins": lambda: build_plugins_view(pg),
                 "cases": lambda: build_cases_view(pg),
             }
