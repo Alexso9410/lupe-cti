@@ -82,6 +82,7 @@ class Settings(BaseSettings):
     hybrid_analysis_key: str | None = None
     censys_id: str | None = None
     censys_secret: str | None = None
+    spamhaus_key: str | None = None
 
     # Existing enrichment keys
     abuseipdb_key: str | None = None
