@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 _HEIMDALL_TOOLS_PATH = Path(r"C:\Users\usuario\Documents\heimdall\tools")
 _AGENT_WRITER_MODULE = _HEIMDALL_TOOLS_PATH / "agent_writer.py"
 
-_DASHBOARD_ENABLED = os.getenv("CENTINELA_DASHBOARD_ENABLED", "").lower() in (
+_DASHBOARD_ENABLED = os.getenv("LUPE_DASHBOARD_ENABLED", "").lower() in (
     "1",
     "true",
     "yes",
@@ -45,10 +45,10 @@ def _try_import_agent_writer():
 
 
 class CentinelaAgentBridge:
-    """Reports Centinela enrichment progress to the Heimdall agent-dashboard.
+    """Reports Lupe CTI enrichment progress to the Heimdall agent-dashboard.
 
     This bridge is a noop when:
-    - The environment variable ``CENTINELA_DASHBOARD_ENABLED`` is not set to a
+    - The environment variable ``LUPE_DASHBOARD_ENABLED`` is not set to a
       truthy value (``1``, ``true``, ``yes``).
     - ``agent_writer.py`` is not found at the expected Heimdall tools path.
 
@@ -60,7 +60,7 @@ class CentinelaAgentBridge:
         bridge.enrichment_done("185.220.101.34", result_count=4)
     """
 
-    def __init__(self, agent_name: str = "centinela") -> None:
+    def __init__(self, agent_name: str = "lupe-cti") -> None:
         self._agent_name = agent_name
         self._writer = None
         self._active_ioc: str | None = None
