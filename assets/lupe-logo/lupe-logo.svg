@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="lensGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00FF41;stop-opacity:0.8"/>
+      <stop offset="100%" style="stop-color:#00FFFF;stop-opacity:0.6"/>
+    </linearGradient>
+    <clipPath id="lensClip">
+      <circle cx="200" cy="200" r="120"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" fill="#0a0a0a" rx="32"/>
+
+  <!-- Headphones (behind lens) -->
+  <!-- Left earpiece -->
+  <rect x="30" y="160" width="50" height="80" rx="12" fill="#2a2a2a"/>
+  <rect x="35" y="165" width="40" height="70" rx="8" fill="#1a1a1a"/>
+  <!-- Right earpiece -->
+  <rect x="332" y="160" width="50" height="80" rx="12" fill="#2a2a2a"/>
+  <rect x="337" y="165" width="40" height="70" rx="8" fill="#1a1a1a"/>
+  <!-- Headband -->
+  <path d="M 55 160 Q 200 40 357 160" stroke="#2a2a2a" stroke-width="12" fill="none" stroke-linecap="round"/>
+
+  <!-- Magnifying glass handle -->
+  <line x1="290" y1="290" x2="420" y2="420" stroke="#2a2a2a" stroke-width="28" stroke-linecap="round"/>
+  <line x1="290" y1="290" x2="420" y2="420" stroke="#3a3a3a" stroke-width="20" stroke-linecap="round"/>
+
+  <!-- Magnifying glass lens ring -->
+  <circle cx="200" cy="200" r="130" stroke="#00FF41" stroke-width="8" fill="none"/>
+  <circle cx="200" cy="200" r="122" stroke="#00FFFF" stroke-width="2" fill="none" opacity="0.5"/>
+
+  <!-- Lens fill with binary pattern -->
+  <circle cx="200" cy="200" r="120" fill="#0d1117"/>
+
+  <!-- Binary code pattern inside lens -->
+  <g clip-path="url(#lensClip)" fill="#00FF41" font-family="monospace" font-size="14" opacity="0.7">
+    <text x="90" y="110">01001010 11010010</text>
+    <text x="85" y="130">10110101 00101101</text>
+    <text x="95" y="150">01100110 10011001</text>
+    <text x="80" y="170">11001100 01100110</text>
+    <text x="100" y="190">00110011 11001100</text>
+    <text x="88" y="210">10101010 01010101</text>
+    <text x="92" y="230">01010101 10101010</text>
+    <text x="82" y="250">11110000 00001111</text>
+    <text x="96" y="270">00001111 11110000</text>
+    <text x="86" y="290">11011010 01011011</text>
+  </g>
+
+  <!-- Lens glare -->
+  <ellipse cx="160" cy="140" rx="40" ry="25" fill="white" opacity="0.05" transform="rotate(-30 160 140)"/>
+
+  <!-- LUPE text -->
+  <text x="256" y="470" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-size="56" fill="#e0e0e0">LUPE</text>
+  <text x="256" y="500" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="24" fill="#00FFFF">CTI</text>
+</svg>

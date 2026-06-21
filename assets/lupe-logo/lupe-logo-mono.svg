@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <clipPath id="lensClip">
+      <circle cx="200" cy="200" r="120"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" fill="#0a0a0a" rx="32"/>
+
+  <!-- Headphones (behind lens) -->
+  <rect x="30" y="160" width="50" height="80" rx="12" fill="#555555"/>
+  <rect x="332" y="160" width="50" height="80" rx="12" fill="#555555"/>
+  <path d="M 55 160 Q 200 40 357 160" stroke="#555555" stroke-width="12" fill="none" stroke-linecap="round"/>
+
+  <!-- Handle -->
+  <line x1="290" y1="290" x2="420" y2="420" stroke="#555555" stroke-width="28" stroke-linecap="round"/>
+  <line x1="290" y1="290" x2="420" y2="420" stroke="#666666" stroke-width="20" stroke-linecap="round"/>
+
+  <!-- Lens -->
+  <circle cx="200" cy="200" r="130" stroke="#ffffff" stroke-width="8" fill="none"/>
+  <circle cx="200" cy="200" r="120" fill="#1a1a1a"/>
+
+  <!-- Binary pattern -->
+  <g clip-path="url(#lensClip)" fill="#ffffff" font-family="monospace" font-size="14" opacity="0.5">
+    <text x="90" y="110">01001010 11010010</text>
+    <text x="85" y="130">10110101 00101101</text>
+    <text x="95" y="150">01100110 10011001</text>
+    <text x="80" y="170">11001100 01100110</text>
+    <text x="100" y="190">00110011 11001100</text>
+    <text x="88" y="210">10101010 01010101</text>
+    <text x="92" y="230">01010101 10101010</text>
+    <text x="82" y="250">11110000 00001111</text>
+    <text x="96" y="270">00001111 11110000</text>
+    <text x="86" y="290">11011010 01011011</text>
+  </g>
+
+  <!-- Text -->
+  <text x="256" y="470" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-size="56" fill="#ffffff">LUPE</text>
+  <text x="256" y="500" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="24" fill="#cccccc">CTI</text>
+</svg>
