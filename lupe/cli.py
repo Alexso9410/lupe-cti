@@ -36,6 +36,9 @@ app.add_typer(case_app, name="case")
 person_app = typer.Typer(help="OSINT de personas — teléfono y username.")
 app.add_typer(person_app, name="person")
 
+misp_app = typer.Typer(help="MISP integration — pull and push indicators.")
+app.add_typer(misp_app, name="misp")
+
 console = Console()
 err_console = Console(stderr=True)
 
@@ -1049,3 +1052,128 @@ def migrate_from_centinela() -> None:
     console.print()
     console.print("  [green]Migration complete![/green]")
     console.print()
+
+
+# ---------------------------------------------------------------------------
+# misp subcommands
+# ---------------------------------------------------------------------------
+
+
+def _get_misp_client() -> "MISPClient":
+    """Create a MISPClient from settings. Raises typer.Exit if not configured."""
+    from lupe.integrations.misp import MISPClient
+
+    settings = get_settings()
+    if not settings.misp_url or not settings.misp_key:
+        err_console.print(
+            "[bold red]Error:[/bold red] MISP not configured.\n"
+            "  Set [bold]LUPE_MISP_URL[/bold] and [bold]LUPE_MISP_KEY[/bold] "
+            "environment variables.\n"
+            "  See: https://lupe-cti.readthedocs.io/en/latest/misp/"
+        )
+        raise typer.Exit(code=1)
+    return MISPClient(url=settings.misp_url, api_key=settings.misp_key)
+
+
+@misp_app.command("pull")
+def misp_pull(
+    tag: Annotated[
+        str | None,
+        typer.Option("--tag", "-t", help="Filter by tag (e.g. osint)"),
+    ] = None,
+    days: Annotated[
+        int,
+        typer.Option("--days", "-d", help="Look back N days"),
+    ] = 7,
+) -> None:
+    """Pull IOCs from MISP and display them."""
+    from lupe.integrations.misp import MISPAuthError, MISPConnectionError
+
+    client = _get_misp_client()
+
+    console.print(f"\n[bold]Lupe CTI[/bold] — Pulling from MISP (last {days} days)\n")
+
+    try:
+        tags = [tag] if tag else None
+        indicators = asyncio.run(client.get_indicators(tags=tags, days=days))
+    except MISPAuthError as exc:
+        err_console.print(f"[bold red]MISP Auth Error:[/bold red] {exc}")
+        raise typer.Exit(code=1)
+    except MISPConnectionError as exc:
+        err_console.print(f"[bold red]MISP Connection Error:[/bold red] {exc}")
+        raise typer.Exit(code=1)
+    finally:
+        asyncio.run(client.close())
+
+    if not indicators:
+        console.print("[dim]No indicators found.[/dim]\n")
+        return
+
+    table = Table(
+        box=box.ROUNDED,
+        show_header=True,
+        header_style="bold cyan",
+        border_style="bright_black",
+        expand=False,
+    )
+    table.add_column("UUID", style="dim", min_width=8)
+    table.add_column("Type", style="bold white", min_width=10)
+    table.add_column("Value", min_width=30)
+    table.add_column("Category", min_width=15)
+
+    for ind in indicators[:50]:  # Cap display at 50
+        table.add_row(
+            ind["uuid"][:8],
+            ind["type"],
+            ind["value"],
+            ind.get("category", ""),
+        )
+
+    console.print(table)
+    console.print(f"\n[dim]{len(indicators)} indicator(s) found[/dim]\n")
+
+
+@misp_app.command("push")
+def misp_push(
+    ioc_value: Annotated[str, typer.Argument(help="IOC value to push to MISP")],
+    tag: Annotated[
+        list[str] | None,
+        typer.Option("--tag", "-t", help="Tag(s) to apply"),
+    ] = None,
+) -> None:
+    """Push an analyzed IOC to MISP."""
+    from lupe.integrations.misp import MISPAuthError, MISPConnectionError
+    from lupe.ioc_detect import detect_ioc
+
+    ioc = detect_ioc(ioc_value)
+    if ioc is None:
+        err_console.print(
+            f"[bold red]Error:[/bold red] IOC type not recognized for: "
+            f"[yellow]{ioc_value}[/yellow]"
+        )
+        raise typer.Exit(code=1)
+
+    client = _get_misp_client()
+
+    console.print(f"\n[bold]Lupe CTI[/bold] — Pushing {ioc.type.value} to MISP\n")
+
+    try:
+        uuid = asyncio.run(
+            client.add_indicator(
+                {"type": f"ip-dst" if "ip" in ioc.type.value else ioc.type.value,
+                 "value": ioc.value,
+                 "category": "Network activity"},
+                tags=tag,
+                info=f"Lupe CTI enrichment: {ioc.value}",
+            )
+        )
+    except MISPAuthError as exc:
+        err_console.print(f"[bold red]MISP Auth Error:[/bold red] {exc}")
+        raise typer.Exit(code=1)
+    except MISPConnectionError as exc:
+        err_console.print(f"[bold red]MISP Connection Error:[/bold red] {exc}")
+        raise typer.Exit(code=1)
+    finally:
+        asyncio.run(client.close())
+
+    console.print(f"[green]Pushed![/green] UUID: [bold]{uuid}[/bold]\n")
