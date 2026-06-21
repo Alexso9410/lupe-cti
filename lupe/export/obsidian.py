@@ -149,7 +149,7 @@ def export_ioc_to_obsidian(
     sections += [
         "",
         "---",
-        "*Generado por Centinela — Heimdall Security*",
+        "*Generado por Lupe CTI*",
     ]
 
     return "\n".join(sections)

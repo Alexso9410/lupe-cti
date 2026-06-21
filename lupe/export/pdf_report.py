@@ -1,7 +1,7 @@
 """
-PDF Report Generator for Centinela Phishing Analysis Tool.
+PDF Report Generator for Lupe CTI.
 
-A.D.S Security - Professional email analysis reports.
+Professional email analysis reports.
 """
 
 from __future__ import annotations
@@ -564,7 +564,7 @@ def generate_email_report(result: EmailAnalysisResult, output_dir: str) -> str:
     def add_footer(canvas: Canvas, doc):
         canvas.saveState()
         footer_text = (
-            f"CONFIDENCIAL -- A.D.S Security | Generado por Centinela v1.0.0 | "
+            f"CONFIDENCIAL -- Lupe CTI | Generado por Lupe CTI v1.0.0 | "
             f"{datetime.now().strftime('%d/%m/%Y %H:%M')}"
         )
         canvas.setFillColor(COLOR_GRAY)

@@ -86,7 +86,7 @@ CREATE INDEX IF NOT EXISTS idx_email_analyses_score ON email_analyses(phishing_s
 
 
 class Database:
-    """SQLite persistence layer for Centinela IOC data and cases.
+    """SQLite persistence layer for Lupe CTI IOC data and cases.
 
     Args:
         db_path: Path to the SQLite database file. Tildes are expanded.
