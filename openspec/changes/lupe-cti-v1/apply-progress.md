@@ -1,6 +1,6 @@
-# Apply Progress: lupe-cti-v1 — Phase 4 (Polish / Docs) COMPLETE
+# Apply Progress: lupe-cti-v1 — PR-20 Post-verify Cleanup COMPLETE
 
-## Status: `complete` — All 4 Phases done, v1.0.0 tagged
+## Status: `complete` — All 4 Phases + PR-19 + PR-20 done, v1.0.0 tagged
 
 ## PR Summary
 
@@ -22,6 +22,7 @@
 | PR-17 | `feature/pr-17-ci-cd` | ✅ | `8e5d873` | CI/CD: matrix CI, release, CodeQL, dependency review, templates |
 | PR-19 | `feature/pr-19-ruff-cleanup` | ✅ | `016463c` | Ruff cleanup: 247 errors fixed, 0 remaining |
 | PR-18 | `feature/pr-18-docs` | ✅ | `98388cf` | Docs: README, CHANGELOG, CONTRIBUTING, SECURITY, LICENSE, CLAUDE.md, Makefile, py.typed |
+| PR-20 | (direct on `lupe-cti-v1`) | ✅ | `ca94304`..`c91211b` | Post-verify cleanup: remove legacy desktop, rename bridge, clean refs, PNG logos, systemd |
 
 ## Phase 4 PR Details (PR-18)
 
@@ -59,15 +60,52 @@
 | `Makefile` | Created | Convenience targets: install, test, lint, format, type-check, security, all, clean, build, pre-commit |
 | `lupe/py.typed` | Created | PEP 561 marker for type-checking support |
 
+## PR-20 Details: Post-verify Cleanup
+
+### Commits
+
+| Hash | Message |
+|------|---------|
+| `ca94304` | `refactor: remove legacy pywebview desktop GUI in favor of Textual TUI` |
+| `430cd60` | `refactor: rename CentinelaAgentBridge to LupeAgentBridge` |
+| `3f509f4` | `docs: clean up residual Centinela references in code comments and export strings` |
+| `72fbaac` | `chore: add PNG exports of Lupe CTI logo (512, 256, 128, 64, 32, 16, mono)` |
+| `c91211b` | `chore: add systemd unit file for lupe-watch service` |
+
+### Changes Summary
+
+| File | Action | Description |
+|------|--------|-------------|
+| `lupe/desktop/` | Deleted | Removed entire legacy pywebview GUI directory (app.py, bridge.py, frontend/index.html, lupe.desktop) |
+| `assets/desktop/lupe.desktop` | Created | Moved .desktop file to assets (test updated to reference new path) |
+| `lupe/integrations/agent_writer_bridge.py` | Modified | Renamed `CentinelaAgentBridge` → `LupeAgentBridge` |
+| `lupe/integrations/__init__.py` | Modified | Updated export to `LupeAgentBridge` |
+| `lupe/db.py` | Modified | Docstring: "Centinela IOC data" → "Lupe CTI IOC data" |
+| `lupe/export/obsidian.py` | Modified | Footer: "Generado por Centinela — Heimdall Security" → "Generado por Lupe CTI" |
+| `lupe/export/pdf_report.py` | Modified | Header/footer: "Centinela" → "Lupe CTI" |
+| `pyproject.toml` | Modified | Removed `lupe/desktop/*` from coverage omit |
+| `tests/test_logo_assets.py` | Modified | Updated .desktop path from `lupe/desktop/` to `assets/desktop/` |
+| `assets/lupe-logo/lupe-logo-{512,256,128,64,32,16}.png` | Created | PNG logo exports at all required sizes |
+| `assets/lupe-logo/lupe-logo-mono.png` | Created | Monochrome PNG logo (512x512) |
+| `assets/systemd/lupe-watch.service` | Created | systemd unit file with security hardening |
+| `README.md` | Modified | Added Systemd Integration section |
+
+### Gaps Resolved
+
+1. **Legacy pywebview GUI**: `lupe/desktop/` eliminated. Entry point `lupe-desktop` already pointed to `lupe.tui.app:run`.
+2. **Residual "Centinela" references**: Cleaned in db.py, obsidian.py, pdf_report.py. Intentionally kept in migrate.py, cli.py (migrate-from-centinela), hibp.py (User-Agent), google_safebrowsing.py (clientId).
+3. **GAP 1 - PNG logos**: All 7 PNG variants generated programmatically with Pillow.
+4. **GAP 2 - systemd unit**: `assets/systemd/lupe-watch.service` created with security hardening (NoNewPrivileges, ProtectSystem, ProtectHome).
+
 ## Metrics (Cumulative)
 
-- **Total tasks completed**: 67/67 (Phases 1-4) + PR-19 housekeeping
-- **Total PRs**: 17 (PR-0 to PR-19, excluding PR-18 which is the last)
-- **Total commits on tracker**: 21 (19 feature + 2 merge commits)
-- **Cumulative lines**: +8,336 / -2,918 (from main, incl. PR-18 and PR-19)
+- **Total tasks completed**: 67/67 (Phases 1-4) + PR-19 housekeeping + PR-20 post-verify cleanup
+- **Total PRs**: 18 (PR-0 to PR-20, including PR-19)
+- **Total commits on tracker**: 26 (24 feature + 2 merge commits)
+- **Cumulative lines**: +8,336 / -6,282 (from main, incl. PR-20 desktop removal)
 - **Tests passing**: 303 passed, 2 skipped (= 305 total)
 - **Ruff errors**: 0
-- **Coverage baseline**: 25% (fail_under=25)
+- **Coverage**: 46.47% (threshold: 25%)
 
 ## TDD Cycle Evidence
 
@@ -123,21 +161,23 @@
 4. **mypy warnings (39 errors in 15 files)**: Pre-existing type annotation issues in `desktop/bridge.py` and other legacy modules. Not in scope for this change. Documented as acceptable.
 5. **bandit findings (14 Low/Medium)**: Pre-existing false positives (`B105` for color names like "green", `B110` for try/except/pass). Not introduced by this change.
 
-## Verification Results
+## Verification Results (PR-20)
 
 | Check | Result | Notes |
 |-------|--------|-------|
-| `pytest` | ✅ 303 passed, 2 skipped | 144.98s |
-| `ruff check` | ✅ All checks passed | 1 warning on existing `# noqa` directive |
-| `ruff format --check` | ✅ 99 files already formatted | |
-| `mypy lupe/` | ⚠️ 39 errors in 15 files | Pre-existing, not from PR-18 |
-| `bandit -r lupe/` | ⚠️ 14 Low/Medium | Pre-existing false positives |
-| `git tag v1.0.0` | ✅ Created | |
+| `pytest` | ✅ 303 passed, 2 skipped | 129.61s |
+| `ruff check` | ✅ All checks passed | |
+| `ruff format --check` | ✅ 96 files already formatted | |
+| `grep "centinela" *.py` | ✅ Only in migrate.py, cli.py, hibp.py, google_safebrowsing.py | By design |
+| `grep "centinela" *.html` | ✅ 0 matches | |
+| PNG logos | ✅ 7 files (512, 256, 128, 64, 32, 16, mono) | Verified dimensions |
+| systemd unit | ✅ `assets/systemd/lupe-watch.service` exists | |
+| `lupe/desktop/` | ✅ Deleted | |
 
 ## Status
 
-- **Status**: `complete` — All 4 Phases done, PR-0 through PR-19 + PR-18 all merged
-- **Apply complete**: Yes — this is the final batch
-- **Next phases**: verify (validate full change), archive (close change)
-- **Tag**: `v1.0.0` created locally (NOT pushed — user must push after GitHub setup)
+- **Status**: `complete` — All 4 Phases + PR-19 + PR-20 done
+- **Apply complete**: Yes
+- **Next phases**: verify (user decision), archive
+- **Tag**: `v1.0.0` created locally (NOT pushed)
 - **Blocked by**: Nothing
