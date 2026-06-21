@@ -61,7 +61,7 @@ class LupeFletApp:
         current_view = {"name": "home"}
 
         # Content area
-        content_area = ft.Container(expand=True, padding=ft.padding.all(24))
+        content_area = ft.Container(expand=True, padding=24)
 
         def navigate_to(view_name: str) -> None:
             """Switch the displayed view."""
@@ -78,11 +78,11 @@ class LupeFletApp:
             """Build the view control for the given name."""
             builders = {
                 "home": lambda: build_home_view(navigate_to),
-                "enrich": build_enrich_view,
+                "enrich": lambda: build_enrich_view(pg),
                 "settings": lambda: build_settings_view(pg),
-                "misp": build_misp_view,
-                "plugins": build_plugins_view,
-                "cases": build_cases_view,
+                "misp": lambda: build_misp_view(pg),
+                "plugins": lambda: build_plugins_view(pg),
+                "cases": lambda: build_cases_view(pg),
             }
             builder = builders.get(name, builders["home"])
             return builder()
@@ -109,7 +109,7 @@ class LupeFletApp:
                     weight=ft.FontWeight.BOLD,
                     text_align=ft.TextAlign.CENTER,
                 ),
-                padding=ft.padding.only(top=16, bottom=8),
+                padding=ft.Padding.only(top=16, bottom=8),
             ),
             destinations=[
                 ft.NavigationRailDestination(
@@ -142,3 +142,7 @@ class LupeFletApp:
 def main() -> None:
     """Entry point for the lupe-desktop command."""
     ft.app(target=LupeFletApp.main)
+
+
+if __name__ == "__main__":
+    main()

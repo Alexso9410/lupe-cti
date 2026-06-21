@@ -65,22 +65,22 @@ def build_home_view(on_navigate: object) -> ft.Control:
                     alignment=ft.MainAxisAlignment.CENTER,
                     spacing=12,
                 ),
-                padding=ft.padding.symmetric(horizontal=24, vertical=16),
+                padding=ft.Padding.symmetric(horizontal=24, vertical=16),
                 on_click=lambda e, vn=view_name: on_navigate(vn),
                 ink=True,
             ),
-            color="#1a1a1a",
+            bgcolor="#1a1a1a",
             elevation=2,
         )
         nav_cards.append(card)
 
     return ft.Column(
         controls=[
-            ft.Container(content=banner_text, alignment=ft.alignment.center),
+            ft.Container(content=banner_text, alignment=ft.alignment.Alignment.CENTER),
             ft.Container(
                 content=subtitle_text,
-                alignment=ft.alignment.center,
-                padding=ft.padding.only(bottom=24),
+                alignment=ft.alignment.Alignment.CENTER,
+                padding=ft.Padding.only(bottom=24),
             ),
             ft.Container(
                 content=ft.GridView(
@@ -91,7 +91,7 @@ def build_home_view(on_navigate: object) -> ft.Control:
                     run_spacing=12,
                     child_aspect_ratio=3.0,
                 ),
-                padding=ft.padding.symmetric(horizontal=40),
+                padding=ft.Padding.symmetric(horizontal=40),
                 expand=True,
             ),
         ],
