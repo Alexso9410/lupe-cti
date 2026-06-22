@@ -9,6 +9,7 @@ import flet as ft
 from lupe.email_analyzer import analyze_email
 from lupe.email_parser import parse_eml
 from lupe.flet.theme import CYAN, MATRIX_GREEN
+from lupe.flet.utils import show_snackbar
 from lupe.flet.views.settings import load_settings
 
 
@@ -24,47 +25,59 @@ def build_email_view(page: ft.Page) -> ft.Control:
     # --- State ---
     selected_path: dict[str, str] = {"value": ""}
 
+    def _on_pick_result(e: ft.FilePickerResultEvent) -> None:
+        """Handle file picker result — set path and update UI."""
+        if e.files and len(e.files) > 0:
+            path = e.files[0].path
+            selected_path["value"] = path
+            path_field.value = path
+            page.update()
+
+    def _on_drag_accept(e: ft.DragTargetAcceptEvent) -> None:
+        """Handle file dropped onto the drag target."""
+        src = getattr(e, "src", None) or (getattr(e, "data", None) or "")
+        # data may be a path-like or whitespace-separated list
+        path_str = str(src).strip().strip('"')
+        # Take first whitespace-separated token
+        first = path_str.split()[0] if path_str else ""
+        if first and Path(first).is_file() and first.lower().endswith(".eml"):
+            selected_path["value"] = first
+            path_field.value = first
+            page.update()
+            show_snackbar(page, f"File loaded: {first}", MATRIX_GREEN)
+        elif first:
+            show_snackbar(page, f"Not an .eml file: {first}", "#ff5555")
+
     # --- Input ---
     path_field = ft.TextField(
-        label="Email file path",
-        read_only=True,
+        label="Email file path (type, paste, or drag .eml here)",
+        hint_text="e.g. C:\\path\\to\\email.eml",
         border_color=MATRIX_GREEN,
+        focused_border_color=CYAN,
         text_style=ft.TextStyle(color=ft.Colors.WHITE),
+        label_style=ft.TextStyle(color=ft.Colors.WHITE70),
+        on_change=lambda e: selected_path.update({"value": e.control.value or ""}),
+    )
+
+    # Drag & drop target wrapping the path field
+    drag_target = ft.DragTarget(
+        group="files",
+        content=path_field,
         expand=True,
+        on_will_accept=lambda e: (
+            page.update(),
+            isinstance(getattr(e, "data", None), str) or "text" in (getattr(e, "data", None) or ""),
+        )[-1],
+        on_accept=_on_drag_accept,
     )
 
     # --- Output ---
     output_md = ft.Markdown(
-        value="*Select an .eml file and click Analyze.*",
+        value="*Drag an .eml file here, browse, or paste a path. Then click Analyze.*",
         selectable=True,
         extension_set=ft.MarkdownExtensionSet.GITHUB_WEB,
     )
     progress_ring = ft.ProgressRing(visible=False, width=20, height=20)
-
-    # --- File picker ---
-    file_picker = ft.FilePicker()
-
-    def on_file_picked(e: ft.FilePickerResultEvent):
-        if e.files and len(e.files) > 0:
-            selected_path["value"] = e.files[0].path
-            path_field.value = e.files[0].path
-            page.update()
-
-    file_picker.on_result = on_file_picked
-    page.overlay.append(file_picker)
-    page.update()
-
-    # --- Buttons ---
-    browse_btn = ft.ElevatedButton(
-        "Browse",
-        icon=ft.Icons.FOLDER_OPEN,
-        bgcolor=MATRIX_GREEN,
-        color=ft.Colors.BLACK,
-    )
-    browse_btn.on_click = lambda _: file_picker.pick_files(
-        allowed_extensions=["eml"],
-        dialog_title="Select .eml file",
-    )
 
     analyze_btn = ft.ElevatedButton(
         "Analyze Email",
@@ -73,9 +86,30 @@ def build_email_view(page: ft.Page) -> ft.Control:
         color=ft.Colors.BLACK,
     )
 
-    def _show_snackbar(msg: str, color: str = MATRIX_GREEN):
-        page.show_snack_bar(ft.SnackBar(ft.Text(msg), bgcolor=color))
-        page.update()
+    async def _browse(e: ft.ControlEvent) -> None:
+        """Open native file picker (registered in overlay for Flet 0.85.3)."""
+        try:
+            picker = ft.FilePicker(on_result=_on_pick_result)
+            page.overlay.append(picker)
+            page.update()
+            picker.pick_files(
+                allowed_extensions=["eml"],
+                dialog_title="Select .eml file",
+            )
+        except Exception:
+            # Fallback to AlertDialog if native picker fails
+            _show_dialog_input(page, path_field, selected_path)
+
+    browse_btn = ft.ElevatedButton(
+        "Browse",
+        icon=ft.Icons.FOLDER_OPEN,
+        bgcolor=MATRIX_GREEN,
+        color=ft.Colors.BLACK,
+        on_click=lambda e: page.run_task(_browse, e),
+    )
+
+    def _show_snackbar(msg: str, color: str = MATRIX_GREEN) -> None:
+        show_snackbar(page, msg, color)
 
     async def _analyze(e: ft.ControlEvent):
         file_path = selected_path["value"]
@@ -124,7 +158,7 @@ def build_email_view(page: ft.Page) -> ft.Control:
             ),
             ft.Divider(color=ft.Colors.WHITE24),
             ft.Row(
-                controls=[path_field, browse_btn],
+                controls=[drag_target, browse_btn],
                 spacing=12,
             ),
             ft.Row(controls=[analyze_btn, progress_ring], spacing=12),
@@ -206,3 +240,52 @@ def _format_result(result) -> str:
 
 # Class alias for import compatibility
 EmailView = type("EmailView", (), {"build": staticmethod(build_email_view)})
+
+
+def _on_pick(
+    e: ft.FilePickerResultEvent,
+    path_field: ft.TextField,
+    selected_path: dict[str, str],
+    page: ft.Page,
+) -> None:
+    """Handle file picker result."""
+    if e.files and len(e.files) > 0:
+        selected_path["value"] = e.files[0].path
+        path_field.value = e.files[0].path
+        page.update()
+
+
+def _show_dialog_input(
+    page: ft.Page,
+    path_field: ft.TextField,
+    selected_path: dict[str, str],
+) -> None:
+    """Show a dialog asking for the file path (fallback when FilePicker is unavailable)."""
+    path_input = ft.TextField(
+        label="Path to .eml file",
+        autofocus=True,
+        border_color=MATRIX_GREEN,
+        text_style=ft.TextStyle(color=ft.Colors.WHITE),
+    )
+
+    def on_submit(_e: ft.ControlEvent) -> None:
+        if path_input.value:
+            path_field.value = path_input.value
+            selected_path["value"] = path_input.value
+        page.pop_dialog()
+
+    dialog = ft.AlertDialog(
+        title=ft.Text("Enter .eml file path"),
+        content=path_input,
+        actions=[
+            ft.TextButton("Cancel", on_click=lambda _: page.pop_dialog()),
+            ft.ElevatedButton(
+                "OK",
+                on_click=on_submit,
+                bgcolor=MATRIX_GREEN,
+                color=ft.Colors.BLACK,
+            ),
+        ],
+    )
+    # Flet 0.85.3+: use show_dialog (page.open doesn't exist)
+    page.show_dialog(dialog)

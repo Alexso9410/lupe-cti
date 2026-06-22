@@ -67,7 +67,7 @@ class TestEmailViewStructure:
     def test_email_view_has_file_path_field(self, email_view):
         """Email view should have a file path TextField."""
         fields = _find_controls(email_view, ft.TextField)
-        path_fields = [f for f in fields if f.label == "Email file path"]
+        path_fields = [f for f in fields if f.label and "email" in f.label.lower()]
         assert len(path_fields) == 1
 
     def test_email_view_has_markdown_output(self, email_view):

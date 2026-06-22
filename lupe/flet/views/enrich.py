@@ -185,8 +185,25 @@ def build_enrich_view(page: ft.Page) -> ft.Control:
                 results_lines.append(f"{r.source} | {r.summary} | {r.severity.value}")
             results_text = "\n".join(results_lines)
 
+            # Build raw data dict for prompt
+            import json
+
+            raw_data: dict = {}
+            for r in _enrichment_results:
+                if r.raw_data:
+                    try:
+                        raw_data[r.source] = json.loads(r.raw_data.json())
+                    except Exception:
+                        raw_data[r.source] = str(r.raw_data)
+            raw_data_json = json.dumps(raw_data, indent=2, default=str)
+
             system_prompt = _build_ai_system_prompt()
-            user_prompt = _build_ai_prompt(_ioc_value["value"], _ioc_type["value"], results_text)
+            user_prompt = _build_ai_prompt(
+                _ioc_value["value"],
+                _ioc_type["value"],
+                results_text,
+                raw_data_json,
+            )
 
             response = await provider.generate(user_prompt, system=system_prompt)
             if response:
@@ -341,31 +358,61 @@ def build_enrich_view(page: ft.Page) -> ft.Control:
         ],
         spacing=16,
         expand=True,
+        scroll=ft.ScrollMode.AUTO,
     )
 
 
 def _build_ai_system_prompt() -> str:
     """Build the system prompt for AI threat intel analysis."""
     return (
-        "Sos un analista senior de threat intelligence. "
-        "Tu trabajo es analizar los datos de enrichment de un IOC y producir "
-        "un reporte ejecutivo en español con 4 secciones:\n\n"
-        "1. **Puntuación de riesgo**: X/10 (Bajo/Moderado/Alto/Crítico) + justificación breve\n"
-        "2. **Técnicas MITRE ATT&CK relevantes**: códigos Txxxx con nombre, si aplica\n"
-        "3. **Evaluación**: análisis consolidado de las fuentes consultadas\n"
-        "4. **Acciones recomendadas**: "
-        "Monitoreo / Bloqueo / Caza de amenazas (Hunting) — específicas\n\n"
-        "Sé conciso pero accionable. Usa formato markdown."
+        "Sos un analista senior de threat intelligence con experiencia "
+        "en respuesta a incidentes. "
+        "Tu trabajo es analizar los datos de enrichment de un IOC "
+        "— INCLUYENDO los datos crudos de cada fuente — "
+        "y producir un reporte ejecutivo en español con "
+        "4 secciones OBLIGATORIAS:\n\n"
+        "1. **Puntuación de riesgo**: X/10 "
+        "(Bajo/Moderado/Alto/Crítico). "
+        "CITÁ los datos específicos que justifican el número "
+        "(ej: '27/59 detecciones en VirusTotal, "
+        "familia TrickBot en MalwareBazaar'). NO inventes.\n"
+        "2. **Técnicas MITRE ATT&CK relevantes**: "
+        "códigos Txxxx con nombre y descripción. "
+        "Solo si hay evidencia clara. Si no hay info suficiente, "
+        "decí 'Información insuficiente para MITRE'.\n"
+        "3. **Evaluación**: análisis consolidado usando "
+        "los datos crudos de cada fuente. "
+        "CITÁ campos específicos: signature/familia "
+        "(MalwareBazaar), detections/reputation (VirusTotal), "
+        "pulse names (OTX), first_seen, tags, etc.\n"
+        "4. **Acciones recomendadas**: específicas y técnicas "
+        "— incluye comandos de hunting "
+        "para EDR/SIEM, queries Splunk/KQL/Sigma, "
+        "reglas YARA, IOCs relacionados.\n\n"
+        "REGLAS:\n"
+        "- NO inventes datos que no estén en el contexto.\n"
+        "- Si una fuente no devolvió info, "
+        "mencionalo explícitamente ('OTX: sin datos').\n"
+        "- Usá formato markdown con headers, "
+        "bullets y tablas si aplica.\n"
+        "- Sé conciso pero accionable. "
+        "Un analista SOC debe poder ejecutar tus recomendaciones."
     )
 
 
-def _build_ai_prompt(ioc_value: str, ioc_type: str, results_table: str) -> str:
+def _build_ai_prompt(
+    ioc_value: str,
+    ioc_type: str,
+    results_table: str,
+    raw_data_json: str = "{}",
+) -> str:
     """Build the user prompt for AI analysis.
 
     Args:
         ioc_value: The IOC value that was enriched.
         ioc_type: The IOC type string.
         results_table: Markdown table of enrichment results.
+        raw_data_json: JSON string with raw_data from each plugin.
 
     Returns:
         The formatted user prompt.
@@ -374,9 +421,12 @@ def _build_ai_prompt(ioc_value: str, ioc_type: str, results_table: str) -> str:
         f"## IOC a analizar\n\n"
         f"- **Valor**: `{ioc_value}`\n"
         f"- **Tipo**: {ioc_type}\n\n"
-        f"## Resultados del Enrichment\n\n"
+        f"## Tabla resumen de Enrichment\n\n"
         f"{results_table}\n\n"
-        f"Analizá este IOC según las 4 secciones requeridas."
+        f"## Datos crudos por fuente (USAR ESTOS DATOS para el análisis)\n\n"
+        f"```json\n{raw_data_json}\n```\n\n"
+        f"Analizá este IOC basándote en los datos crudos. "
+        f"Citá campos específicos en tu justificación. No inventes información."
     )
 
 
