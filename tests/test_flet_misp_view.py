@@ -10,13 +10,26 @@ import pytest
 from lupe.flet.views.misp import build_misp_view
 
 
+class _OverlayList(list):
+    """List subclass that tracks SnackBar additions."""
+
+    def __init__(self, page_ref):
+        super().__init__()
+        self._page = page_ref
+
+    def append(self, item):
+        super().append(item)
+        if isinstance(item, ft.SnackBar):
+            self._page.snack_bar = item
+
+
 class MockPage:
     """Minimal mock of ft.Page for testing views."""
 
     def __init__(self):
         self.update = MagicMock()
         self.snack_bar = None
-        self.overlay = []
+        self.overlay: list = _OverlayList(self)
 
     def show_snack_bar(self, snack_bar):
         self.snack_bar = snack_bar
@@ -87,14 +100,14 @@ class TestMISPViewImports:
         """MISP view module should import MISPClient."""
         import lupe.flet.views.misp as misp_module
 
-        source = open(misp_module.__file__).read()
+        source = open(misp_module.__file__, encoding="utf-8").read()
         assert "MISPClient" in source
 
     def test_misp_view_has_load_settings_import(self):
         """MISP view module should import load_settings."""
         import lupe.flet.views.misp as misp_module
 
-        source = open(misp_module.__file__).read()
+        source = open(misp_module.__file__, encoding="utf-8").read()
         assert "load_settings" in source
 
 
