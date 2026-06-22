@@ -262,9 +262,7 @@ def build_enrich_view(page: ft.Page) -> ft.Control:
         """Refresh the case dropdown with current cases."""
         try:
             cases = list_cases()
-            case_dropdown.options = [
-                ft.dropdown.Option(key=str(c.id), text=c.name) for c in cases
-            ]
+            case_dropdown.options = [ft.dropdown.Option(key=str(c.id), text=c.name) for c in cases]
         except Exception:
             case_dropdown.options = []
 
@@ -288,7 +286,7 @@ def build_enrich_view(page: ft.Page) -> ft.Control:
             else:
                 case_id = int(selected)
 
-            ioc_id = add_ioc_to_case(
+            add_ioc_to_case(
                 case_id,
                 _ioc_value["value"],
                 _ioc_type["value"],
@@ -355,7 +353,8 @@ def _build_ai_system_prompt() -> str:
         "1. **Puntuación de riesgo**: X/10 (Bajo/Moderado/Alto/Crítico) + justificación breve\n"
         "2. **Técnicas MITRE ATT&CK relevantes**: códigos Txxxx con nombre, si aplica\n"
         "3. **Evaluación**: análisis consolidado de las fuentes consultadas\n"
-        "4. **Acciones recomendadas**: Monitoreo / Bloqueo / Caza de amenazas (Hunting) — específicas\n\n"
+        "4. **Acciones recomendadas**: "
+        "Monitoreo / Bloqueo / Caza de amenazas (Hunting) — específicas\n\n"
         "Sé conciso pero accionable. Usa formato markdown."
     )
 

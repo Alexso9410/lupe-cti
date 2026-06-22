@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from lupe.db import Database
 from lupe.config import get_settings
+from lupe.db import Database
 
 
 @dataclass

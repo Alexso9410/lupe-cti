@@ -304,7 +304,11 @@ class TestAIAnalysisExecution:
 
         with (
             patch("lupe.flet.views.enrich.detect_ioc", return_value=mock_ioc),
-            patch("lupe.flet.views.enrich.run_enrichment", new_callable=AsyncMock, return_value=mock_results),
+            patch(
+                "lupe.flet.views.enrich.run_enrichment",
+                new_callable=AsyncMock,
+                return_value=mock_results,
+            ),
             patch("lupe.flet.views.enrich.get_settings", return_value=MagicMock()),
             patch("lupe.flet.views.enrich.get_provider", return_value=mock_provider),
         ):
@@ -405,7 +409,11 @@ class TestAddToCaseExecution:
 
         with (
             patch("lupe.flet.views.enrich.detect_ioc", return_value=mock_ioc),
-            patch("lupe.flet.views.enrich.run_enrichment", new_callable=AsyncMock, return_value=mock_results),
+            patch(
+                "lupe.flet.views.enrich.run_enrichment",
+                new_callable=AsyncMock,
+                return_value=mock_results,
+            ),
             patch("lupe.flet.views.enrich.get_settings", return_value=MagicMock()),
             patch("lupe.flet.views.enrich.list_cases", return_value=[]),
             patch("lupe.flet.views.enrich.add_ioc_to_case", return_value=1) as mock_add,
@@ -450,7 +458,11 @@ class TestAddToCaseExecution:
 
         with (
             patch("lupe.flet.views.enrich.detect_ioc", return_value=mock_ioc),
-            patch("lupe.flet.views.enrich.run_enrichment", new_callable=AsyncMock, return_value=mock_results),
+            patch(
+                "lupe.flet.views.enrich.run_enrichment",
+                new_callable=AsyncMock,
+                return_value=mock_results,
+            ),
             patch("lupe.flet.views.enrich.get_settings", return_value=MagicMock()),
             patch("lupe.flet.views.enrich.list_cases", return_value=[]),
             patch("lupe.flet.views.enrich.create_case", return_value=new_case) as mock_create,
@@ -506,7 +518,11 @@ class TestAddToCaseExecution:
 
         with (
             patch("lupe.flet.views.enrich.detect_ioc", return_value=mock_ioc),
-            patch("lupe.flet.views.enrich.run_enrichment", new_callable=AsyncMock, return_value=mock_results),
+            patch(
+                "lupe.flet.views.enrich.run_enrichment",
+                new_callable=AsyncMock,
+                return_value=mock_results,
+            ),
             patch("lupe.flet.views.enrich.get_settings", return_value=MagicMock()),
             patch("lupe.flet.views.enrich.list_cases", return_value=[]),
         ):
