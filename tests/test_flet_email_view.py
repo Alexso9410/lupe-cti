@@ -10,13 +10,26 @@ import pytest
 from lupe.flet.views.email import build_email_view
 
 
+class _OverlayList(list):
+    """List subclass that tracks SnackBar additions."""
+
+    def __init__(self, page_ref):
+        super().__init__()
+        self._page = page_ref
+
+    def append(self, item):
+        super().append(item)
+        if isinstance(item, ft.SnackBar):
+            self._page.snack_bar = item
+
+
 class MockPage:
     """Minimal mock of ft.Page for testing views."""
 
     def __init__(self):
         self.update = MagicMock()
         self.snack_bar = None
-        self.overlay = []
+        self.overlay: list = _OverlayList(self)
 
     def show_snack_bar(self, snack_bar):
         self.snack_bar = snack_bar
