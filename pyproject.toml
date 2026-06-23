@@ -68,10 +68,10 @@ lupe-desktop = "lupe.flet.app:main"
 
 [project.urls]
 Homepage = "https://github.com/Alexso9410/lupe-cti"
-Repository = "https://github.com/lupe-cti/lupe"
-Issues = "https://github.com/lupe-cti/lupe/issues"
-Changelog = "https://github.com/lupe-cti/lupe/blob/main/CHANGELOG.md"
-Logo = "https://raw.githubusercontent.com/lupe-cti/lupe/main/assets/lupe-logo/lupe-logo.svg"
+Repository = "https://github.com/Alexso9410/lupe-cti"
+Issues = "https://github.com/Alexso9410/lupe-cti/issues"
+Changelog = "https://github.com/Alexso9410/lupe-cti/blob/main/CHANGELOG.md"
+Logo = "https://raw.githubusercontent.com/Alexso9410/lupe-cti/main/assets/lupe-logo/lupe-logo.svg"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

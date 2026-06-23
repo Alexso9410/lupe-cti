@@ -4,13 +4,13 @@ Thank you for your interest in contributing to Lupe CTI! This guide will help yo
 
 ## Code of Conduct
 
-This project follows the [Contributor Covenant Code of Conduct](https://www.contributor-covenant.org/version/2/1/code_of_conduct/). By participating, you are expected to uphold this code. Please report unacceptable behavior via [GitHub Issues](https://github.com/lupe-cti/lupe/issues).
+This project follows the [Contributor Covenant Code of Conduct](https://www.contributor-covenant.org/version/2/1/code_of_conduct/). By participating, you are expected to uphold this code. Please report unacceptable behavior via [GitHub Issues](https://github.com/Alexso9410/lupe-cti/issues).
 
 ## How to Contribute
 
 ### Reporting Bugs
 
-- Check [existing issues](https://github.com/lupe-cti/lupe/issues) first
+- Check [existing issues](https://github.com/Alexso9410/lupe-cti/issues) first
 - Use the **Bug Report** issue template
 - Include reproduction steps, expected behavior, and environment details
 
@@ -372,7 +372,7 @@ In `lupe/llm/registry.py`, update `get_provider()` to instantiate the new provid
 
 ## Questions?
 
-- Open a [Discussion](https://github.com/lupe-cti/lupe/discussions) for general questions
-- Open an [Issue](https://github.com/lupe-cti/lupe/issues) for bugs and feature requests
+- Open a [Discussion](https://github.com/Alexso9410/lupe-cti/discussions) for general questions
+- Open an [Issue](https://github.com/Alexso9410/lupe-cti/issues) for bugs and feature requests
 
 Thank you for contributing to Lupe CTI!
