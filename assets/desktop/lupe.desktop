@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Lupe CTI
+Comment=Cyber Threat Intelligence CLI & TUI
+Exec=lupe-desktop
+Icon=lupe
+Categories=Security;Network;
+Terminal=false
+Keywords=cti;osint;threat-intelligence;ioc;enrichment;

@@ -1,0 +1,114 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["lupe"]
+
+[project]
+name = "lupe-cti"
+version = "1.0.0"
+description = "Cyber Threat Intelligence CLI for OSINT, Forensics & Incident Response"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "Lupe CTI Contributors"},
+]
+keywords = ["cti", "osint", "threat-intelligence", "ioc", "enrichment", "forensics", "incident-response"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: System Administrators",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: MacOS",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+    "Topic :: System :: Systems Administration",
+    "Typing :: Typed",
+]
+dependencies = [
+    "typer>=0.9.0",
+    "rich>=13.0.0",
+    "httpx>=0.27.0",
+    "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
+    "python-whois>=0.9.0",
+    "reportlab>=4.0",
+    "phonenumbers>=8.13.0",
+    "platformdirs>=4.0",
+    "flet>=0.21",
+    "packaging>=21.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "respx>=0.21",
+    "pytest-cov>=5.0",
+    "tomli>=2.0",  # Python <3.11 compat (tomllib backport)
+    "bandit>=1.7",
+    "pip-audit>=2.6",
+    "pre-commit>=3.5",
+    "pyyaml>=6.0",
+    "ruff>=0.5.0",
+    "mypy>=1.10",
+]
+
+[project.scripts]
+lupe = "lupe.cli:app"
+lupe-desktop = "lupe.flet.app:main"
+
+[project.urls]
+Homepage = "https://github.com/Alexso9410/lupe-cti"
+Repository = "https://github.com/Alexso9410/lupe-cti"
+Issues = "https://github.com/Alexso9410/lupe-cti/issues"
+Changelog = "https://github.com/Alexso9410/lupe-cti/blob/main/CHANGELOG.md"
+Logo = "https://raw.githubusercontent.com/Alexso9410/lupe-cti/main/assets/lupe-logo/lupe-logo.svg"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+
+[tool.coverage.run]
+source = ["lupe"]
+omit = ["tests/*"]
+
+[tool.coverage.report]
+fail_under = 50
+show_missing = true
+
+[tool.bandit]
+exclude_dirs = ["tests", ".venv", "venv", "assets"]
+skips = ["B101"]  # assert used in tests
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+exclude = ["tryhackme-obsidian-automation"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_ignores = true
+ignore_missing_imports = true
+exclude = ["lupe/flet/"]  # Flet's type annotations are incompatible with mypy
+
+[[tool.mypy.overrides]]
+module = "lupe.compat"
+warn_unused_ignores = false  # type: ignore needed on 3.10 but unused on 3.11+
+
+[tool.cibuildwheel]
+build = ["cp310-*", "cp311-*", "cp312-*"]
+skip = ["*-musllinux_*", "*-manylinux_i686"]
+test-requires = "pytest"
+test-command = "pytest {project}/tests -q"

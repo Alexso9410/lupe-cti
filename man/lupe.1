@@ -1,0 +1,122 @@
+.TH LUPE 1 "2026-06-21" "lupe-cti 0.1.0" "Lupe CTI Manual"
+.SH NAME
+lupe \- Cyber Threat Intelligence CLI for OSINT & Forensics
+.SH SYNOPSIS
+.B lupe
+.RI [ COMMAND ]
+.RI [ OPTIONS ]
+.RI [ ARGS ]
+.br
+.B lupe
+.B enrich
+.I IOC_VALUE
+.RI [ OPTIONS ]
+.br
+.B lupe
+.B misp
+.B pull
+.RI [ OPTIONS ]
+.br
+.B lupe
+.B misp
+.B push
+.I IOC_VALUE
+.RI [ OPTIONS ]
+.SH DESCRIPTION
+.B Lupe CTI
+is a command-line tool for enriching Indicators of Compromise (IOCs)
+using multiple threat intelligence sources in parallel. It supports
+IP addresses, domains, URLs, file hashes, emails, phone numbers,
+and usernames.
+.SH COMMANDS
+.TP
+.B enrich
+Enrich an IOC using multiple enrichment plugins.
+.TP
+.B bulk
+Enrich multiple IOCs from a text file (one per line).
+.TP
+.B email-analyze
+Analyze an .eml file for phishing indicators.
+.TP
+.B config show
+Display current configuration (API keys masked).
+.TP
+.B config set
+Set a configuration value in the .env file.
+.TP
+.B config test
+Test connectivity to all configured APIs.
+.TP
+.B case new
+Create a new investigation case.
+.TP
+.B case list
+List investigation cases.
+.TP
+.B case show
+Show case details including linked IOCs and timeline.
+.TP
+.B case close
+Close an investigation case.
+.TP
+.B case add-note
+Add an investigator note to a case.
+.TP
+.B misp pull
+Pull IOCs from a MISP instance.
+.TP
+.B misp push
+Push an analyzed IOC to MISP.
+.TP
+.B migrate-from-centinela
+Migrate legacy Centinela database to Lupe CTI paths.
+.SH OPTIONS
+.TP
+.B \-\-json
+Output raw JSON instead of a formatted table.
+.TP
+.B \-\-no\-ai
+Skip AI analysis via LLM provider.
+.TP
+.BI \-\-model " MODEL"
+Override the LLM model for this run.
+.TP
+.BI \-\-case " ID"
+Save results to database and link to this case ID.
+.SH EXAMPLES
+.TP
+.B lupe enrich 8.8.8.8
+Enrich an IPv4 address.
+.TP
+.B lupe enrich \-\-json example.com
+Enrich a domain with JSON output.
+.TP
+.B lupe bulk iocs.txt \-\-case 1
+Bulk enrich IOCs from file, linked to case 1.
+.TP
+.B lupe misp pull \-\-tag osint \-\-days 7
+Pull IOCs from MISP tagged "osint" from last 7 days.
+.TP
+.B lupe misp push 8.8.8.8 \-\-tag lupe
+Push an IP to MISP with the "lupe" tag.
+.SH ENVIRONMENT
+All settings use the
+.B LUPE_
+prefix:
+.TP
+.B LUPE_LLM_PROVIDER
+LLM provider: ollama, openai, anthropic, openrouter (default: empty)
+.TP
+.B LUPE_OLLAMA_BASE_URL
+Ollama server URL (default: http://localhost:11434)
+.TP
+.B LUPE_MISP_URL
+MISP instance URL
+.TP
+.B LUPE_MISP_KEY
+MISP API key
+.SH SEE ALSO
+.BR lupe\-desktop (1)
+.SH AUTHORS
+Lupe CTI Contributors
