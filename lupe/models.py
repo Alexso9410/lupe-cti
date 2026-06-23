@@ -98,4 +98,7 @@ class EmailAnalysisResult(BaseModel):
     ai_confidence: float | None = None
     ai_recommendations: list[str] = []
     ai_raw_response: str | None = None
+    # CRITICAL #3 — True when the LLM output was rejected because it
+    # contained patterns consistent with a prompt-injection attempt.
+    prompt_injection_detected: bool = False
     analyzed_at: datetime

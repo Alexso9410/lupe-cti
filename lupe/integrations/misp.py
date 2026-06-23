@@ -11,6 +11,8 @@ from typing import Any
 
 import httpx
 
+from lupe.security.https_only import enforce_safe_url
+
 logger = logging.getLogger(__name__)
 
 
@@ -33,6 +35,7 @@ class MISPClient:
     """
 
     def __init__(self, url: str, api_key: str, timeout: float = 30.0) -> None:
+        enforce_safe_url(url)
         self._base_url = url.rstrip("/")
         self._api_key = api_key
         self._timeout = timeout

@@ -18,7 +18,8 @@ class TestComputeSha256:
         p = tmp_path / "empty.bin"
         p.write_bytes(b"")
         # SHA256 of empty input is a well-known constant
-        assert compute_sha256(p) == "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        expected = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        assert compute_sha256(p) == expected
 
     def test_known_payload(self, tmp_path: Path) -> None:
         from lupe.security.integrity import compute_sha256

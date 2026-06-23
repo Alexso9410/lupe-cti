@@ -2,11 +2,27 @@ from __future__ import annotations
 
 import asyncio
 from datetime import datetime, timezone
+from urllib.parse import urlparse
 
 import httpx
 
 from lupe.enrichment.base import EnrichmentPlugin
 from lupe.models import IOC, EnrichmentResult, IOCType, Severity
+from lupe.security.rate_limit import RateLimiter
+
+# Per-domain rate limit: 3 req/s — these are unauthenticated public endpoints
+# and we don't want to look like a credential-stuffing tool.
+_DOMAIN_LIMITERS: dict[str, RateLimiter] = {}
+_LIMITER_LOCK = asyncio.Lock()
+
+
+async def _get_domain_limiter(host: str) -> RateLimiter:
+    if host in _DOMAIN_LIMITERS:
+        return _DOMAIN_LIMITERS[host]
+    async with _LIMITER_LOCK:
+        if host not in _DOMAIN_LIMITERS:
+            _DOMAIN_LIMITERS[host] = RateLimiter(max_requests=3, per_seconds=1.0)
+        return _DOMAIN_LIMITERS[host]
 
 _SITES = [
     {
@@ -147,6 +163,15 @@ class HolehePlugin(EnrichmentPlugin):
                 try:
                     url = site_def["url"].format(email=email)
                     timeout = httpx.Timeout(8.0)
+
+                    # Per-domain rate limit (extracted from the URL host)
+                    host = (urlparse(url).hostname or "").lower()
+                    if host:
+                        try:
+                            limiter = await _get_domain_limiter(host)
+                            await limiter.acquire()
+                        except Exception:
+                            pass
 
                     if site_def["method"] == "POST":
                         if "data" in site_def:

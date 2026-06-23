@@ -7,7 +7,7 @@ import httpx
 from lupe.enrichment.base import EnrichmentPlugin
 from lupe.models import IOC, EnrichmentResult, IOCType, Severity
 
-_NUMVERIFY_URL = "http://apilayer.net/api/validate"  # HTTP — free tier no redirige a HTTPS
+_NUMVERIFY_URL = "https://apilayer.net/api/validate"
 
 
 def _numverify_to_severity(valid: bool, line_type: str) -> Severity:

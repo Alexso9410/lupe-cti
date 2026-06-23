@@ -7,7 +7,6 @@ from unittest.mock import MagicMock, patch
 from lupe.updater import (
     download_wheel,
     download_wheel_with_verification,
-    fetch_sha256sums,
     get_current_version,
     get_latest_version,
     install_wheel,
@@ -225,7 +224,6 @@ class TestDownloadWheelWithVerification:
     def test_happy_path_with_matching_hash(self, tmp_path):
         import hashlib
 
-        from lupe.updater import download_wheel_with_verification
 
         wheel_data = b"clean wheel data"
         digest = hashlib.sha256(wheel_data).hexdigest()
@@ -260,7 +258,6 @@ class TestDownloadWheelWithVerification:
         assert dest.read_bytes() == wheel_data
 
     def test_hash_mismatch_aborts(self, tmp_path):
-        from lupe.updater import download_wheel_with_verification
 
         wheel_data = b"EVIL PAYLOAD"
         # Publish a hash that does NOT match
@@ -297,7 +294,6 @@ class TestDownloadWheelWithVerification:
 
     def test_no_sha256sums_accepts_with_warning(self, tmp_path):
         """Backward compat: releases without SHA256SUMS still install."""
-        from lupe.updater import download_wheel_with_verification
 
         wheel_data = b"legacy wheel without integrity check"
         dest = tmp_path / "lupe_cti-0.9.0-py3-none-any.whl"
@@ -328,7 +324,6 @@ class TestDownloadWheelWithVerification:
         assert dest.read_bytes() == wheel_data
 
     def test_download_failure_propagates(self, tmp_path):
-        from lupe.updater import download_wheel_with_verification
 
         dest = tmp_path / "test.whl"
 

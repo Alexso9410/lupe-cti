@@ -10,6 +10,7 @@ import httpx
 
 from lupe.llm.base import LLMProvider, ModelInfo
 from lupe.llm.registry import register_provider
+from lupe.security.https_only import enforce_safe_url
 
 if TYPE_CHECKING:
     from lupe.config import Settings
@@ -29,6 +30,8 @@ class OllamaProvider(LLMProvider):
     requires_api_key = False  # Optional: only required for cloud models (e.g. gemma4:31b-cloud)
 
     def __init__(self, settings: Settings) -> None:
+        # Localhost HTTP is allowed by enforce_safe_url; remote Ollama should use HTTPS.
+        enforce_safe_url(settings.ollama_base_url)
         self._base_url = settings.ollama_base_url.rstrip("/")
         self._model = settings.ollama_model
         self._api_key = getattr(settings, "ollama_api_key", None) or None

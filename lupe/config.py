@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+import subprocess
 import sys
 from functools import lru_cache
 from pathlib import Path
@@ -50,9 +52,27 @@ def ensure_dirs() -> None:
     for d in (get_data_dir(), get_config_dir(), get_cache_dir()):
         d.mkdir(parents=True, exist_ok=True)
 
-    # Restrict config dir permissions on Unix
+    # Restrict config dir permissions
+    config_dir = get_config_dir()
     if sys.platform != "win32":
-        get_config_dir().chmod(0o700)
+        config_dir.chmod(0o700)
+    else:
+        # Windows: use icacls to restrict to current user only
+        try:
+            subprocess.run(
+                [
+                    "icacls",
+                    str(config_dir),
+                    "/inheritance:r",
+                    "/grant:r",
+                    f"{os.environ.get('USERNAME', os.environ.get('USER', ''))}:F",
+                ],
+                check=False,
+                capture_output=True,
+                timeout=10,
+            )
+        except Exception:
+            pass  # best-effort, not fatal
 
 
 class Settings(BaseSettings):
@@ -64,7 +84,9 @@ class Settings(BaseSettings):
     )
 
     ollama_base_url: str = "http://localhost:11434"
-    ollama_model: str = "gemma3:4b"  # Default: small, fast, works on 8GB RAM. Override via LUPE_OLLAMA_MODEL.
+    ollama_model: str = (
+        "gemma3:4b"  # Fast, fits 8GB RAM. Override via LUPE_OLLAMA_MODEL.
+    )
     ollama_api_key: str | None = None  # Required for cloud models (gemma4:31b-cloud, etc.)
     db_path: str = ""  # Empty = use platformdirs default
 
@@ -74,6 +96,11 @@ class Settings(BaseSettings):
     anthropic_api_key: str | None = None
     openrouter_api_key: str | None = None
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
+
+    # CRITICAL #2 — PII redaction before sending data to any LLM provider.
+    # Default ON. Set LUPE_LLM_REDACT_PII=false to disable (NOT recommended
+    # for cloud LLM providers — exposes email PII to third parties).
+    llm_redact_pii: bool = True
 
     # MISP integration
     misp_url: str | None = None

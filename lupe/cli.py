@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 from pathlib import Path
 from typing import TYPE_CHECKING, Annotated
 
@@ -12,22 +13,39 @@ from rich.panel import Panel
 from rich.table import Table
 
 from lupe.analysis import analyze_ioc
-from lupe.config import get_settings
+from lupe.config import get_config_dir, get_settings
 from lupe.db import Database
 from lupe.email_analyzer import analyze_email
 from lupe.email_parser import parse_eml
 from lupe.enrichment import run_enrichment
 from lupe.ioc_detect import detect_ioc
+from lupe.logging_config import setup_logging
 from lupe.models import IOC, EnrichmentResult, IOCType, Severity
+from lupe.security.validation import validate_ioc_value
 
 if TYPE_CHECKING:
     from lupe.integrations.misp import MISPClient
+
+logger = logging.getLogger(__name__)
 
 app = typer.Typer(
     name="lupe",
     help="Lupe CTI — Cyber Threat Intelligence for OSINT & Forensics",
     add_completion=False,
 )
+
+
+@app.callback()
+def _main_callback(
+    verbose: Annotated[
+        bool,
+        typer.Option("--verbose", "-v", help="Show detailed error information for debugging."),
+    ] = False,
+) -> None:
+    """Set up logging level based on verbose flag."""
+    setup_logging("DEBUG" if verbose else "INFO")
+    if verbose:
+        logger.debug("Verbose mode enabled")
 
 config_app = typer.Typer(help="Manage API keys and configuration.")
 app.add_typer(config_app, name="config")
@@ -67,6 +85,19 @@ _KEY_FIELDS: list[tuple[str, str]] = [
     ("googlesb_key", "LUPE_GOOGLESB_KEY"),
     ("phishtank_key", "LUPE_PHISHTANK_KEY"),
     ("pulsedive_key", "LUPE_PULSEDIVE_KEY"),
+    # LLM providers (highest blast radius if leaked)
+    ("openai_api_key", "LUPE_OPENAI_API_KEY"),
+    ("anthropic_api_key", "LUPE_ANTHROPIC_API_KEY"),
+    ("openrouter_api_key", "LUPE_OPENROUTER_API_KEY"),
+    ("ollama_api_key", "LUPE_OLLAMA_API_KEY"),
+    # MISP integration
+    ("misp_key", "LUPE_MISP_KEY"),
+    # Censys
+    ("censys_id", "LUPE_CENSYS_ID"),
+    ("censys_secret", "LUPE_CENSYS_SECRET"),
+    # Additional threat intel
+    ("hybrid_analysis_key", "LUPE_HYBRID_ANALYSIS_KEY"),
+    ("spamhaus_key", "LUPE_SPAMHAUS_KEY"),
 ]
 
 _PLAIN_FIELDS: list[tuple[str, str]] = [
@@ -136,6 +167,13 @@ def enrich(
     ] = None,
 ) -> None:
     """Enrich an IOC (IP, domain, hash, URL, or email) using multiple sources."""
+    # Reject overlong / empty inputs before doing any work
+    try:
+        validate_ioc_value(ioc_value, ioc_type="url")  # most permissive max (2048)
+    except ValueError as exc:
+        err_console.print(f"[bold red]Error:[/bold red] Invalid IOC: {exc}")
+        raise typer.Exit(code=1)
+
     ioc = detect_ioc(ioc_value)
     if ioc is None:
         err_console.print(
@@ -395,6 +433,13 @@ def email_analyze(
     ] = None,
 ) -> None:
     """Analizar un archivo .eml en busca de indicadores de phishing."""
+    # Defense in depth: reject empty / overlong path strings before hitting the FS
+    try:
+        validate_ioc_value(str(eml_file), ioc_type="url")
+    except ValueError as exc:
+        err_console.print(f"[bold red]Error:[/bold red] Invalid path: {exc}")
+        raise typer.Exit(code=1)
+
     if not eml_file.exists() or eml_file.suffix.lower() != ".eml":
         err_console.print(
             f"[bold red]Error:[/bold red] Archivo no encontrado o extensión inválida: "
@@ -946,7 +991,27 @@ def config_set(
     value: Annotated[str, typer.Argument(help="Value to set")],
 ) -> None:
     """Write or update a key=value pair in the .env file."""
-    env_path = Path(".env")
+    from re import fullmatch
+
+    # Validate key name: only uppercase letters, digits, underscores
+    if not fullmatch(r"^[A-Z][A-Z0-9_]*$", key.upper()):
+        err_console.print(
+            f"[bold red]Invalid key name:[/bold red] "
+            f"[yellow]{key}[/yellow]\n"
+            "Keys must start with a letter and contain only "
+            "uppercase letters, digits, and underscores."
+        )
+        raise typer.Exit(code=1)
+
+    # Validate value: no control characters
+    if "\x00" in value or "\r\n" in value or "\n" in value:
+        err_console.print(
+            "[bold red]Invalid value:[/bold red] "
+            "values cannot contain newlines or null characters."
+        )
+        raise typer.Exit(code=1)
+
+    env_path = get_config_dir() / ".env"
 
     existing_lines: list[str] = []
     if env_path.exists():

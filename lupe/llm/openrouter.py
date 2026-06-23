@@ -10,6 +10,7 @@ import httpx
 
 from lupe.llm.base import LLMProvider, ModelInfo
 from lupe.llm.registry import register_provider
+from lupe.security.https_only import enforce_safe_url
 
 if TYPE_CHECKING:
     from lupe.config import Settings
@@ -28,6 +29,7 @@ class OpenRouterProvider(LLMProvider):
 
     def __init__(self, settings: Settings) -> None:
         self._api_key = settings.openrouter_api_key or ""
+        enforce_safe_url(settings.openrouter_base_url)
         self._base_url = settings.openrouter_base_url.rstrip("/")
         self._model = _DEFAULT_MODEL
 

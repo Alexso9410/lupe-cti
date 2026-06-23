@@ -112,6 +112,31 @@ EXECUTABLE_EXTENSIONS: set[str] = {
 # Maximum body text size to store (prevents memory issues with large emails)
 MAX_BODY_LENGTH = 10000
 
+# Whitelist of header names that the parser is allowed to extract from the
+# raw email message (CRITICAL #2 — PII redaction defense in depth).
+# Anything outside this set is dropped to avoid leaking X-Forwarded-For,
+# X-Originating-IP, Bcc, etc. into the persisted ParsedHeaders structure
+# where it could be accidentally forwarded to an LLM provider.
+#
+# Note: SPF / DKIM / DMARC / Received are handled by separate extractors
+# (_extract_auth_results, _extract_received_chain) and are not part of
+# ParsedHeaders. Return-Path is acknowledged here but not currently
+# stored in the dataclass; reserved for future use.
+PERSISTED_HEADERS: frozenset[str] = frozenset(
+    {
+        "Subject",
+        "Date",
+        "From",
+        "To",
+        "Return-Path",
+        "Received",
+        "SPF",
+        "DKIM",
+        "DMARC",
+        "Message-ID",
+    }
+)
+
 
 # =============================================================================
 # Header Extraction
@@ -169,51 +194,84 @@ def _decode_header_value(header_value: str) -> str:
 def _extract_headers(msg: email.message.Message) -> ParsedHeaders:
     """Extract relevant headers from an email message.
 
+    Only headers in :data:`PERSISTED_HEADERS` are read from the message.
+    Any other header (e.g. ``X-Forwarded-For``, ``X-Mailer``) is
+    intentionally ignored to keep the persisted structure minimal and
+    safe to forward downstream (CRITICAL #2).
+
     Args:
         msg: The email message object to parse.
 
     Returns:
-        ParsedHeaders with extracted and decoded header values.
+        ParsedHeaders with extracted and decoded header values. Fields
+        whose underlying header is not in :data:`PERSISTED_HEADERS` are
+        always ``None``.
     """
-    try:
-        from_addr_raw = msg.get("From", "")
-        from_addr = _extract_email_from_header(_decode_header_value(from_addr_raw))
-    except Exception:
+    # from_addr (From) — in PERSISTED_HEADERS
+    if "From" in PERSISTED_HEADERS:
+        try:
+            from_addr_raw = msg.get("From", "")
+            from_addr = _extract_email_from_header(_decode_header_value(from_addr_raw))
+        except Exception:
+            from_addr = ""
+    else:
         from_addr = ""
 
-    try:
-        to_addr_raw = msg.get("To", "")
-        to_decoded = _decode_header_value(to_addr_raw)
-        to_addr = [addr.strip() for addr in to_decoded.split(",") if addr.strip()]
-    except Exception:
+    # to_addr (To) — in PERSISTED_HEADERS
+    if "To" in PERSISTED_HEADERS:
+        try:
+            to_addr_raw = msg.get("To", "")
+            to_decoded = _decode_header_value(to_addr_raw)
+            to_addr = [addr.strip() for addr in to_decoded.split(",") if addr.strip()]
+        except Exception:
+            to_addr = []
+    else:
         to_addr = []
 
-    try:
-        subject_raw = msg.get("Subject", "")
-        subject = _decode_header_value(subject_raw)
-    except Exception:
+    # subject (Subject) — in PERSISTED_HEADERS
+    if "Subject" in PERSISTED_HEADERS:
+        try:
+            subject_raw = msg.get("Subject", "")
+            subject = _decode_header_value(subject_raw)
+        except Exception:
+            subject = ""
+    else:
         subject = ""
 
-    try:
-        date = msg.get("Date", "")
-    except Exception:
+    # date (Date) — in PERSISTED_HEADERS
+    if "Date" in PERSISTED_HEADERS:
+        try:
+            date = msg.get("Date", "")
+        except Exception:
+            date = ""
+    else:
         date = ""
 
-    try:
-        reply_to_raw = msg.get("Reply-To")
-        reply_to = _decode_header_value(reply_to_raw) if reply_to_raw else None
-    except Exception:
-        reply_to = None
+    # reply_to (Reply-To) — NOT in PERSISTED_HEADERS → always None
+    reply_to: str | None = None
+    if "Reply-To" in PERSISTED_HEADERS:
+        try:
+            reply_to_raw = msg.get("Reply-To")
+            reply_to = _decode_header_value(reply_to_raw) if reply_to_raw else None
+        except Exception:
+            reply_to = None
 
-    try:
-        message_id = msg.get("Message-ID")
-    except Exception:
+    # message_id (Message-ID) — in PERSISTED_HEADERS
+    if "Message-ID" in PERSISTED_HEADERS:
+        try:
+            message_id = msg.get("Message-ID")
+        except Exception:
+            message_id = None
+    else:
         message_id = None
 
-    try:
-        x_mailer = msg.get("X-Mailer")
-    except Exception:
-        x_mailer = None
+    # x_mailer (X-Mailer) — NOT in PERSISTED_HEADERS → always None
+    x_mailer: str | None = None
+    if "X-Mailer" in PERSISTED_HEADERS:
+        try:
+            x_mailer = msg.get("X-Mailer")
+        except Exception:
+            x_mailer = None
 
     return ParsedHeaders(
         from_addr=from_addr,
