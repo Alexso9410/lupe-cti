@@ -482,7 +482,7 @@ class TestEmailViewDragDrop:
 
 
 class TestAllViewsBuild:
-    """Smoke test: all 7 views build without errors using MockPage."""
+    """Smoke test: all 8 views build without errors using MockPage."""
 
     @pytest.mark.parametrize(
         "mod_path,func_name",
@@ -490,6 +490,7 @@ class TestAllViewsBuild:
             ("lupe.flet.views.home", "build_home_view"),
             ("lupe.flet.views.enrich", "build_enrich_view"),
             ("lupe.flet.views.settings", "build_settings_view"),
+            ("lupe.flet.views.profile", "build_profile_view"),
             ("lupe.flet.views.misp", "build_misp_view"),
             ("lupe.flet.views.email", "build_email_view"),
             ("lupe.flet.views.plugins", "build_plugins_view"),
@@ -504,6 +505,12 @@ class TestAllViewsBuild:
         # enrich and email views may need list_cases mock
         if "enrich" in mod_path:
             with patch("lupe.flet.views.enrich.list_cases", return_value=[]):
+                result = func(page)
+        elif "profile" in mod_path:
+            with (
+                patch("lupe.flet.views.profile.list_profiles", return_value=["default"]),
+                patch("lupe.flet.views.profile.get_active_profile", return_value="default"),
+            ):
                 result = func(page)
         else:
             result = func(page)

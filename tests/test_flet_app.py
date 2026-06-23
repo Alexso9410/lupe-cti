@@ -75,7 +75,7 @@ class TestFletTheme:
 
 
 class TestFletViews:
-    """Tests that all 6 views exist and are importable."""
+    """Tests that all 8 views exist and are importable."""
 
     def test_home_view_importable(self):
         """HomeView is importable from lupe.flet.views.home."""
@@ -112,6 +112,12 @@ class TestFletViews:
         from lupe.flet.views.cases import CasesView
 
         assert CasesView is not None
+
+    def test_profile_view_importable(self):
+        """ProfileView is importable from lupe.flet.views.profile."""
+        from lupe.flet.views.profile import ProfileView
+
+        assert ProfileView is not None
 
 
 class TestSettingsViewFields:
