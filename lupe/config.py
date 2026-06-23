@@ -64,7 +64,7 @@ class Settings(BaseSettings):
     )
 
     ollama_base_url: str = "http://localhost:11434"
-    ollama_model: str = "gemma4:31b-cloud"
+    ollama_model: str = "gemma3:4b"  # Default: small, fast, works on 8GB RAM. Override via LUPE_OLLAMA_MODEL.
     ollama_api_key: str | None = None  # Required for cloud models (gemma4:31b-cloud, etc.)
     db_path: str = ""  # Empty = use platformdirs default
 
