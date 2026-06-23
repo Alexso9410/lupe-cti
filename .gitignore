@@ -58,3 +58,9 @@ openspec/changes/
 
 # AI agent task files (internal, not for public repo)
 TRINITY_TASK_*.md
+
+# Skill registry (contains personal paths)
+.atl/
+
+# Supply chain audit (internal)
+.supply-chain-risk-auditor/
