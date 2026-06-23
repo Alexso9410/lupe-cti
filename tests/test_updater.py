@@ -6,10 +6,13 @@ from unittest.mock import MagicMock, patch
 
 from lupe.updater import (
     download_wheel,
+    download_wheel_with_verification,
+    fetch_sha256sums,
     get_current_version,
     get_latest_version,
     install_wheel,
     is_update_available,
+    lookup_expected_sha256,
 )
 
 
@@ -177,3 +180,170 @@ class TestInstallWheel:
         wheel = tmp_path / "missing.whl"
         result = install_wheel(wheel)
         assert result is False
+
+
+class TestLookupExpectedSha256:
+    """lookup_expected_sha256 finds the right line in SHA256SUMS text."""
+
+    def test_finds_match(self) -> None:
+        sha256_text = (
+            f"{'a' * 64}  lupe_cti-1.0.0-py3-none-any.whl\n"
+            f"{'b' * 64}  lupe_cti-1.0.0.tar.gz\n"
+        )
+        result = lookup_expected_sha256(sha256_text, "lupe_cti-1.0.0-py3-none-any.whl")
+        assert result == "a" * 64
+
+    def test_returns_none_when_missing(self) -> None:
+        sha256_text = f"{'a' * 64}  other-1.0.0.whl\n"
+        result = lookup_expected_sha256(sha256_text, "lupe_cti-1.0.0.whl")
+        assert result is None
+
+    def test_handles_binary_mode_marker(self) -> None:
+        sha256_text = f"*{'c' * 64}  lupe_cti-1.0.0.whl\n"
+        result = lookup_expected_sha256(sha256_text, "lupe_cti-1.0.0.whl")
+        assert result == "c" * 64
+
+    def test_handles_path_prefix(self) -> None:
+        sha256_text = f"{'d' * 64}  dist/lupe_cti-1.0.0.whl\n"
+        result = lookup_expected_sha256(sha256_text, "lupe_cti-1.0.0.whl")
+        assert result == "d" * 64
+
+
+class TestDownloadWheelWithVerification:
+    """CRITICAL: download_wheel_with_verification refuses tampered wheels."""
+
+    def _mock_client(self, mock_client_cls, get_return_value=None, get_side_effect=None):
+        mock_client = MagicMock()
+        if get_return_value is not None:
+            mock_client.get.return_value = get_return_value
+        if get_side_effect is not None:
+            mock_client.get.side_effect = get_side_effect
+        mock_client_cls.return_value.__enter__ = MagicMock(return_value=mock_client)
+        mock_client_cls.return_value.__exit__ = MagicMock(return_value=False)
+        return mock_client
+
+    def test_happy_path_with_matching_hash(self, tmp_path):
+        import hashlib
+
+        from lupe.updater import download_wheel_with_verification
+
+        wheel_data = b"clean wheel data"
+        digest = hashlib.sha256(wheel_data).hexdigest()
+        sha256_text = f"{digest}  lupe_cti-1.0.1-py3-none-any.whl\n"
+
+        dest = tmp_path / "lupe_cti-1.0.1-py3-none-any.whl"
+
+        def _mock_get(url, **_kwargs):
+            resp = MagicMock()
+            if url.endswith("SHA256SUMS.txt"):
+                resp.status_code = 200
+                resp.text = sha256_text
+            else:
+                resp.status_code = 200
+                resp.content = wheel_data
+            return resp
+
+        with patch("lupe.updater.httpx.Client") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.get.side_effect = _mock_get
+            mock_client_cls.return_value.__enter__ = MagicMock(return_value=mock_client)
+            mock_client_cls.return_value.__exit__ = MagicMock(return_value=False)
+            ok, reason = download_wheel_with_verification(
+                "https://github.com/o/r/releases/download/v1.0.1/lupe_cti-1.0.1-py3-none-any.whl",
+                dest,
+                "o/r",
+                "v1.0.1",
+            )
+
+        assert ok is True
+        assert reason == "ok"
+        assert dest.read_bytes() == wheel_data
+
+    def test_hash_mismatch_aborts(self, tmp_path):
+        from lupe.updater import download_wheel_with_verification
+
+        wheel_data = b"EVIL PAYLOAD"
+        # Publish a hash that does NOT match
+        sha256_text = f"{'0' * 64}  lupe_cti-1.0.1-py3-none-any.whl\n"
+
+        dest = tmp_path / "lupe_cti-1.0.1-py3-none-any.whl"
+
+        def _mock_get(url, **_kwargs):
+            resp = MagicMock()
+            if url.endswith("SHA256SUMS.txt"):
+                resp.status_code = 200
+                resp.text = sha256_text
+            else:
+                resp.status_code = 200
+                resp.content = wheel_data
+            return resp
+
+        with patch("lupe.updater.httpx.Client") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.get.side_effect = _mock_get
+            mock_client_cls.return_value.__enter__ = MagicMock(return_value=mock_client)
+            mock_client_cls.return_value.__exit__ = MagicMock(return_value=False)
+            ok, reason = download_wheel_with_verification(
+                "https://github.com/o/r/releases/download/v1.0.1/lupe_cti-1.0.1-py3-none-any.whl",
+                dest,
+                "o/r",
+                "v1.0.1",
+            )
+
+        assert ok is False
+        assert reason == "mismatch"
+        # Critical: file should have been deleted
+        assert not dest.exists()
+
+    def test_no_sha256sums_accepts_with_warning(self, tmp_path):
+        """Backward compat: releases without SHA256SUMS still install."""
+        from lupe.updater import download_wheel_with_verification
+
+        wheel_data = b"legacy wheel without integrity check"
+        dest = tmp_path / "lupe_cti-0.9.0-py3-none-any.whl"
+
+        def _mock_get(url, **_kwargs):
+            resp = MagicMock()
+            if "SHA256SUMS" in url:
+                resp.status_code = 404
+            else:
+                resp.status_code = 200
+                resp.content = wheel_data
+            return resp
+
+        with patch("lupe.updater.httpx.Client") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.get.side_effect = _mock_get
+            mock_client_cls.return_value.__enter__ = MagicMock(return_value=mock_client)
+            mock_client_cls.return_value.__exit__ = MagicMock(return_value=False)
+            ok, reason = download_wheel_with_verification(
+                "https://github.com/o/r/releases/download/v0.9.0/lupe_cti-0.9.0-py3-none-any.whl",
+                dest,
+                "o/r",
+                "v0.9.0",
+            )
+
+        assert ok is True
+        assert reason == "ok"
+        assert dest.read_bytes() == wheel_data
+
+    def test_download_failure_propagates(self, tmp_path):
+        from lupe.updater import download_wheel_with_verification
+
+        dest = tmp_path / "test.whl"
+
+        with patch("lupe.updater.httpx.Client") as mock_client_cls:
+            mock_client = MagicMock()
+            mock_client.get.side_effect = Exception("Network down")
+            mock_client_cls.return_value.__enter__ = MagicMock(return_value=mock_client)
+            mock_client_cls.return_value.__exit__ = MagicMock(return_value=False)
+            ok, reason = download_wheel_with_verification(
+                "https://github.com/o/r/releases/download/v1.0.0/test.whl",
+                dest,
+                "o/r",
+                "v1.0.0",
+            )
+
+        assert ok is False
+        assert reason == "download_failed"
+        assert not dest.exists()

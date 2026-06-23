@@ -1210,7 +1210,7 @@ def misp_push(
 def upgrade() -> None:
     """Check for updates and install the latest version from GitHub."""
     from lupe.updater import (
-        download_wheel,
+        download_wheel_with_verification,
         get_current_version,
         get_latest_version,
         install_wheel,
@@ -1257,8 +1257,18 @@ def upgrade() -> None:
         tmp_path = Path(tmp.name)
 
     console.print(f"  Downloading {wheel_name}...")
-    if not download_wheel(wheel_url, tmp_path):
-        err_console.print("  [bold red]Download failed.[/bold red]")
+    ok, reason = download_wheel_with_verification(
+        wheel_url, tmp_path, github_repo, f"v{latest}"
+    )
+    if not ok:
+        if reason == "mismatch":
+            err_console.print(
+                "  [bold red]Integrity check failed: SHA256 mismatch.[/bold red]\n"
+                "  The downloaded wheel does not match the published checksum.\n"
+                "  Refusing to install — please verify the release manually."
+            )
+        else:
+            err_console.print("  [bold red]Download failed.[/bold red]")
         tmp_path.unlink(missing_ok=True)
         raise typer.Exit(code=1)
 
