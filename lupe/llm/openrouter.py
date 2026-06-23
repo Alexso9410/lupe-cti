@@ -61,7 +61,7 @@ class OpenRouterProvider(LLMProvider):
 
         try:
             data: dict = response.json()
-            return data["choices"][0]["message"]["content"]
+            return str(data["choices"][0]["message"]["content"])
         except (KeyError, IndexError, ValueError):
             return ""
 

@@ -489,20 +489,20 @@ def _extract_body(msg: email.message.Message) -> str:
 
         if content_type == "text/plain":
             try:
-                payload = part.get_payload(decode=True)
-                if payload:
+                raw = part.get_payload(decode=True)
+                if isinstance(raw, bytes) and raw:
                     charset = part.get_content_charset() or "utf-8"
-                    text_content = payload.decode(charset, errors="replace")
+                    text_content = raw.decode(charset, errors="replace")
                     break  # Found plain text, use it
             except Exception:
                 continue
 
         elif content_type == "text/html" and html_content is None:
             try:
-                payload = part.get_payload(decode=True)
-                if payload:
+                raw = part.get_payload(decode=True)
+                if isinstance(raw, bytes) and raw:
                     charset = part.get_content_charset() or "utf-8"
-                    html_content = payload.decode(charset, errors="replace")
+                    html_content = raw.decode(charset, errors="replace")
             except Exception:
                 continue
 
@@ -580,9 +580,8 @@ def _extract_attachments(msg: email.message.Message) -> list[AttachmentInfo]:
             mime_type = part.get_content_type()
 
             # Get payload bytes
-            payload = part.get_payload(decode=True)
-            if payload is None:
-                payload = b""
+            raw_payload = part.get_payload(decode=True)
+            payload: bytes = raw_payload if isinstance(raw_payload, bytes) else b""
 
             size_bytes = len(payload)
             sha256_hash = hashlib.sha256(payload).hexdigest()

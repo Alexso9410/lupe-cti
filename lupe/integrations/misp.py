@@ -198,4 +198,4 @@ class MISPClient:
         attr_resp.raise_for_status()
 
         attr_data = attr_resp.json()
-        return attr_data.get("Attribute", {}).get("uuid", "")
+        return str(attr_data.get("Attribute", {}).get("uuid", ""))

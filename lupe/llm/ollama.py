@@ -67,7 +67,7 @@ class OllamaProvider(LLMProvider):
 
         try:
             data: dict = response.json()
-            return data["choices"][0]["message"]["content"]
+            return str(data["choices"][0]["message"]["content"])
         except (KeyError, IndexError, ValueError):
             return ""
 
@@ -118,7 +118,7 @@ class OllamaProvider(LLMProvider):
 
                 async with httpx.AsyncClient() as client:
                     r = await client.get(f"{self._base_url}/api/tags", timeout=5.0)
-                    return r.status_code == 200
+                    return bool(r.status_code == 200)
             except Exception:
                 return False
         # If API key is set, verify it works against the server
@@ -128,7 +128,7 @@ class OllamaProvider(LLMProvider):
             headers = {"Authorization": f"Bearer {self._api_key}"}
             async with httpx.AsyncClient() as client:
                 r = await client.get(f"{self._base_url}/api/tags", headers=headers, timeout=5.0)
-                return r.status_code == 200
+                return bool(r.status_code == 200)
         except Exception:
             return False
 

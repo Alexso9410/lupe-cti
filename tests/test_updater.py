@@ -292,10 +292,10 @@ class TestDownloadWheelWithVerification:
         # Critical: file should have been deleted
         assert not dest.exists()
 
-    def test_no_sha256sums_accepts_with_warning(self, tmp_path):
-        """Backward compat: releases without SHA256SUMS still install."""
+    def test_no_sha256sums_rejects(self, tmp_path):
+        """Fail-closed: releases without SHA256SUMS.txt are refused."""
 
-        wheel_data = b"legacy wheel without integrity check"
+        wheel_data = b"wheel without sha256sums"
         dest = tmp_path / "lupe_cti-0.9.0-py3-none-any.whl"
 
         def _mock_get(url, **_kwargs):
@@ -319,9 +319,9 @@ class TestDownloadWheelWithVerification:
                 "v0.9.0",
             )
 
-        assert ok is True
-        assert reason == "ok"
-        assert dest.read_bytes() == wheel_data
+        assert ok is False
+        assert reason == "no_sha256sums"
+        assert not dest.exists()
 
     def test_download_failure_propagates(self, tmp_path):
 

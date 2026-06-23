@@ -82,4 +82,4 @@ Nothing — this is a clean-slate rebrand with no backward compatibility layer.
 - Config directory permissions restricted to 700 on Linux
 - Config file permissions restricted to 600 on Linux (TUI settings persistence)
 
-[1.0.0]: https://github.com/lupe-cti/lupe/releases/tag/v1.0.0
+[1.0.0]: https://github.com/Alexso9410/lupe-cti/releases/tag/v1.0.0

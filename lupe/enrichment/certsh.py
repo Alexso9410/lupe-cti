@@ -15,7 +15,11 @@ class CertShPlugin(EnrichmentPlugin):
 
     async def enrich(self, ioc: IOC, client: httpx.AsyncClient) -> EnrichmentResult | None:
         try:
-            resp = await client.get(f"https://crt.sh/?q={ioc.value}&output=json", timeout=20.0)
+            resp = await client.get(
+                "https://crt.sh/",
+                params={"q": ioc.value, "output": "json"},
+                timeout=20.0,
+            )
             resp.raise_for_status()
             certs = resp.json()
             if not isinstance(certs, list):

@@ -67,7 +67,9 @@ async def _load_wmn_dataset(client: httpx.AsyncClient) -> list[dict]:
         age = time.time() - _CACHE_PATH.stat().st_mtime
         if age < _CACHE_TTL_SECONDS:
             try:
-                return json.loads(_CACHE_PATH.read_text(encoding="utf-8")).get("sites", [])
+                data = json.loads(_CACHE_PATH.read_text(encoding="utf-8"))
+                cached: list[dict] = data.get("sites", [])
+                return cached
             except (json.JSONDecodeError, KeyError):
                 pass
 
@@ -137,7 +139,9 @@ def _sha256_bytes(data: bytes) -> str:
 def _fallback_to_cache() -> list[dict]:
     if _CACHE_PATH.exists():
         try:
-            return json.loads(_CACHE_PATH.read_text(encoding="utf-8")).get("sites", [])
+            data = json.loads(_CACHE_PATH.read_text(encoding="utf-8"))
+            cached: list[dict] = data.get("sites", [])
+            return cached
         except (json.JSONDecodeError, KeyError):
             pass
     return []

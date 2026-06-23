@@ -15,7 +15,7 @@ If you discover a security vulnerability in Lupe CTI, please report it responsib
 
 ### How to Report
 
-1. **GitHub Security Advisories** (preferred): Use the [Security Advisories](https://github.com/lupe-cti/lupe/security/advisories/new) feature to report privately
+1. **GitHub Security Advisories** (preferred): Use the [Security Advisories](https://github.com/Alexso9410/lupe-cti/security/advisories/new) feature to report privately
 2. **Email**: Send details to the maintainers via the contact information in the repository
 
 ### What to Include

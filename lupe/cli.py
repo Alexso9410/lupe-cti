@@ -1332,6 +1332,18 @@ def upgrade() -> None:
                 "  The downloaded wheel does not match the published checksum.\n"
                 "  Refusing to install — please verify the release manually."
             )
+        elif reason == "no_sha256sums":
+            err_console.print(
+                "  [bold red]Integrity check failed: "
+                "no SHA256SUMS.txt found for this release.[/bold red]\n"
+                "  Cannot verify the download. Refusing to install."
+            )
+        elif reason == "wheel_not_listed":
+            err_console.print(
+                "  [bold red]Integrity check failed: "
+                "wheel not listed in SHA256SUMS.txt.[/bold red]\n"
+                "  Cannot verify the download. Refusing to install."
+            )
         else:
             err_console.print("  [bold red]Download failed.[/bold red]")
         tmp_path.unlink(missing_ok=True)

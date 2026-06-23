@@ -88,7 +88,7 @@ def _count_rows(db_path: Path) -> dict[str, int]:
         )
         tables = [row[0] for row in cur.fetchall()]
         for table in tables:
-            cur = conn.execute(f"SELECT count(*) FROM [{table}]")
+            cur = conn.execute(f"SELECT count(*) FROM [{table}]")  # nosec B608 — table names from sqlite_master, not user input
             counts[table] = cur.fetchone()[0]
         conn.close()
     except sqlite3.Error:

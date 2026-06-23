@@ -81,7 +81,7 @@ class URLhausPlugin(EnrichmentPlugin):
                 return None
 
             urls_count = data.get("urls_count", 0)
-            tags: list[str] = data.get("tags", []) or []
+            tags = data.get("tags", []) or []
 
             severity = Severity.high if urls_count > 0 else Severity.info
 
@@ -100,7 +100,7 @@ class URLhausPlugin(EnrichmentPlugin):
             if query_status != "ok":
                 return None
 
-            tags: list[str] = data.get("tags", []) or []
+            tags = data.get("tags", []) or []
             file_type = data.get("file_type", "unknown")
 
             summary = f"URLhaus payload: tags={tags}, tipo={file_type}"

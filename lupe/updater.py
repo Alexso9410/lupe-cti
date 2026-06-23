@@ -64,7 +64,7 @@ def is_update_available(current: str, latest: str) -> bool:
         True if latest is newer than current.
     """
     try:
-        return Version(latest) > Version(current)
+        return bool(Version(latest) > Version(current))
     except Exception:
         return False
 
@@ -110,7 +110,7 @@ def fetch_sha256sums(github_repo: str, tag: str) -> str | None:
             with httpx.Client(timeout=15.0) as client:
                 resp = client.get(url)
             if resp.status_code == 200:
-                return resp.text
+                return str(resp.text)
         except Exception:
             continue
     return None
@@ -180,21 +180,23 @@ def download_wheel_with_verification(
         sha256_text = None
 
     if sha256_text is None:
-        logger.warning(
-            "No SHA256SUMS.txt published for release %s — skipping integrity check. "
-            "This release predates the integrity-check feature.",
+        dest_path.unlink(missing_ok=True)
+        logger.error(
+            "No SHA256SUMS.txt found for release %s — refusing to install. "
+            "Cannot verify integrity of the downloaded wheel.",
             tag,
         )
-        return True, "ok"
+        return False, "no_sha256sums"
 
     expected = lookup_expected_sha256(sha256_text, dest_path.name)
     if expected is None:
-        logger.warning(
-            "Wheel %s not listed in SHA256SUMS.txt — accepting download without "
-            "integrity check. This is unexpected for a published release.",
+        dest_path.unlink(missing_ok=True)
+        logger.error(
+            "Wheel %s not listed in SHA256SUMS.txt — refusing to install. "
+            "Cannot verify integrity of the downloaded wheel.",
             dest_path.name,
         )
-        return True, "ok"
+        return False, "wheel_not_listed"
 
     # Local import to avoid module-level cycle
     from lupe.security.integrity import verify_wheel_integrity

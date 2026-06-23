@@ -128,7 +128,7 @@ class Settings(BaseSettings):
     pulsedive_key: str | None = None
 
     # Auto-update
-    github_repo: str = "lupe-cti/lupe"
+    github_repo: str = "Alexso9410/lupe-cti"
 
     @field_validator("db_path", mode="before")
     @classmethod

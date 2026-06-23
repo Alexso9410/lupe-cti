@@ -1,8 +1,6 @@
 <p align="center">
-  <img src="assets/lupe-logo/lupe-logo.svg" alt="Lupe CTI" width="200">
+  <img src="assets/lupe-logo/lupe-banner.svg" alt="Lupe CTI — Cyber Threat Intelligence" width="100%">
 </p>
-
-<h1 align="center">Lupe CTI</h1>
 
 <p align="center">
   <strong>Cyber Threat Intelligence for OSINT, Forensics & Incident Response</strong>
@@ -375,28 +373,6 @@ See the [Contributing Guide](CONTRIBUTING.md) for a step-by-step tutorial on wri
 - **Ruff**: Code formatting and linting via [Ruff](https://github.com/astral-sh/ruff)
 - **Type hints**: All public functions must have type annotations
 - **Async**: All enrichment plugins use `async/await` with `httpx.AsyncClient`
-
-## Systemd Integration
-
-Lupe CTI ships with a systemd service unit for running automated enrichment on Linux systems.
-
-```bash
-# Install the service file
-sudo cp assets/systemd/lupe-watch.service /etc/systemd/system/
-
-# Create the lupe user (optional, for dedicated service user)
-sudo useradd -r -s /usr/sbin/nologin lupe
-
-# Create working directory
-sudo mkdir -p /var/lib/lupe
-sudo chown lupe:lupe /var/lib/lupe
-
-# Reload and enable
-sudo systemctl daemon-reload
-sudo systemctl enable --now lupe-watch
-```
-
-The service unit is a template — adjust `ExecStart` in `assets/systemd/lupe-watch.service` to match your enrichment workflow. See the [service file](assets/systemd/lupe-watch.service) for security hardening options.
 
 ## Contributing
 

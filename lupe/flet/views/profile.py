@@ -82,7 +82,7 @@ def build_profile_view(page: ft.Page) -> ft.Control:
         except Exception as exc:
             show_snackbar(page, f"Failed to switch profile: {exc}", "#ff5555")
 
-    switch_btn = ft.ElevatedButton(
+    switch_btn = ft.FilledButton(
         "Switch",
         icon=ft.Icons.SWAP_HORIZ,
         bgcolor=MATRIX_GREEN,
@@ -114,7 +114,7 @@ def build_profile_view(page: ft.Page) -> ft.Control:
         except Exception as exc:
             show_snackbar(page, f"Failed to create profile: {exc}", "#ff5555")
 
-    create_btn = ft.ElevatedButton(
+    create_btn = ft.FilledButton(
         "Create",
         icon=ft.Icons.ADD,
         bgcolor=MATRIX_GREEN,
@@ -149,7 +149,7 @@ def build_profile_view(page: ft.Page) -> ft.Control:
             ),
             actions=[
                 ft.TextButton("Cancel", on_click=lambda _: page.pop_dialog()),
-                ft.ElevatedButton(
+                ft.FilledButton(
                     "Delete",
                     bgcolor=ERROR_RED,
                     color=ft.Colors.WHITE,
@@ -160,7 +160,7 @@ def build_profile_view(page: ft.Page) -> ft.Control:
         )
         page.show_dialog(dialog)
 
-    delete_btn = ft.ElevatedButton(
+    delete_btn = ft.FilledButton(
         "Delete",
         icon=ft.Icons.DELETE,
         bgcolor=ERROR_RED,

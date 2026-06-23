@@ -62,7 +62,7 @@ class AnthropicProvider(LLMProvider):
 
         try:
             data: dict = response.json()
-            return data["content"][0]["text"]
+            return str(data["content"][0]["text"])
         except (KeyError, IndexError, ValueError):
             return ""
 

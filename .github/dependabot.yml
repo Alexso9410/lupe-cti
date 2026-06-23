@@ -1,31 +1,24 @@
 version: 2
 updates:
-  - package-ecosystem: pip
-    directory: /
+  - package-ecosystem: "pip"
+    directory: "/"
     schedule:
-      interval: weekly
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
     groups:
-      runtime-deps:
-        patterns:
-          - "typer"
-          - "rich"
-          - "httpx"
-          - "pydantic"
-          - "pydantic-settings"
-          - "platformdirs"
-          - "flet"
-          - "reportlab"
-          - "phonenumbers"
       dev-deps:
         patterns:
-          - "pytest"
-          - "respx"
+          - "pytest*"
           - "ruff"
           - "mypy"
           - "bandit"
           - "pre-commit"
+          - "pip-audit"
 
-  - package-ecosystem: github-actions
-    directory: /
+  - package-ecosystem: "github-actions"
+    directory: "/"
     schedule:
-      interval: weekly
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5

@@ -39,6 +39,7 @@ from lupe.models import (
     ReceivedHop,
     Severity,
 )
+from lupe.security.https_only import enforce_safe_url
 from lupe.security.redact import redact_pii_headers
 
 logger = logging.getLogger(__name__)
@@ -271,7 +272,7 @@ def compute_phishing_score(parsed: ParsedEmail, body: str) -> PhishingScore:
     indicators: list[str] = []
     breakdown: dict[str, float] = {}
 
-    auth: EmailAuthResults = parsed.auth
+    auth = parsed.auth
 
     # --- SPF ---
     if auth.spf in {"fail", "permerror"}:
@@ -517,6 +518,10 @@ async def _analyze_with_kimi(
     }
 
     url = f"{settings.ollama_base_url.rstrip('/')}/v1/chat/completions"
+    try:
+        enforce_safe_url(url)
+    except ValueError:
+        return _null_response
     payload = {
         "model": settings.ollama_model,
         "messages": [
