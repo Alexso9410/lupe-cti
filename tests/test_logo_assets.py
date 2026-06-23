@@ -71,7 +71,7 @@ class TestLogoAssets:
 
     def test_pyproject_has_icon_reference(self):
         """pyproject.toml references the logo icon."""
-        import tomllib
+        from lupe.compat import tomllib
 
         pyproject_path = Path(__file__).parent.parent / "pyproject.toml"
         with open(pyproject_path, "rb") as f:

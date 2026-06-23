@@ -198,14 +198,14 @@ class TestBanditConfig:
     """Task 16.6 — bandit configured in pyproject.toml."""
 
     def test_bandit_section_exists(self) -> None:
-        import tomllib
+        from lupe.compat import tomllib
 
         with open("pyproject.toml", "rb") as f:
             config = tomllib.load(f)
         assert "bandit" in config.get("tool", {})
 
     def test_bandit_excludes_tests(self) -> None:
-        import tomllib
+        from lupe.compat import tomllib
 
         with open("pyproject.toml", "rb") as f:
             config = tomllib.load(f)
@@ -217,7 +217,7 @@ class TestPipAuditDeps:
     """Task 16.7 — pip-audit and bandit available as dev deps."""
 
     def test_bandit_in_dev_deps(self) -> None:
-        import tomllib
+        from lupe.compat import tomllib
 
         with open("pyproject.toml", "rb") as f:
             config = tomllib.load(f)
@@ -225,7 +225,7 @@ class TestPipAuditDeps:
         assert any("bandit" in d for d in dev_deps)
 
     def test_pip_audit_in_dev_deps(self) -> None:
-        import tomllib
+        from lupe.compat import tomllib
 
         with open("pyproject.toml", "rb") as f:
             config = tomllib.load(f)

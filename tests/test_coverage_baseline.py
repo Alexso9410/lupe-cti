@@ -22,7 +22,7 @@ class TestCoverageBaseline:
         """Verify pyproject.toml has coverage source configured."""
         from pathlib import Path
 
-        import tomllib
+        from lupe.compat import tomllib
 
         pyproject = Path("pyproject.toml")
         data = tomllib.loads(pyproject.read_text(encoding="utf-8"))

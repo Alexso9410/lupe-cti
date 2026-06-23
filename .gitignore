@@ -55,3 +55,6 @@ Thumbs.db
 openspec/project.md
 openspec/config.yaml
 openspec/changes/
+
+# AI agent task files (internal, not for public repo)
+TRINITY_TASK_*.md

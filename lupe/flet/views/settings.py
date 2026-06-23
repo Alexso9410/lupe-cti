@@ -134,7 +134,7 @@ def load_settings() -> dict[str, str]:
         return {}
 
     try:
-        import tomllib
+        from lupe.compat import tomllib
 
         with open(config_path, "rb") as f:
             data = tomllib.load(f)
