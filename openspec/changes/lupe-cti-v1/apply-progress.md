@@ -1,6 +1,6 @@
-# Apply Progress: lupe-cti-v1 — PR-23/24/25 View Integration COMPLETE
+# Apply Progress: lupe-cti-v1 — PR-30 Flet Runtime Fixes COMPLETE
 
-## Status: `complete` — All 4 Phases + PR-19..PR-25 done
+## Status: `complete` — All 4 Phases + PR-19..PR-30 done
 
 ## PR Summary
 
@@ -28,6 +28,7 @@
 | PR-23 | `feature/pr-23-misp-view` | ✅ | `359c16f` | Connect MISPView to MISPClient (pull/push) |
 | PR-24 | `feature/pr-24-email-view` | ✅ | `d9d77c5` | Add EmailView with file picker and analyzer integration |
 | PR-25 | `feature/pr-25-enrich-view` | ✅ | `6989474` | Connect EnrichView to run_enrichment with results table |
+| PR-30 | (direct on `lupe-cti-v1`) | ✅ | `a208391` | Comprehensive Flet runtime fixes + E2E tests |
 
 ## Phase 4 PR Details (PR-18)
 
@@ -151,11 +152,11 @@ User tested Textual TUI on Windows and it did not render correctly in their term
 
 ## Metrics (Cumulative)
 
-- **Total tasks completed**: 67/67 (Phases 1-4) + PR-19..PR-25
-- **Total PRs**: 25 (PR-0 to PR-25)
-- **Total commits on tracker**: 37 (34 feature + 3 merge commits)
-- **Cumulative lines**: +10,550 / -7,242 (from main, incl. PR-23/24/25 view integration)
-- **Tests passing**: 351 passed, 2 skipped (= 353 total)
+- **Total tasks completed**: 67/67 (Phases 1-4) + PR-19..PR-30
+- **Total PRs**: 26 (PR-0 to PR-25 + PR-30)
+- **Total commits on tracker**: 38 (35 feature + 3 merge commits)
+- **Cumulative lines**: +11,236 / -7,285 (from main, incl. PR-30 runtime fixes)
+- **Tests passing**: 419 passed, 2 skipped (= 421 total)
 - **Ruff errors**: 0
 - **Coverage**: 46.47% (threshold: 25%)
 
@@ -317,3 +318,47 @@ User tested Textual TUI on Windows and it did not render correctly in their term
 | Task | Test File | Layer | RED | GREEN | REFACTOR |
 |------|-----------|-------|-----|-------|----------|
 | PR-25 | `test_flet_enrich_view.py` | Unit | ✅ 7/11 fail | ✅ 11/11 pass | ✅ ruff clean |
+
+---
+
+## PR-30 Details: Comprehensive Flet Runtime Fixes + E2E Tests
+
+### Commits
+
+| Hash | Message |
+|------|---------|
+| `a208391` | `fix: comprehensive Flet runtime fixes + E2E tests (PR-30)` |
+
+### Bugs Found and Fixed
+
+| # | Bug | File | Root Cause | Fix |
+|---|-----|------|------------|-----|
+| 1 | FilePicker warning "coroutine never awaited" | `email.py` | `pick_files` is sync in Flet 0.85.3, but `_browse` was `async def` with `await` | Removed `await`, use sync `pick_files()` call |
+| 2 | FilePicker doesn't open native dialog | `email.py` | FilePicker created on-demand but never registered in `page.overlay` | `page.overlay.append(picker); page.update()` before `pick_files()` |
+| 3 | Duplicate `browse_btn` definition | `email.py` | Two `browse_btn =` assignments — second overwrites first | Removed duplicate, kept single definition with `page.run_task` |
+| 4 | E501 line length in AI prompt | `enrich.py` | Long string literals in `_build_ai_system_prompt()` | Broke strings into shorter segments |
+| 5 | Test label mismatch | `test_flet_email_view.py` | Test expected `"Email file path"` but label changed to `"Email file path (type, paste, or drag .eml here)"` | Changed test to match on `"email"` substring |
+
+### Changes Summary
+
+| File | Action | Description |
+|------|--------|-------------|
+| `lupe/flet/views/email.py` | Modified | Removed duplicate browse_btn, register FilePicker in overlay, drag&drop support, raw_data in AI prompt |
+| `lupe/flet/views/enrich.py` | Modified | Added raw_data to AI prompt, fixed E501 line length |
+| `tests/test_e2e_gui_runtime.py` | Created | 24 E2E tests: FilePicker, Add to Case, Drag&Drop, all views smoke |
+| `tests/test_flet_email_view.py` | Modified | Fixed label match for email path field |
+
+### TDD Cycle Evidence
+
+| Task | Test File | Layer | RED | GREEN | REFACTOR |
+|------|-----------|-------|-----|-------|----------|
+| PR-30 | `test_e2e_gui_runtime.py` | E2E | ✅ 4/24 fail | ✅ 24/24 pass | ✅ ruff clean |
+
+### Verification Results
+
+| Check | Result | Notes |
+|-------|--------|-------|
+| `pytest` | ✅ 419 passed, 2 skipped | 102.33s |
+| `ruff check` | ✅ All checks passed | |
+| `ruff format --check` | ✅ All files formatted | |
+| All 7 views build | ✅ Smoke test passes | |
