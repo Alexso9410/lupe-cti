@@ -14,16 +14,11 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install build tools
-        run: pip install build cibuildwheel
+        run: pip install build
       - name: Build sdist
         run: python -m build --sdist
-      - name: Build wheels
-        run: cibuildwheel --output-dir dist
-        env:
-          CIBW_BUILD: "cp310-* cp311-* cp312-*"
-          CIBW_SKIP: "*-musllinux_* *-manylinux_i686"
-          CIBW_TEST_REQUIRES: pytest
-          CIBW_TEST_COMMAND: "pytest {project}/tests -q"
+      - name: Build pure-Python wheel
+        run: python -m build --wheel
       - uses: actions/upload-artifact@v4
         with:
           name: dist
