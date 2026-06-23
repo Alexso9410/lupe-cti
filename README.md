@@ -9,13 +9,13 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/lupe-cti/lupe/actions"><img src="https://github.com/lupe-cti/lupe/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <a href="https://github.com/lupe-cti/lupe/actions/workflows/codeql.yml"><img src="https://github.com/lupe-cti/lupe/actions/workflows/codeql.yml/badge.svg" alt="CodeQL"></a>
+  <a href="https://github.com/Alexso9410/lupe-cti/actions"><img src="https://github.com/Alexso9410/lupe-cti/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/Alexso9410/lupe-cti/actions/workflows/codeql.yml"><img src="https://github.com/Alexso9410/lupe-cti/actions/workflows/codeql.yml/badge.svg" alt="CodeQL"></a>
   <a href="https://pypi.org/project/lupe-cti/"><img src="https://img.shields.io/pypi/v/lupe-cti" alt="PyPI"></a>
   <a href="https://pypi.org/project/lupe-cti/"><img src="https://img.shields.io/pypi/dm/lupe-cti" alt="Downloads"></a>
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/pypi/pyversions/lupe-cti" alt="Python"></a>
   <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/badge/code%20style-ruff-000000" alt="Ruff"></a>
-  <a href="https://github.com/lupe-cti/lupe/actions/workflows/ci.yml"><img src="https://img.shields.io/badge/coverage-25%25-yellow" alt="Coverage"></a>
+  <a href="https://github.com/Alexso9410/lupe-cti/actions/workflows/ci.yml"><img src="https://img.shields.io/badge/coverage-25%25-yellow" alt="Coverage"></a>
   <a href="LICENSE"><img src="https://img.shields.io/pypi/l/lupe-cti" alt="License: MIT"></a>
 </p>
 
@@ -55,7 +55,7 @@ pip install lupe-cti
 ### From source
 
 ```bash
-git clone https://github.com/lupe-cti/lupe.git
+git clone https://github.com/Alexso9410/lupe-cti.git
 cd lupe
 pip install -e ".[dev]"
 ```
@@ -289,7 +289,7 @@ Lupe CTI processes untrusted network data (IOC values, API responses) and handle
 
 ### Reporting Vulnerabilities
 
-Please report security vulnerabilities via [GitHub Security Advisories](https://github.com/lupe-cti/lupe/security/advisories/new). Do **not** open a public issue for security reports.
+Please report security vulnerabilities via [GitHub Security Advisories](https://github.com/Alexso9410/lupe-cti/security/advisories/new). Do **not** open a public issue for security reports.
 
 We aim to acknowledge reports within 48 hours and provide a fix timeline within 7 days.
 
@@ -340,7 +340,7 @@ For detailed design documentation, see [openspec/changes/lupe-cti-v1/design.md](
 
 ```bash
 # Clone and install dev dependencies
-git clone https://github.com/lupe-cti/lupe.git
+git clone https://github.com/Alexso9410/lupe-cti.git
 cd lupe
 pip install -e ".[dev]"
 
