@@ -1,5 +1,7 @@
 # Proposal: Lupe CTI v1 — Rebrand + Multi-LLM + Security Hardening + Distro Packaging
 
+**Status**: `done` — Archived 2026-06-23 (538 tests pass, 0 ruff, v1.0.0, judgment-day ABSUELTO)
+
 ## TL;DR
 
 - Rename completo del ecosistema: paquete **`lupe-cti`** en PyPI, CLI **`lupe`**, env vars **`LUPE_*`** (hard cut, sin backward compat — no hay usuarios públicos)
