@@ -206,9 +206,7 @@ class TestEmailPipelineRedaction:
 
             from lupe.email_analyzer import _analyze_with_kimi
 
-            asyncio.get_event_loop().run_until_complete(
-                _analyze_with_kimi(parsed, score, {}, mock_settings)
-            )
+            asyncio.run(_analyze_with_kimi(parsed, score, {}, mock_settings))
 
             # If LLM unreachable (no API key), the function logs warning and returns
             assert mock_post.call_count >= 0  # at least attempted once

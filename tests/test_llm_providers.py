@@ -71,13 +71,14 @@ class TestOllamaProvider:
         assert result == ""
 
     @pytest.mark.asyncio
-    async def test_validate_key_returns_true(self):
-        """OllamaProvider.validate_key returns True (no key needed)."""
+    async def test_validate_key_returns_bool(self):
+        """OllamaProvider.validate_key returns a bool (True if server reachable)."""
         from lupe.llm.ollama import OllamaProvider
 
         settings = Settings(ollama_base_url="http://localhost:11434")
         provider = OllamaProvider(settings)
-        assert await provider.validate_key() is True
+        result = await provider.validate_key()
+        assert isinstance(result, bool)  # True if Ollama running, False otherwise
 
     def test_list_models_returns_empty(self):
         """OllamaProvider.list_models returns a list (may be empty without server)."""

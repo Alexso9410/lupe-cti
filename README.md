@@ -429,5 +429,4 @@ Lupe CTI stands on the shoulders of the open-source threat intelligence communit
 - [Typer](https://typer.tiangolo.com/) — CLI framework
 - [httpx](https://www.python-httpx.org/) — Async HTTP client
 - [platformdirs](https://github.com/platformdirs/platformdirs) — Cross-platform directory resolution
-- Centinela — The predecessor project that Lupe CTI evolved from
 - The forensic Linux distribution community for inspiring security-first tooling
