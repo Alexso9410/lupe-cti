@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime
 
 from lupe.config import get_settings
 from lupe.db import Database
@@ -17,6 +18,7 @@ class CaseInfo:
     description: str
     status: str
     ioc_count: int
+    created_at: datetime | None = None
 
 
 @dataclass
@@ -33,6 +35,20 @@ def _get_db() -> Database:
     """Get a Database instance from settings."""
     settings = get_settings()
     return Database(settings.db_path)
+
+
+def _coerce_dt(value: object) -> datetime | None:
+    """Best-effort coerce DB value to datetime."""
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        return value
+    if isinstance(value, str):
+        try:
+            return datetime.fromisoformat(value.replace("Z", "+00:00"))
+        except ValueError:
+            return None
+    return None
 
 
 def list_cases(status: str | None = None) -> list[CaseInfo]:
@@ -53,6 +69,7 @@ def list_cases(status: str | None = None) -> list[CaseInfo]:
             description=r.get("description", ""),
             status=r["status"],
             ioc_count=r.get("ioc_count", 0),
+            created_at=_coerce_dt(r.get("created_at")),
         )
         for r in rows
     ]
@@ -70,7 +87,29 @@ def create_case(name: str, description: str = "") -> CaseInfo:
     """
     db = _get_db()
     case_id = db.create_case(name, description)
-    return CaseInfo(id=case_id, name=name, description=description, status="open", ioc_count=0)
+    # Read the row back to get the actual created_at from the DB
+    try:
+        rows = db.list_cases()
+        for r in rows:
+            if r["id"] == case_id:
+                return CaseInfo(
+                    id=case_id,
+                    name=name,
+                    description=description,
+                    status=r.get("status", "open"),
+                    ioc_count=r.get("ioc_count", 0),
+                    created_at=_coerce_dt(r.get("created_at")),
+                )
+    except Exception:
+        pass
+    return CaseInfo(
+        id=case_id,
+        name=name,
+        description=description,
+        status="open",
+        ioc_count=0,
+        created_at=datetime.now(),
+    )
 
 
 def add_ioc_to_case(
@@ -94,3 +133,36 @@ def add_ioc_to_case(
     ioc_id = db.upsert_ioc(ioc_type, ioc_value)
     db.link_ioc_to_case(case_id, ioc_id, notes)
     return ioc_id
+
+
+def delete_case(case_id: int) -> bool:
+    """Delete an investigation case by ID.
+
+    Args:
+        case_id: The case to delete.
+
+    Returns:
+        True if the case was deleted, False if not found.
+    """
+    db = _get_db()
+    return db.delete_case(case_id)
+
+
+def update_case(
+    case_id: int,
+    *,
+    name: str | None = None,
+    description: str | None = None,
+) -> bool:
+    """Update a case's name and/or description.
+
+    Args:
+        case_id: The case to update.
+        name: New name (keyword-only, optional).
+        description: New description (keyword-only, optional).
+
+    Returns:
+        True if the case was updated, False if not found.
+    """
+    db = _get_db()
+    return db.update_case(case_id, name=name, description=description)
