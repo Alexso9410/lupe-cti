@@ -40,7 +40,8 @@ class GoogleSafeBrowsingPlugin(EnrichmentPlugin):
 
         try:
             resp = await client.post(
-                f"https://safebrowsing.googleapis.com/v4/threatMatches:find?key={self._api_key}",
+                "https://safebrowsing.googleapis.com/v4/threatMatches:find",
+                params={"key": self._api_key},
                 json=payload,
             )
             resp.raise_for_status()

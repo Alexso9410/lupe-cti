@@ -47,7 +47,8 @@ class VirusTotalPlugin(EnrichmentPlugin):
             return None
         if response.status_code != 200:
             return None
-        return response.json()
+        result: dict = response.json()
+        return result
 
     async def _submit_url(self, ioc: IOC, client: httpx.AsyncClient) -> dict | None:
         """Submit a URL for scanning, then retrieve its analysis."""

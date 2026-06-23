@@ -59,7 +59,7 @@ def _find_controls(control, control_type):
 
 
 def _find_button(control, text):
-    buttons = _find_controls(control, ft.ElevatedButton)
+    buttons = _find_controls(control, ft.FilledButton)
     for btn in buttons:
         if hasattr(btn, "content") and btn.content == text:
             return btn

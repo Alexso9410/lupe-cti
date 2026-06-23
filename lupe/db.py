@@ -130,7 +130,7 @@ class Database:
         )
         row = cur.fetchone()
         self._conn.commit()
-        return row["id"]
+        return int(row["id"])
 
     def get_ioc(self, ioc_id: int) -> dict | None:
         """Fetch an IOC by its primary key.
@@ -198,7 +198,7 @@ class Database:
         )
         row = cur.fetchone()
         self._conn.commit()
-        return row["id"]
+        return int(row["id"])
 
     def get_enrichments(self, ioc_id: int) -> list[dict]:
         """Return all enrichment records for a given IOC.
@@ -242,7 +242,7 @@ class Database:
         )
         row = cur.fetchone()
         self._conn.commit()
-        return row["id"]
+        return int(row["id"])
 
     # ------------------------------------------------------------------
     # Case CRUD
@@ -264,7 +264,7 @@ class Database:
         )
         row = cur.fetchone()
         self._conn.commit()
-        return row["id"]
+        return int(row["id"])
 
     def list_cases(self, status: str | None = None) -> list[dict]:
         """List all cases, optionally filtered by status.
@@ -463,7 +463,7 @@ class Database:
             (case_id,),
         )
         self._conn.commit()
-        return row["id"]
+        return int(row["id"])
 
     def get_case_notes(self, case_id: int) -> list[dict]:
         """Return all notes for a case ordered by creation time.
@@ -607,7 +607,7 @@ class Database:
         )
         row = cur.fetchone()
         self._conn.commit()
-        return row["id"]
+        return int(row["id"])
 
     def get_email_analyses(self, case_id: int) -> list[dict]:
         """Return all email analyses linked to a case.

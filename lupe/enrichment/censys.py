@@ -38,13 +38,15 @@ class CensysPlugin(EnrichmentPlugin):
 
         if ioc.type in (IOCType.ipv4, IOCType.ipv6):
             url = f"https://search.censys.io/api/v2/hosts/{ioc.value}"
+            params: dict | None = None
         elif ioc.type == IOCType.domain:
-            url = f"https://search.censys.io/api/v2/hosts/search?q={ioc.value}"
+            url = "https://search.censys.io/api/v2/hosts/search"
+            params = {"q": ioc.value}
         else:
             return None
 
         try:
-            response = await client.get(url, auth=auth, timeout=15.0)
+            response = await client.get(url, auth=auth, params=params, timeout=15.0)
         except httpx.RequestError:
             logger.debug("Censys request failed for %s", ioc.value)
             return None

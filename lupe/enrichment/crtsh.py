@@ -29,10 +29,12 @@ class CrtShPlugin(EnrichmentPlugin):
         if not self.supports(ioc.type):
             return None
 
-        url = f"https://crt.sh/?q={ioc.value}&output=json"
-
         try:
-            response = await client.get(url, timeout=30.0)
+            response = await client.get(
+                "https://crt.sh/",
+                params={"q": ioc.value, "output": "json"},
+                timeout=30.0,
+            )
         except httpx.RequestError:
             logger.debug("crt.sh request failed for %s", ioc.value)
             return None

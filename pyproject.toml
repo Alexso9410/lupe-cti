@@ -81,7 +81,7 @@ source = ["lupe"]
 omit = ["tests/*"]
 
 [tool.coverage.report]
-fail_under = 25
+fail_under = 50
 show_missing = true
 
 [tool.bandit]
@@ -102,6 +102,10 @@ warn_return_any = true
 warn_unused_ignores = true
 ignore_missing_imports = true
 exclude = ["lupe/flet/"]  # Flet's type annotations are incompatible with mypy
+
+[[tool.mypy.overrides]]
+module = "lupe.compat"
+warn_unused_ignores = false  # type: ignore needed on 3.10 but unused on 3.11+
 
 [tool.cibuildwheel]
 build = ["cp310-*", "cp311-*", "cp312-*"]

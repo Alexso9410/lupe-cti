@@ -5,6 +5,10 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from lupe.config import Settings
 
 
 @dataclass(frozen=True)
@@ -27,6 +31,9 @@ class LLMProvider(ABC):
     name: str
     requires_api_key: bool = True
 
+    def __init__(self, settings: Settings | None = None) -> None:  # pragma: no cover
+        """Initialise the provider with application settings."""
+
     @abstractmethod
     async def generate(self, prompt: str, *, system: str | None = None) -> str:
         """Send a prompt and return the model's text response."""
@@ -37,7 +44,7 @@ class LLMProvider(ABC):
         """Send a prompt and yield tokens as they arrive."""
         ...
         # Make this an async generator for type-checkers
-        yield ""  # pragma: no cover  # noqa: unreachable
+        yield ""  # pragma: no cover
 
     @abstractmethod
     async def validate_key(self) -> bool:

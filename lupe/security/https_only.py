@@ -133,7 +133,7 @@ def enforce_safe_url(url: str) -> None:
         if resolved.is_loopback:
             # Loopback resolution is allowed (e.g. an internal proxy)
             continue
-        if _is_dangerous_ip(ip_str):
+        if _is_dangerous_ip(str(ip_str)):
             raise ValueError(
                 f"Refusing to connect to {hostname!r} (resolves to {ip_str}): "
                 f"private/link-local/multicast/reserved ranges are blocked (SSRF protection)"
