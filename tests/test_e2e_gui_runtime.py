@@ -153,15 +153,14 @@ class TestEmailViewBrowse:
         view = build_email_view(mock_page)
         browse_btn = _find_button(view, "Browse")
 
-        # Mock FilePicker to avoid native dialog
+        # Mock FilePicker so we never open a real native dialog.
+        # pick_files IS a coroutine in Flet 0.85.3, so it must be AsyncMock.
         with patch("lupe.flet.views.email.ft.FilePicker") as mock_fp_cls:
             mock_picker = MagicMock()
-            mock_picker.pick_files = MagicMock()
+            mock_picker.pick_files = AsyncMock(return_value=None)
             mock_fp_cls.return_value = mock_picker
 
             event = MagicMock()
-            # on_click is a lambda that calls page.run_task(_browse, e)
-            # which returns a Task. We need to await that task.
             task = browse_btn.on_click(event)
             if task is not None and hasattr(task, "__await__"):
                 await task
@@ -176,6 +175,8 @@ class TestEmailViewBrowse:
                 "FilePicker was not registered in page.overlay — "
                 "native dialog won't open on Windows"
             )
+            # Verify pick_files was actually called with the right args
+            mock_picker.pick_files.assert_awaited_once()
 
     @pytest.mark.asyncio
     async def test_browse_calls_pick_files_with_eml_extension(self, mock_page):

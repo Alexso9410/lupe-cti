@@ -24,7 +24,7 @@ class GoogleSafeBrowsingPlugin(EnrichmentPlugin):
             url_to_check = f"https://{ioc.value}"
 
         payload = {
-            "client": {"clientId": "centinela", "clientVersion": "0.1.0"},
+            "client": {"clientId": "lupe-cti", "clientVersion": "1.0.0"},
             "threatInfo": {
                 "threatTypes": [
                     "MALWARE",

@@ -87,18 +87,71 @@ def build_email_view(page: ft.Page) -> ft.Control:
     )
 
     async def _browse(e: ft.ControlEvent) -> None:
-        """Open native file picker (registered in overlay for Flet 0.85.3)."""
+        """Open native file picker.
+
+        Tries Flet's FilePicker first (Flet 0.85.3 + page.overlay works on some
+        versions). If that fails, falls back to a subprocess call to
+        PowerShell which opens Windows' native file dialog. This is the most
+        reliable cross-version workaround.
+        """
+        # Strategy 1: Flet FilePicker
+        picker = None
         try:
-            picker = ft.FilePicker(on_result=_on_pick_result)
+            # Flet 0.85.3: FilePicker does NOT accept on_result in __init__,
+            # it must be assigned as a property after construction.
+            picker = ft.FilePicker()
+            picker.on_result = _on_pick_result
             page.overlay.append(picker)
             page.update()
-            picker.pick_files(
+            await picker.pick_files(
                 allowed_extensions=["eml"],
                 dialog_title="Select .eml file",
             )
-        except Exception:
-            # Fallback to AlertDialog if native picker fails
-            _show_dialog_input(page, path_field, selected_path)
+            return
+        except Exception as exc:
+            print(f"Flet FilePicker failed: {exc}", flush=True)
+            # Clean up the broken picker from overlay
+            try:
+                if picker is not None and picker in page.overlay:
+                    page.overlay.remove(picker)
+                page.update()
+            except Exception:
+                pass
+
+        # Strategy 2: subprocess to PowerShell to open Windows' native dialog.
+        # PowerShell + System.Windows.Forms.OpenFileDialog is the most
+        # reliable way to open a native file dialog on Windows.
+        try:
+            import subprocess
+
+            # PowerShell script: use Windows Forms OpenFileDialog
+            ps_script = (
+                "Add-Type -AssemblyName System.Windows.Forms; "
+                "$dlg = New-Object System.Windows.Forms.OpenFileDialog; "
+                "$dlg.Filter = 'EML files (*.eml)|*.eml|All files (*.*)|*.*'; "
+                "$dlg.Title = 'Select .eml file'; "
+                "if ($dlg.ShowDialog() -eq 'OK') { Write-Output $dlg.FileName }"
+            )
+            result = subprocess.run(
+                ["powershell.exe", "-NoProfile", "-NonInteractive", "-Command", ps_script],
+                capture_output=True,
+                text=True,
+                timeout=60,
+            )
+            chosen = (result.stdout or "").strip()
+            if chosen:
+                selected_path["value"] = chosen
+                path_field.value = chosen
+                page.update()
+                show_snackbar(page, f"Selected: {chosen}", MATRIX_GREEN)
+            else:
+                show_snackbar(page, "No file selected", "#ff9800")
+            return
+        except Exception as exc:
+            print(f"PowerShell file dialog failed: {exc}", flush=True)
+
+        # Strategy 3: AlertDialog fallback (last resort)
+        _show_dialog_input(page, path_field, selected_path)
 
     browse_btn = ft.ElevatedButton(
         "Browse",
@@ -165,12 +218,13 @@ def build_email_view(page: ft.Page) -> ft.Control:
             ft.Divider(color=ft.Colors.WHITE24),
             ft.Container(
                 content=output_md,
-                expand=True,
                 padding=ft.Padding(top=8, bottom=8),
+                expand=True,
             ),
         ],
         spacing=12,
         expand=True,
+        scroll=ft.ScrollMode.AUTO,
     )
 
 

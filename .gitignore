@@ -43,3 +43,10 @@ Thumbs.db
 
 # ruff
 .ruff_cache/
+
+# Skill registry cache (auto-generated, never tracked)
+.atl/.skill-registry.cache.json
+
+# Legacy backups from rebrand
+.env.centinela-backup
+.env.centinela*

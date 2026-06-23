@@ -33,7 +33,7 @@ class HaveIBeenPwnedPlugin(EnrichmentPlugin):
         url = _HIBP_URL.format(email=ioc.value)
         headers = {
             "hibp-api-key": self._api_key,
-            "User-Agent": "centinela-ioc-enrichment/2.0",
+            "User-Agent": "lupe-cti/1.0.0",
         }
         params = {"truncateResponse": "false"}
 

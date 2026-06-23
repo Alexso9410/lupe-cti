@@ -5,6 +5,7 @@ from __future__ import annotations
 import flet as ft
 
 from lupe.flet.theme import CYAN, MATRIX_GREEN
+from lupe.flet.utils import show_snackbar
 from lupe.flet.views.settings import load_settings
 from lupe.integrations.misp import MISPClient
 
@@ -66,7 +67,7 @@ def build_misp_view(page: ft.Page) -> ft.Control:
     )
 
     def _show_snackbar(msg: str, color: str = MATRIX_GREEN) -> None:
-        page.show_snack_bar(ft.SnackBar(ft.Text(msg), bgcolor=color))
+        show_snackbar(page, msg, color)
         page.update()
 
     def _check_misp_config() -> dict | None:
