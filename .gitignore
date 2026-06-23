@@ -50,3 +50,8 @@ Thumbs.db
 # Legacy backups from rebrand
 .env.centinela-backup
 .env.centinela*
+
+# SDD internal artifacts (keep specs/ only)
+openspec/project.md
+openspec/config.yaml
+openspec/changes/
