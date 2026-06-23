@@ -1,8 +1,6 @@
 <p align="center">
-  <img src="assets/lupe-logo/lupe-logo.svg" alt="Lupe CTI" width="200">
+  <img src="assets/lupe-logo/lupe-banner.svg" alt="Lupe CTI — Cyber Threat Intelligence" width="100%">
 </p>
-
-<h1 align="center">Lupe CTI</h1>
 
 <p align="center">
   <strong>Cyber Threat Intelligence for OSINT, Forensics & Incident Response</strong>

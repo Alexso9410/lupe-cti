@@ -1,6 +1,6 @@
 [Unit]
 Description=Lupe CTI Watcher
-Documentation=https://github.com/lupe-cti/lupe
+Documentation=https://github.com/Alexso9410/lupe-cti
 After=network.target
 
 [Service]
