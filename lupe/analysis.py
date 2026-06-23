@@ -77,6 +77,12 @@ async def analyze_ioc(
 
     prompt = _build_user_message(ioc, enrichments)
 
+    # Defense in depth: redact potential secrets before sending to LLM
+    if getattr(settings, "llm_redact_pii", True):
+        from lupe.security.redact import redact_secrets
+
+        prompt = redact_secrets(prompt)
+
     try:
         result = await provider.generate(prompt, system=_SYSTEM_PROMPT)
     except Exception:
