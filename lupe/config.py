@@ -65,6 +65,7 @@ class Settings(BaseSettings):
 
     ollama_base_url: str = "http://localhost:11434"
     ollama_model: str = "gemma4:31b-cloud"
+    ollama_api_key: str | None = None  # Required for cloud models (gemma4:31b-cloud, etc.)
     db_path: str = ""  # Empty = use platformdirs default
 
     # LLM provider selection (empty = skip AI analysis)
@@ -98,6 +99,9 @@ class Settings(BaseSettings):
     googlesb_key: str | None = None
     phishtank_key: str | None = None
     pulsedive_key: str | None = None
+
+    # Auto-update
+    github_repo: str = "lupe-cti/lupe"
 
     @field_validator("db_path", mode="before")
     @classmethod
