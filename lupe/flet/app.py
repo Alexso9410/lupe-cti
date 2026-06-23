@@ -16,12 +16,14 @@ from lupe.flet.views.enrich import build_enrich_view
 from lupe.flet.views.home import build_home_view
 from lupe.flet.views.misp import build_misp_view
 from lupe.flet.views.plugins import build_plugins_view
+from lupe.flet.views.profile import build_profile_view
 from lupe.flet.views.settings import build_settings_view
 
 _NAV_ITEMS = [
     ("home", "Home", ft.Icons.HOME),
     ("enrich", "Enrich", ft.Icons.SEARCH),
     ("settings", "Settings", ft.Icons.SETTINGS),
+    ("profile", "Profile", ft.Icons.PERSON),
     ("misp", "MISP", ft.Icons.SYNC),
     ("email", "Email", ft.Icons.EMAIL),
     ("plugins", "Plugins", ft.Icons.EXTENSION),
@@ -59,6 +61,11 @@ class LupeFletApp:
             page.window.min_width = 900
             page.window.min_height = 600
 
+        # NOTE: FilePicker is NOT added to page.overlay at startup because
+        # in Flet 0.85.3 that causes "Unknown control: FilePicker" rendering
+        # errors. The picker is created lazily on-demand in each view that
+        # needs it (e.g. email view's Browse button).
+
         # Current view name
         current_view = {"name": "home"}
 
@@ -82,6 +89,7 @@ class LupeFletApp:
                 "home": lambda: build_home_view(navigate_to),
                 "enrich": lambda: build_enrich_view(pg),
                 "settings": lambda: build_settings_view(pg),
+                "profile": lambda: build_profile_view(pg),
                 "misp": lambda: build_misp_view(pg),
                 "email": lambda: build_email_view(pg),
                 "plugins": lambda: build_plugins_view(pg),
