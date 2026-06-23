@@ -1199,3 +1199,74 @@ def misp_push(
         asyncio.run(client.close())
 
     console.print(f"[green]Pushed![/green] UUID: [bold]{uuid}[/bold]\n")
+
+
+# ---------------------------------------------------------------------------
+# upgrade command
+# ---------------------------------------------------------------------------
+
+
+@app.command()
+def upgrade() -> None:
+    """Check for updates and install the latest version from GitHub."""
+    from lupe.updater import (
+        download_wheel,
+        get_current_version,
+        get_latest_version,
+        install_wheel,
+        is_update_available,
+    )
+
+    settings = get_settings()
+    github_repo = settings.github_repo
+
+    console.print("\n[bold]Lupe CTI[/bold] — Checking for updates\n")
+
+    try:
+        current = get_current_version()
+    except Exception:
+        current = "0.0.0"
+
+    console.print(f"  Current version: [bold]{current}[/bold]")
+
+    latest = get_latest_version(github_repo)
+    if latest is None:
+        err_console.print("  [yellow]Could not fetch latest version from GitHub.[/yellow]")
+        raise typer.Exit(code=1)
+
+    console.print(f"  Latest version:  [bold]{latest}[/bold]")
+
+    if not is_update_available(current, latest):
+        console.print(f"\n  [green]Already on the latest version ({current}).[/green]\n")
+        return
+
+    console.print(f"\n  [yellow]Update available: {current} → {latest}[/yellow]")
+
+    # Confirm
+    if not typer.confirm("  Update now?"):
+        console.print("  [dim]Cancelled.[/dim]")
+        raise typer.Exit()
+
+    # Download wheel
+    wheel_name = f"lupe_cti-{latest}-py3-none-any.whl"
+    wheel_url = f"https://github.com/{github_repo}/releases/download/v{latest}/{wheel_name}"
+
+    import tempfile
+
+    with tempfile.NamedTemporaryFile(suffix=".whl", delete=False) as tmp:
+        tmp_path = Path(tmp.name)
+
+    console.print(f"  Downloading {wheel_name}...")
+    if not download_wheel(wheel_url, tmp_path):
+        err_console.print("  [bold red]Download failed.[/bold red]")
+        tmp_path.unlink(missing_ok=True)
+        raise typer.Exit(code=1)
+
+    console.print("  Installing...")
+    if not install_wheel(tmp_path):
+        err_console.print("  [bold red]Installation failed.[/bold red]")
+        tmp_path.unlink(missing_ok=True)
+        raise typer.Exit(code=1)
+
+    tmp_path.unlink(missing_ok=True)
+    console.print(f"\n  [green]Updated to {latest}![/green] Please restart the app.\n")
