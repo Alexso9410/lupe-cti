@@ -67,7 +67,7 @@ lupe = "lupe.cli:app"
 lupe-desktop = "lupe.flet.app:main"
 
 [project.urls]
-Homepage = "https://github.com/lupe-cti/lupe"
+Homepage = "https://github.com/Alexso9410/lupe-cti"
 Repository = "https://github.com/lupe-cti/lupe"
 Issues = "https://github.com/lupe-cti/lupe/issues"
 Changelog = "https://github.com/lupe-cti/lupe/blob/main/CHANGELOG.md"

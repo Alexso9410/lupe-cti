@@ -9,14 +9,11 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Alexso9410/lupe-cti/actions"><img src="https://github.com/Alexso9410/lupe-cti/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/Alexso9410/lupe-cti/actions/workflows/ci.yml"><img src="https://github.com/Alexso9410/lupe-cti/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://github.com/Alexso9410/lupe-cti/actions/workflows/codeql.yml"><img src="https://github.com/Alexso9410/lupe-cti/actions/workflows/codeql.yml/badge.svg" alt="CodeQL"></a>
-  <a href="https://pypi.org/project/lupe-cti/"><img src="https://img.shields.io/pypi/v/lupe-cti" alt="PyPI"></a>
-  <a href="https://pypi.org/project/lupe-cti/"><img src="https://img.shields.io/pypi/dm/lupe-cti" alt="Downloads"></a>
-  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/pypi/pyversions/lupe-cti" alt="Python"></a>
+  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.10%2B-blue" alt="Python"></a>
   <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/badge/code%20style-ruff-000000" alt="Ruff"></a>
-  <a href="https://github.com/Alexso9410/lupe-cti/actions/workflows/ci.yml"><img src="https://img.shields.io/badge/coverage-25%25-yellow" alt="Coverage"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/pypi/l/lupe-cti" alt="License: MIT"></a>
+  <a href="https://github.com/Alexso9410/lupe-cti/blob/lupe-cti-v1/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License: MIT"></a>
 </p>
 
 ---
