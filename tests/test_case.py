@@ -6,7 +6,14 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from lupe.case import CaseInfo, add_ioc_to_case, create_case, list_cases
+from lupe.case import (
+    CaseInfo,
+    add_ioc_to_case,
+    create_case,
+    delete_case,
+    list_cases,
+    update_case,
+)
 
 
 @pytest.fixture
@@ -108,3 +115,67 @@ class TestAddIOCToCase:
         with patch("lupe.case._get_db", return_value=mock_db):
             add_ioc_to_case(1, "evil.com", "domain")
         mock_db.link_ioc_to_case.assert_called_once_with(1, 99, "")
+
+
+class TestDeleteCase:
+    """Test delete_case function — PR-31."""
+
+    def test_delete_case_returns_true_on_success(self, mock_db):
+        """delete_case should return True when DB reports success."""
+        mock_db.delete_case.return_value = True
+        with patch("lupe.case._get_db", return_value=mock_db):
+            result = delete_case(1)
+        assert result is True
+
+    def test_delete_case_calls_db_delete(self, mock_db):
+        """delete_case should call Database.delete_case with correct ID."""
+        mock_db.delete_case.return_value = True
+        with patch("lupe.case._get_db", return_value=mock_db):
+            delete_case(42)
+        mock_db.delete_case.assert_called_once_with(42)
+
+    def test_delete_case_returns_false_for_nonexistent(self, mock_db):
+        """delete_case should return False when case doesn't exist."""
+        mock_db.delete_case.return_value = False
+        with patch("lupe.case._get_db", return_value=mock_db):
+            result = delete_case(999)
+        assert result is False
+
+
+class TestUpdateCase:
+    """Test update_case function — PR-31."""
+
+    def test_update_case_returns_true_on_success(self, mock_db):
+        """update_case should return True when DB reports success."""
+        mock_db.update_case.return_value = True
+        with patch("lupe.case._get_db", return_value=mock_db):
+            result = update_case(1, name="New Name")
+        assert result is True
+
+    def test_update_case_calls_db_update_name(self, mock_db):
+        """update_case should pass name to Database.update_case."""
+        mock_db.update_case.return_value = True
+        with patch("lupe.case._get_db", return_value=mock_db):
+            update_case(1, name="Renamed")
+        mock_db.update_case.assert_called_once_with(1, name="Renamed", description=None)
+
+    def test_update_case_calls_db_update_description(self, mock_db):
+        """update_case should pass description to Database.update_case."""
+        mock_db.update_case.return_value = True
+        with patch("lupe.case._get_db", return_value=mock_db):
+            update_case(1, description="New desc")
+        mock_db.update_case.assert_called_once_with(1, name=None, description="New desc")
+
+    def test_update_case_calls_db_update_both(self, mock_db):
+        """update_case should pass both name and description."""
+        mock_db.update_case.return_value = True
+        with patch("lupe.case._get_db", return_value=mock_db):
+            update_case(1, name="X", description="Y")
+        mock_db.update_case.assert_called_once_with(1, name="X", description="Y")
+
+    def test_update_case_returns_false_for_nonexistent(self, mock_db):
+        """update_case should return False when case doesn't exist."""
+        mock_db.update_case.return_value = False
+        with patch("lupe.case._get_db", return_value=mock_db):
+            result = update_case(999, name="Ghost")
+        assert result is False

@@ -336,6 +336,58 @@ class Database:
         )
         self._conn.commit()
 
+    def delete_case(self, case_id: int) -> bool:
+        """Delete a case and its associated data (links, notes).
+
+        Args:
+            case_id: Primary key of the case to delete.
+
+        Returns:
+            True if the case was deleted, False if not found.
+        """
+        cur = self._conn.execute("SELECT id FROM cases WHERE id = ?", (case_id,))
+        if cur.fetchone() is None:
+            return False
+        # Delete dependent rows first (FK integrity)
+        self._conn.execute("DELETE FROM case_notes WHERE case_id = ?", (case_id,))
+        self._conn.execute("DELETE FROM case_iocs WHERE case_id = ?", (case_id,))
+        self._conn.execute("DELETE FROM email_analyses WHERE case_id = ?", (case_id,))
+        self._conn.execute("DELETE FROM cases WHERE id = ?", (case_id,))
+        self._conn.commit()
+        return True
+
+    def update_case(
+        self,
+        case_id: int,
+        name: str | None = None,
+        description: str | None = None,
+    ) -> bool:
+        """Update a case's name and/or description.
+
+        Args:
+            case_id: Primary key of the case to update.
+            name: New name (if provided).
+            description: New description (if provided).
+
+        Returns:
+            True if the case was updated, False if not found.
+        """
+        cur = self._conn.execute("SELECT id FROM cases WHERE id = ?", (case_id,))
+        if cur.fetchone() is None:
+            return False
+        if name is not None:
+            self._conn.execute(
+                "UPDATE cases SET name = ?, updated_at = datetime('now') WHERE id = ?",
+                (name, case_id),
+            )
+        if description is not None:
+            self._conn.execute(
+                "UPDATE cases SET description = ?, updated_at = datetime('now') WHERE id = ?",
+                (description, case_id),
+            )
+        self._conn.commit()
+        return True
+
     # ------------------------------------------------------------------
     # Case-IOC links
     # ------------------------------------------------------------------

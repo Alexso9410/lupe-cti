@@ -26,11 +26,12 @@ class OllamaProvider(LLMProvider):
     """
 
     name = "ollama"
-    requires_api_key = False
+    requires_api_key = False  # Optional: only required for cloud models (e.g. gemma4:31b-cloud)
 
     def __init__(self, settings: Settings) -> None:
         self._base_url = settings.ollama_base_url.rstrip("/")
         self._model = settings.ollama_model
+        self._api_key = getattr(settings, "ollama_api_key", None) or None
 
     async def generate(self, prompt: str, *, system: str | None = None) -> str:
         messages: list[dict[str, str]] = []
@@ -45,9 +46,13 @@ class OllamaProvider(LLMProvider):
         }
         url = f"{self._base_url}/v1/chat/completions"
 
+        headers: dict[str, str] = {}
+        if self._api_key:
+            headers["Authorization"] = f"Bearer {self._api_key}"
+
         try:
             async with httpx.AsyncClient() as client:
-                response = await client.post(url, json=payload, timeout=120.0)
+                response = await client.post(url, json=payload, headers=headers, timeout=120.0)
         except httpx.ConnectError:
             logger.debug("Ollama not reachable at %s", self._base_url)
             return ""
@@ -76,9 +81,15 @@ class OllamaProvider(LLMProvider):
         }
         url = f"{self._base_url}/v1/chat/completions"
 
+        headers: dict[str, str] = {}
+        if self._api_key:
+            headers["Authorization"] = f"Bearer {self._api_key}"
+
         try:
             async with httpx.AsyncClient() as client:
-                async with client.stream("POST", url, json=payload, timeout=120.0) as resp:
+                async with client.stream(
+                    "POST", url, json=payload, headers=headers, timeout=120.0
+                ) as resp:
                     async for line in resp.aiter_lines():
                         if not line.startswith("data: "):
                             continue
@@ -97,8 +108,26 @@ class OllamaProvider(LLMProvider):
             return
 
     async def validate_key(self) -> bool:
-        # Ollama doesn't require an API key
-        return True
+        # If no API key is set, verify Ollama is reachable
+        if not self._api_key:
+            try:
+                import httpx
+
+                async with httpx.AsyncClient() as client:
+                    r = await client.get(f"{self._base_url}/api/tags", timeout=5.0)
+                    return r.status_code == 200
+            except Exception:
+                return False
+        # If API key is set, verify it works against the server
+        try:
+            import httpx
+
+            headers = {"Authorization": f"Bearer {self._api_key}"}
+            async with httpx.AsyncClient() as client:
+                r = await client.get(f"{self._base_url}/api/tags", headers=headers, timeout=5.0)
+                return r.status_code == 200
+        except Exception:
+            return False
 
     def list_models(self) -> list[ModelInfo]:
         return [ModelInfo(name=self._model)]
