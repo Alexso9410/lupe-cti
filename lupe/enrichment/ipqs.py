@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+import logging
 from datetime import datetime, timezone
 
 import httpx
 
 from lupe.enrichment.base import EnrichmentPlugin
 from lupe.models import IOC, EnrichmentResult, IOCType, Severity
+
+logger = logging.getLogger(__name__)
 
 _IPQS_URL = "https://ipqualityscore.com/api/json/ip/"
 
@@ -61,15 +64,18 @@ class IPQSPlugin(EnrichmentPlugin):
                 f"{_IPQS_URL}{self._api_key}/{ioc.value}",
                 timeout=15.0,
             )
-        except httpx.RequestError:
+        except httpx.RequestError as exc:
+            logger.debug("IPQS request error for %s: %s", ioc.value, exc)
             return None
 
         if response.status_code != 200:
+            logger.debug("IPQS non-200 status %s for %s", response.status_code, ioc.value)
             return None
 
         data: dict = response.json()
 
         if data.get("success") is not True:
+            logger.debug("IPQS success=False for %s: %s", ioc.value, data)
             return None
 
         fraud_score = data.get("fraud_score", 0)

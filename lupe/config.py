@@ -65,7 +65,10 @@ def ensure_dirs() -> None:
                     str(config_dir),
                     "/inheritance:r",
                     "/grant:r",
-                    f"{os.environ.get('USERNAME', os.environ.get('USER', ''))}:F",
+                    # (OI)(CI) make the grant inheritable so children (lupe.db, active_profile.txt)
+                    # get an ACL instead of an empty DACL — critical on Windows where
+                    # platformdirs config_dir == data_dir when appauthor=False.
+                    f"{os.environ.get('USERNAME', os.environ.get('USER', ''))}:(OI)(CI)F",
                 ],
                 check=False,
                 capture_output=True,
@@ -84,9 +87,7 @@ class Settings(BaseSettings):
     )
 
     ollama_base_url: str = "http://localhost:11434"
-    ollama_model: str = (
-        "gemma3:4b"  # Fast, fits 8GB RAM. Override via LUPE_OLLAMA_MODEL.
-    )
+    ollama_model: str = "gemma3:4b"  # Fast, fits 8GB RAM. Override via LUPE_OLLAMA_MODEL.
     ollama_api_key: str | None = None  # Required for cloud models (gemma4:31b-cloud, etc.)
     db_path: str = ""  # Empty = use platformdirs default
 
