@@ -142,5 +142,21 @@ class Settings(BaseSettings):
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
-    """Return the cached singleton Settings instance."""
+    """Return the cached singleton Settings instance.
+
+    Resolves ``.env`` relative to the project root (found via ``__file__``)
+    instead of relying on ``os.getcwd()``, so the correct env vars are loaded
+    even when the working directory is not the project root — e.g. when the
+    ``lupe-desktop`` Flet app starts with a different CWD.
+    """
+    try:
+        from dotenv import load_dotenv
+
+        env_file = Path(__file__).resolve().parent.parent / ".env"
+        if env_file.exists():
+            # Load into os.environ so pydantic-settings picks it up regardless
+            # of its own CWD-based env_file resolution.
+            load_dotenv(env_file, override=False)
+    except Exception:
+        pass
     return Settings()
