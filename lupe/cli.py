@@ -90,6 +90,7 @@ _KEY_FIELDS: list[tuple[str, str]] = [
     ("anthropic_api_key", "LUPE_ANTHROPIC_API_KEY"),
     ("openrouter_api_key", "LUPE_OPENROUTER_API_KEY"),
     ("ollama_api_key", "LUPE_OLLAMA_API_KEY"),
+    ("gemini_api_key", "LUPE_GEMINI_API_KEY"),
     # MISP integration
     ("misp_key", "LUPE_MISP_KEY"),
     # Censys
