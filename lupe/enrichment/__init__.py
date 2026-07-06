@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 
 import httpx
 
@@ -36,6 +37,8 @@ from lupe.enrichment.virustotal import VirusTotalPlugin
 from lupe.enrichment.whats_my_name import WhatsMyNamePlugin
 from lupe.enrichment.whois_plugin import WhoisPlugin
 from lupe.models import IOC, EnrichmentResult
+
+logger = logging.getLogger(__name__)
 
 _CONCURRENCY_LIMIT = 5
 
@@ -127,7 +130,14 @@ async def run_enrichment(ioc: IOC, settings: Settings) -> list[EnrichmentResult]
             async with httpx.AsyncClient() as client:
                 try:
                     return await plugin.enrich(ioc, client)
-                except Exception:
+                except Exception as exc:
+                    logger.warning(
+                        "Plugin %s raised %s for IOC %r: %s",
+                        plugin.name,
+                        type(exc).__name__,
+                        ioc.value,
+                        exc,
+                    )
                     return None
 
     results = await asyncio.gather(*(_run_one(p) for p in compatible))

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from datetime import datetime, timezone
 
 import httpx
@@ -8,6 +9,8 @@ from lupe.enrichment.base import EnrichmentPlugin
 from lupe.models import IOC, EnrichmentResult, IOCType, Severity
 
 _SHODAN_URL = "https://api.shodan.io/shodan/host/{ip}"
+
+logger = logging.getLogger(__name__)
 
 
 def _host_to_severity(ports: list[int], vulns: list[str]) -> Severity:
@@ -31,14 +34,17 @@ class ShodanPlugin(EnrichmentPlugin):
         url = _SHODAN_URL.format(ip=ioc.value)
         try:
             response = await client.get(url, params={"key": self._api_key}, timeout=15.0)
-        except httpx.RequestError:
+        except httpx.RequestError as exc:
+            logger.debug("Shodan request error for %s: %s", ioc.value, exc)
             return None
 
         if response.status_code == 404:
             # Host not indexed by Shodan — not an error, just no data
+            logger.debug("Shodan host not indexed for %s (404)", ioc.value)
             return None
 
         if response.status_code != 200:
+            logger.debug("Shodan non-200 status %s for %s", response.status_code, ioc.value)
             return None
 
         data: dict = response.json()

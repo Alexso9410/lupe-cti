@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from datetime import datetime, timezone
 
 import httpx
@@ -8,6 +9,8 @@ import whois
 
 from lupe.enrichment.base import EnrichmentPlugin
 from lupe.models import IOC, EnrichmentResult, IOCType, Severity
+
+logger = logging.getLogger(__name__)
 
 
 def _coerce_date(value: object) -> str | None:
@@ -29,7 +32,31 @@ def _coerce_list(value: object) -> list[str]:
 
 
 def _run_whois(ioc_value: str) -> dict:
-    w = whois.whois(ioc_value)
+    import os
+    import sys
+
+    # python-whois prints transient socket errors directly to stderr (not via
+    # exceptions). Suppress that noise while the lookup runs; a failed lookup
+    # still returns an all-None dict, which the caller handles.
+    saved_stderr_fd = os.dup(2) if sys.platform == "win32" else None
+    try:
+        if sys.platform == "win32":
+            devnull_fd = os.open(os.devnull, os.O_WRONLY)
+            os.dup2(devnull_fd, 2)
+            w = whois.whois(ioc_value)
+            assert saved_stderr_fd is not None
+            os.dup2(saved_stderr_fd, 2)
+            os.close(devnull_fd)
+        else:
+            w = whois.whois(ioc_value)
+    finally:
+        if saved_stderr_fd is not None:
+            try:
+                os.dup2(saved_stderr_fd, 2)
+                os.close(saved_stderr_fd)
+            except OSError:
+                pass
+
     return {
         "registrar": w.registrar,
         "creation_date": _coerce_date(w.creation_date),
@@ -53,6 +80,7 @@ class WhoisPlugin(EnrichmentPlugin):
             return None
 
         if not any(raw.values()):
+            logger.debug("whois returned empty for %s", ioc.value)
             return None
 
         parts: list[str] = []
