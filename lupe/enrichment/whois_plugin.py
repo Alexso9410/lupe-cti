@@ -44,6 +44,7 @@ def _run_whois(ioc_value: str) -> dict:
             devnull_fd = os.open(os.devnull, os.O_WRONLY)
             os.dup2(devnull_fd, 2)
             w = whois.whois(ioc_value)
+            assert saved_stderr_fd is not None
             os.dup2(saved_stderr_fd, 2)
             os.close(devnull_fd)
         else:
