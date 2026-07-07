@@ -29,15 +29,17 @@ SIGNUP_URLS: dict[str, str] = {
     "misp": "https://www.misp-project.org/",
     "censys": "https://censys.io/register",
     "hybrid_analysis": "https://www.hybrid-analysis.com/signup",
+    "gemini": "https://aistudio.google.com/app/apikey",
 }
 
 # Field definitions: (key, label, is_password)
 FIELDS: list[tuple[str, str, bool]] = [
-    ("llm_provider", "LLM Provider (ollama / openai / anthropic / openrouter)", False),
+    ("llm_provider", "LLM Provider (ollama / openai / anthropic / openrouter / gemini)", False),
     ("ollama_url", "Ollama URL", False),
     ("openai_key", "OpenAI API Key", True),
     ("anthropic_key", "Anthropic API Key", True),
     ("openrouter_key", "OpenRouter API Key", True),
+    ("gemini_key", "Gemini API Key", True),
     ("virustotal_key", "VirusTotal Key", True),
     ("abuseipdb_key", "AbuseIPDB Key", True),
     ("shodan_key", "Shodan Key", True),
