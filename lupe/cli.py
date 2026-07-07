@@ -90,6 +90,7 @@ _KEY_FIELDS: list[tuple[str, str]] = [
     ("anthropic_api_key", "LUPE_ANTHROPIC_API_KEY"),
     ("openrouter_api_key", "LUPE_OPENROUTER_API_KEY"),
     ("ollama_api_key", "LUPE_OLLAMA_API_KEY"),
+    ("gemini_api_key", "LUPE_GEMINI_API_KEY"),
     # MISP integration
     ("misp_key", "LUPE_MISP_KEY"),
     # Censys
@@ -103,6 +104,7 @@ _KEY_FIELDS: list[tuple[str, str]] = [
 _PLAIN_FIELDS: list[tuple[str, str]] = [
     ("ollama_base_url", "LUPE_OLLAMA_BASE_URL"),
     ("ollama_model", "LUPE_OLLAMA_MODEL"),
+    ("gemini_model", "LUPE_GEMINI_MODEL"),
     ("db_path", "LUPE_DB_PATH"),
 ]
 
@@ -624,6 +626,7 @@ _STATUS_STYLE: dict[str, str] = {
 _EVENT_STYLE: dict[str, str] = {
     "ioc_added": "cyan",
     "enrichment": "yellow",
+    "analysis": "magenta",
     "note": "magenta",
 }
 
@@ -857,6 +860,76 @@ def case_add_note(
         raise typer.Exit(code=1)
 
 
+@case_app.command("export")
+def case_export(
+    case_id: Annotated[int, typer.Argument(help="Case ID to export")],
+    format: Annotated[
+        str,
+        typer.Option("--format", "-f", help="Export format: txt or docx"),
+    ] = "txt",
+    output: Annotated[
+        Path | None,
+        typer.Option("--output", "-o", help="Output file path (auto-generated if omitted)"),
+    ] = None,
+    ioc_value: Annotated[
+        str | None,
+        typer.Option("--ioc", help="Export only this IOC value"),
+    ] = None,
+) -> None:
+    """Export a case report to TXT or DOCX format."""
+    from lupe.case import build_case_history
+
+    # Build history (handles not-found internally)
+    try:
+        history = build_case_history(case_id)
+        if not history.get("case"):
+            err_console.print(
+                f"[bold red]Error:[/bold red] Case [yellow]{case_id}[/yellow] not found."
+            )
+            raise typer.Exit(code=1)
+    except typer.Exit:
+        raise
+    except Exception as exc:  # noqa: BLE001
+        err_console.print(f"[bold red]Error building history:[/bold red] {exc}")
+        raise typer.Exit(code=1)
+
+    # Filter to single IOC if requested
+    if ioc_value is not None:
+        matching = [g for g in history["iocs"] if g["ioc"]["value"] == ioc_value]
+        if not matching:
+            err_console.print(
+                f"[bold red]Error:[/bold red] IOC [yellow]{ioc_value}[/yellow] not found in case."
+            )
+            raise typer.Exit(code=1)
+        history = {**history, "iocs": matching}
+
+    # Determine output path
+    if output is None:
+        safe_name = "".join(
+            c if c.isalnum() or c in "-_ " else "_" for c in history["case"].get("name", "case")
+        ).replace(" ", "_")[:40]
+        suffix = ".txt" if format == "txt" else ".docx"
+        output = Path(f"case_{case_id}_{safe_name}{suffix}")
+
+    # Export
+    try:
+        if format == "docx":
+            from lupe.export.docx_export import export_case_to_docx
+
+            result_path = export_case_to_docx(history, output)
+        else:
+            from lupe.export.txt_export import export_case_to_txt
+
+            content = export_case_to_txt(history)
+            output.write_text(content, encoding="utf-8")
+            result_path = output
+
+        console.print(f"[green]Exported[/green] to [bold]{result_path}[/bold]")
+    except Exception as exc:  # noqa: BLE001
+        err_console.print(f"[bold red]Export error:[/bold red] {exc}")
+        raise typer.Exit(code=1)
+
+
 # ---------------------------------------------------------------------------
 # person subcommands
 # ---------------------------------------------------------------------------
@@ -1047,6 +1120,11 @@ def config_test() -> None:
 
     settings = get_settings()
 
+    gemini_url = (
+        "https://generativelanguage.googleapis.com/v1beta/models"
+        f"?key={settings.gemini_api_key or ''}"
+    )
+
     checks: list[tuple[str, str | None, str]] = [
         ("AbuseIPDB", settings.abuseipdb_key, "https://api.abuseipdb.com/api/v2/check"),
         (
@@ -1071,6 +1149,7 @@ def config_test() -> None:
         ("GreyNoise", settings.greynoise_key, "https://api.greynoise.io/v3/community/1.1.1.1"),
         ("IPQS", settings.ipqs_key, "https://www.ipqualityscore.com/api/json/ip"),
         ("Ollama", "configured", f"{settings.ollama_base_url.rstrip('/')}/api/tags"),
+        ("Gemini", settings.gemini_api_key, gemini_url),
     ]
 
     console.print("\n[bold]Lupe CTI[/bold] — API Connectivity Test\n")
@@ -1083,8 +1162,8 @@ def config_test() -> None:
         try:
             with _httpx.Client(timeout=8.0) as client:
                 resp = client.get(url)
-            # Most APIs return 200, 400, or 401 when reachable
-            reachable = resp.status_code < 500
+            # Treat 2xx as reachable; 4xx = auth/format issue, not genuine connectivity
+            reachable = 200 <= resp.status_code < 300
             status_code = resp.status_code
         except _httpx.ConnectError:
             reachable = False

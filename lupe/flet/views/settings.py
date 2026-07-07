@@ -29,15 +29,17 @@ SIGNUP_URLS: dict[str, str] = {
     "misp": "https://www.misp-project.org/",
     "censys": "https://censys.io/register",
     "hybrid_analysis": "https://www.hybrid-analysis.com/signup",
+    "gemini": "https://aistudio.google.com/app/apikey",
 }
 
 # Field definitions: (key, label, is_password)
 FIELDS: list[tuple[str, str, bool]] = [
-    ("llm_provider", "LLM Provider (ollama / openai / anthropic / openrouter)", False),
+    ("llm_provider", "LLM Provider (ollama / openai / anthropic / openrouter / gemini)", False),
     ("ollama_url", "Ollama URL", False),
     ("openai_key", "OpenAI API Key", True),
     ("anthropic_key", "Anthropic API Key", True),
     ("openrouter_key", "OpenRouter API Key", True),
+    ("gemini_key", "Gemini API Key", True),
     ("virustotal_key", "VirusTotal Key", True),
     ("abuseipdb_key", "AbuseIPDB Key", True),
     ("shodan_key", "Shodan Key", True),
@@ -206,7 +208,10 @@ def build_settings_view(page: ft.Page) -> ft.Control:
         ft.Text("MISP", size=16, color=CYAN, weight=ft.FontWeight.BOLD),
     ]
 
-    llm_keys = {"llm_provider", "ollama_url", "openai_key", "anthropic_key", "openrouter_key"}
+    llm_keys = {
+        "llm_provider", "ollama_url", "openai_key",
+        "anthropic_key", "openrouter_key", "gemini_key",
+    }
     misp_keys = {"misp_url", "misp_key", "censys_id", "censys_secret", "hybrid_analysis_key"}
 
     for key, label, is_password in FIELDS:

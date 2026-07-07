@@ -6,11 +6,35 @@ import flet as ft
 
 from lupe.case import add_ioc_to_case, create_case, list_cases
 from lupe.config import get_settings
+from lupe.db import Database
 from lupe.enrichment import run_enrichment
 from lupe.flet.theme import CYAN, MATRIX_GREEN
 from lupe.flet.utils import show_snackbar
 from lupe.ioc_detect import detect_ioc
 from lupe.llm.registry import get_provider
+
+
+def _save_enrichment_to_db(ioc_value: str, ioc_type: str, results: list) -> None:
+    """Persist enrichment results to the SQLite database."""
+    settings = get_settings()
+    db = Database(settings.db_path)
+    ioc_id = db.upsert_ioc(ioc_type, ioc_value)
+    for r in results:
+        try:
+            db.save_enrichment(ioc_id, r.source, r.severity.value, r.summary, r.raw_data)
+        except Exception:
+            pass
+
+
+def _save_ai_analysis_to_db(ioc_value: str, ioc_type: str, model: str, summary: str) -> None:
+    """Persist AI analysis result to the SQLite database."""
+    settings = get_settings()
+    db = Database(settings.db_path)
+    ioc_id = db.upsert_ioc(ioc_type, ioc_value)
+    try:
+        db.save_analysis(ioc_id, model, summary)
+    except Exception:
+        pass
 
 
 def build_enrich_view(page: ft.Page) -> ft.Control:
@@ -109,6 +133,9 @@ def build_enrich_view(page: ft.Page) -> ft.Control:
             _ioc_value["value"] = ioc_value
             _ioc_type["value"] = ioc.type.value
 
+            # Persist enrichment results to DB for case history
+            _save_enrichment_to_db(ioc_value, ioc.type.value, results)
+
             # Show AI Analysis and Investigation panels
             ai_panel.visible = True
             case_panel.visible = True
@@ -137,6 +164,7 @@ def build_enrich_view(page: ft.Page) -> ft.Control:
             ft.dropdown.Option("openai"),
             ft.dropdown.Option("anthropic"),
             ft.dropdown.Option("openrouter"),
+            ft.dropdown.Option("gemini"),
         ],
         value=getattr(get_settings(), "llm_provider", "") or "ollama",
         width=180,
@@ -210,6 +238,14 @@ def build_enrich_view(page: ft.Page) -> ft.Control:
                 ai_output.value = response
                 ai_status_text.value = "AI analysis complete"
                 _show_snackbar("AI analysis complete")
+
+                # Persist AI analysis to DB for case history
+                _save_ai_analysis_to_db(
+                    _ioc_value["value"],
+                    _ioc_type["value"],
+                    provider.model if hasattr(provider, "model") else provider_name,
+                    response,
+                )
             else:
                 ai_output.value = "*No response from AI provider. Check your configuration.*"
                 ai_status_text.value = "No response"

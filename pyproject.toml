@@ -7,7 +7,7 @@ packages = ["lupe"]
 
 [project]
 name = "lupe-cti"
-version = "1.0.0"
+version = "1.1.0"
 description = "Cyber Threat Intelligence CLI for OSINT, Forensics & Incident Response"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -60,6 +60,9 @@ dev = [
     "pyyaml>=6.0",
     "ruff>=0.5.0",
     "mypy>=1.10",
+]
+docx = [
+    "python-docx>=1.1.0",
 ]
 
 [project.scripts]
