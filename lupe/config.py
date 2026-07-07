@@ -156,11 +156,16 @@ def get_settings() -> Settings:
     try:
         from dotenv import load_dotenv
 
-        env_file = Path(__file__).resolve().parent.parent / ".env"
-        if env_file.exists():
-            # Load into os.environ so pydantic-settings picks it up regardless
-            # of its own CWD-based env_file resolution.
-            load_dotenv(env_file, override=False)
+        # Try multiple locations, from most specific to most general:
+        # 1. Project root (works for pip install -e)
+        # 2. User home directory (works for pip install)
+        for candidate in (
+            Path(__file__).resolve().parent.parent / ".env",
+            Path.home() / ".env",
+        ):
+            if candidate.exists():
+                load_dotenv(candidate, override=False)
+                break
     except Exception:
         pass
     return Settings()
