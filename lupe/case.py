@@ -4,9 +4,19 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Any, TypedDict
 
 from lupe.config import get_settings
 from lupe.db import Database
+
+
+class CaseHistory(TypedDict):
+    """Structured case history grouped by IOC."""
+
+    case: dict[str, Any]
+    iocs: list[dict[str, Any]]
+    case_notes: list[dict[str, Any]]
+    stats: dict[str, Any]
 
 
 @dataclass
@@ -166,3 +176,86 @@ def update_case(
     """
     db = _get_db()
     return db.update_case(case_id, name=name, description=description)
+
+
+def build_case_history(case_id: int) -> CaseHistory:
+    """Build a complete case history with events grouped by IOC.
+
+    Args:
+        case_id: The case to build history for.
+
+    Returns:
+        CaseHistory dict with case metadata, grouped IOCs, notes, and stats.
+    """
+    db = _get_db()
+
+    case = db.get_case(case_id)
+    if case is None:
+        return CaseHistory(case={}, iocs=[], case_notes=[], stats={})
+
+    # Get raw timeline and group by IOC
+    timeline = db.get_case_timeline(case_id)
+    case_notes = db.get_case_notes(case_id)
+
+    # Group events by IOC value
+    ioc_groups: dict[str, dict[str, Any]] = {}
+    for event in timeline:
+        if event["event_type"] == "note":
+            continue
+        ioc_value = event.get("ioc_value", "")
+        if not ioc_value:
+            # ioc_added events embed the value in description
+            desc = event.get("description", "")
+            if "IOC added:" in desc:
+                # Extract value from "IOC added: [type] value"
+                parts = desc.split("] ", 1)
+                ioc_value = parts[1] if len(parts) > 1 else desc
+            else:
+                continue
+
+        if ioc_value not in ioc_groups:
+            # Find the IOC record
+            ioc_record = db.find_ioc(ioc_value)
+            ioc_groups[ioc_value] = {
+                "ioc": {
+                    "id": ioc_record["id"] if ioc_record else 0,
+                    "type": ioc_record["type"] if ioc_record else "unknown",
+                    "value": ioc_value,
+                    "added_at": event.get("timestamp", ""),
+                },
+                "events": [],
+            }
+        ioc_groups[ioc_value]["events"].append(event)
+
+    # Sort events within each IOC group
+    for group in ioc_groups.values():
+        group["events"].sort(key=lambda e: e.get("timestamp", ""))
+
+    # Build stats
+    enrichment_count = sum(
+        1 for e in timeline if e["event_type"] == "enrichment"
+    )
+    analysis_count = sum(
+        1 for e in timeline if e["event_type"] == "analysis"
+    )
+
+    # Determine top severity
+    _order = ["critical", "high", "medium", "low", "info"]
+    top_severity = "info"
+    for event in timeline:
+        if event["event_type"] == "enrichment":
+            sev = event.get("detail", "info")
+            if sev in _order and _order.index(sev) < _order.index(top_severity):
+                top_severity = sev
+
+    return CaseHistory(
+        case=case,
+        iocs=list(ioc_groups.values()),
+        case_notes=case_notes,
+        stats={
+            "ioc_count": len(ioc_groups),
+            "enrichment_count": enrichment_count,
+            "analysis_count": analysis_count,
+            "top_severity": top_severity,
+        },
+    )

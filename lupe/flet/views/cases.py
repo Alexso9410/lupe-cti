@@ -1,4 +1,4 @@
-"""Cases view — investigation case management with Edit/Delete actions (PR-31)."""
+"""Cases view — investigation case management with Edit/Delete/Detail (PR-31 + PR-3)."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ from lupe.flet.utils import show_snackbar
 
 
 def build_cases_view(page: ft.Page) -> ft.Control:
-    """Build the cases view with full CRUD including Edit/Delete.
+    """Build the cases view with CRUD, Edit/Delete, and case detail panel.
 
     Args:
         page: The Flet page.
@@ -22,6 +22,35 @@ def build_cases_view(page: ft.Page) -> ft.Control:
     """
     # --- State ---
     cases_state: dict = {"items": []}
+    view_state: dict = {"mode": "list", "case_id": None}
+
+    # --- Content container (swaps between list and detail) ---
+    content_container = ft.Container(expand=True)
+
+    def _show_list() -> None:
+        """Switch back to list view."""
+        view_state["mode"] = "list"
+        view_state["case_id"] = None
+        content_container.content = _build_list_content()
+        page.update()
+
+    def _show_detail(case_id: int) -> None:
+        """Switch to detail view for a case."""
+        from lupe.flet.views.case_detail import build_case_detail_data, build_case_detail_view
+
+        try:
+            detail_data = build_case_detail_data(case_id)
+            if detail_data is None:
+                show_snackbar(page, "Case not found", "#ff5555")
+                return
+            view_state["mode"] = "detail"
+            view_state["case_id"] = case_id
+            content_container.content = build_case_detail_view(
+                detail_data, on_back=_show_list, page=page
+            )
+            page.update()
+        except Exception as exc:
+            show_snackbar(page, f"Failed to load case detail: {exc}", "#ff5555")
 
     # --- Table ---
     def _build_table_rows() -> list[ft.DataRow]:
@@ -81,7 +110,20 @@ def build_cases_view(page: ft.Page) -> ft.Control:
                 tooltip="Delete case",
                 on_click=_make_delete_handler(c.id, c.name),
             )
-            actions_row = ft.Row(controls=[edit_btn, delete_btn], spacing=0, tight=True)
+
+            def _make_view_handler(cid: int):
+                def _handler(e: ft.ControlEvent):
+                    _show_detail(cid)
+                return _handler
+
+            view_btn = ft.IconButton(
+                icon=ft.Icons.VISIBILITY,
+                icon_color=MATRIX_GREEN,
+                icon_size=18,
+                tooltip="View case detail",
+                on_click=_make_view_handler(c.id),
+            )
+            actions_row = ft.Row(controls=[view_btn, edit_btn, delete_btn], spacing=0, tight=True)
 
             rows.append(
                 ft.DataRow(
@@ -247,32 +289,39 @@ def build_cases_view(page: ft.Page) -> ft.Control:
     except Exception:
         pass
 
-    return ft.Column(
-        controls=[
-            ft.Text(
-                "Cases",
-                size=24,
-                color=CYAN,
-                weight=ft.FontWeight.BOLD,
-            ),
-            ft.Text(
-                "Investigation case management.",
-                color=ft.Colors.WHITE70,
-                size=14,
-            ),
-            ft.Row(
-                controls=[new_case_field, create_btn, refresh_btn],
-                spacing=12,
-            ),
-            ft.Container(
-                content=table,
-                padding=ft.Padding(top=12, bottom=12),
-                expand=True,
-            ),
-        ],
-        spacing=12,
-        expand=True,
-    )
+    def _build_list_content() -> ft.Control:
+        """Build the list view content (table + input)."""
+        return ft.Column(
+            controls=[
+                ft.Text(
+                    "Cases",
+                    size=24,
+                    color=CYAN,
+                    weight=ft.FontWeight.BOLD,
+                ),
+                ft.Text(
+                    "Investigation case management.",
+                    color=ft.Colors.WHITE70,
+                    size=14,
+                ),
+                ft.Row(
+                    controls=[new_case_field, create_btn, refresh_btn],
+                    spacing=12,
+                ),
+                ft.Container(
+                    content=table,
+                    padding=ft.Padding(top=12, bottom=12),
+                    expand=True,
+                ),
+            ],
+            spacing=12,
+            expand=True,
+        )
+
+    # Set initial content to list view
+    content_container.content = _build_list_content()
+
+    return content_container
 
 
 # Class alias for import compatibility

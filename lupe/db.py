@@ -539,6 +539,30 @@ class Database:
                 }
             )
 
+        # Analyses for IOCs linked to this case
+        cur = self._conn.execute(
+            """
+            SELECT a.model, a.summary, a.analyzed_at, i.value AS ioc_value
+            FROM analyses a
+            JOIN iocs i ON i.id = a.ioc_id
+            JOIN case_iocs ci ON ci.ioc_id = a.ioc_id
+            WHERE ci.case_id = ?
+            """,
+            (case_id,),
+        )
+        for row in cur.fetchall():
+            events.append(
+                {
+                    "event_type": "analysis",
+                    "timestamp": row["analyzed_at"],
+                    "description": f"AI analysis by {row['model']}",
+                    "model": row["model"],
+                    "summary": row["summary"],
+                    "ioc_value": row["ioc_value"],
+                    "detail": row["summary"],
+                }
+            )
+
         # Case notes
         for note in self.get_case_notes(case_id):
             events.append(

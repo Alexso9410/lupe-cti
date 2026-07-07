@@ -36,7 +36,12 @@ def get_provider(name: str, settings: Settings) -> LLMProvider:
 
     cls = _PROVIDERS.get(name)
     if cls is None:
-        logger.warning("Unknown LLM provider %r — falling back to NullProvider", name)
+        valid = ", ".join(sorted(_PROVIDERS)) or "none registered"
+        logger.warning(
+            "Unknown LLM provider %r (valid: %s) — falling back to NullProvider",
+            name,
+            valid,
+        )
         return NullProvider()
 
     try:
