@@ -204,14 +204,7 @@ def build_case_history(case_id: int) -> CaseHistory:
             continue
         ioc_value = event.get("ioc_value", "")
         if not ioc_value:
-            # ioc_added events embed the value in description
-            desc = event.get("description", "")
-            if "IOC added:" in desc:
-                # Extract value from "IOC added: [type] value"
-                parts = desc.split("] ", 1)
-                ioc_value = parts[1] if len(parts) > 1 else desc
-            else:
-                continue
+            continue
 
         if ioc_value not in ioc_groups:
             # Find the IOC record

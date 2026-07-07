@@ -8,6 +8,19 @@ from pathlib import Path
 from docx import Document
 
 
+def _add_ioc_added_section(doc: Document, events: list[dict]) -> None:
+    """Add IOC addition event details."""
+    additions = [e for e in events if e.get("event_type") == "ioc_added"]
+    for event in additions:
+        ioc_type = event.get("ioc_type", "unknown")
+        ts = event.get("timestamp", "")
+        notes = event.get("detail", "")
+        text = f"[{ts}] IOC added — Type: {ioc_type}"
+        if notes:
+            text += f" — Notes: {notes}"
+        doc.add_paragraph(text)
+
+
 def _add_enrichment_table(doc: Document, events: list[dict]) -> None:
     """Add a formatted table of enrichment results."""
     enrichments = [e for e in events if e.get("event_type") == "enrichment"]
@@ -98,6 +111,9 @@ def export_case_to_docx(history: dict, output_path: Path) -> Path:
         doc.add_heading(
             f"[{ioc.get('type', 'unknown')}] {ioc.get('value', 'N/A')}", level=2
         )
+
+        # IOC addition info
+        _add_ioc_added_section(doc, events)
 
         # Enrichment table
         _add_enrichment_table(doc, events)

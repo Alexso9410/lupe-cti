@@ -92,22 +92,28 @@ def build_case_detail_data(case_id: int) -> dict[str, Any] | None:
     }
 
 
-def _resolve_export_path(case_name: str, ext: str) -> Path:
+def _resolve_export_path(base_name: str, ext: str, default: str = "case") -> Path:
     """Resolve a default export path in the user's Downloads folder.
 
     Args:
-        case_name: Case name for filename sanitization.
+        base_name: Case name or IOC value for filename sanitization.
         ext: File extension (e.g. '.txt', '.docx').
+        default: Fallback name when base_name produces empty string.
 
     Returns:
         Path to the export file.
     """
-    safe_name = "".join(c if c.isalnum() or c in "-_ " else "_" for c in case_name)
-    safe_name = safe_name.strip() or "case"
+    safe_name = "".join(
+        c if c.isalnum() or c in "-_ ." else "_" for c in base_name
+    )
+    safe_name = safe_name.strip() or default
     filename = f"{safe_name}_report{ext}"
 
-    # Try Downloads folder, fall back to cwd
-    downloads = Path.home() / "Downloads"
+    # Try Downloads folder, fall back to temp
+    try:
+        downloads = Path.home() / "Downloads"
+    except RuntimeError:
+        downloads = Path.cwd()
     if not downloads.exists():
         downloads = Path.cwd()
     return downloads / filename
@@ -180,12 +186,7 @@ def export_ioc_txt_to_file(case_id: int, ioc_value: str) -> Path | None:
         return None
 
     txt_content = export_ioc_to_txt(ioc_group, history["case"])
-    safe_val = "".join(c if c.isalnum() or c in "-_." else "_" for c in ioc_value)
-    filename = f"{safe_val}_report.txt"
-    downloads = Path.home() / "Downloads"
-    if not downloads.exists():
-        downloads = Path.cwd()
-    out_path = downloads / filename
+    out_path = _resolve_export_path(ioc_value, ".txt", default="ioc")
     out_path.write_text(txt_content, encoding="utf-8")
     return out_path
 
@@ -215,12 +216,7 @@ def export_ioc_docx_to_file(case_id: int, ioc_value: str) -> Path | None:
     if ioc_group is None:
         return None
 
-    safe_val = "".join(c if c.isalnum() or c in "-_." else "_" for c in ioc_value)
-    filename = f"{safe_val}_report.docx"
-    downloads = Path.home() / "Downloads"
-    if not downloads.exists():
-        downloads = Path.cwd()
-    out_path = downloads / filename
+    out_path = _resolve_export_path(ioc_value, ".docx", default="ioc")
     export_ioc_to_docx(ioc_group, history["case"], out_path)
     return out_path
 

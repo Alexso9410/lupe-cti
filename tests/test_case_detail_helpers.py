@@ -300,7 +300,7 @@ class TestExportCaseToFile:
         case_module._get_db = lambda: db
         monkeypatch.setattr(
             "lupe.flet.views.case_detail._resolve_export_path",
-            lambda name, ext: tmp_path / f"{name}{ext}",
+            lambda name, ext, default="case": tmp_path / f"{name}{ext}",
         )
         try:
             result = export_case_txt_to_file(case_id)
@@ -324,7 +324,7 @@ class TestExportCaseToFile:
         case_module._get_db = lambda: db
         monkeypatch.setattr(
             "lupe.flet.views.case_detail._resolve_export_path",
-            lambda name, ext: tmp_path / f"{name}{ext}",
+            lambda name, ext, default="case": tmp_path / f"{name}{ext}",
         )
         try:
             result = export_case_docx_to_file(case_id)
@@ -362,7 +362,7 @@ class TestExportCaseToFile:
         case_module._get_db = lambda: db
         monkeypatch.setattr(
             "lupe.flet.views.case_detail._resolve_export_path",
-            lambda name, ext: tmp_path / f"{name}{ext}",
+            lambda name, ext, default="case": tmp_path / f"{name}{ext}",
         )
         try:
             result = export_ioc_txt_to_file(case_id, "evil.com")

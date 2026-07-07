@@ -100,6 +100,13 @@ class GeminiProvider(LLMProvider):
                 async with client.stream(
                     "POST", url, json=payload, headers=headers, timeout=120.0
                 ) as resp:
+                    if resp.status_code != 200:
+                        logger.warning(
+                            "Gemini stream returned %d: %s",
+                            resp.status_code,
+                            (await resp.aread()).decode(errors="replace")[:500],
+                        )
+                        return
                     async for line in resp.aiter_lines():
                         if not line.startswith("data: "):
                             continue

@@ -63,7 +63,11 @@ def export_case_to_txt(history: dict) -> str:
 
         for event in events:
             ev_type = event.get("event_type", "")
-            if ev_type == "enrichment":
+            if ev_type == "ioc_added":
+                lines.append(f"  [{event.get('timestamp', '')}] IOC ADDED")
+                lines.append(f"    Type: {event.get('ioc_type', 'unknown')}")
+                lines.append("")
+            elif ev_type == "enrichment":
                 ts = event.get("timestamp", "")
                 src = event.get("source", "")
                 lines.append(f"  [{ts}] ENRICHMENT — {src}")

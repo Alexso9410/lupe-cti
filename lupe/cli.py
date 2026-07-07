@@ -878,23 +878,16 @@ def case_export(
     """Export a case report to TXT or DOCX format."""
     from lupe.case import build_case_history
 
+    # Build history (handles not-found internally)
     try:
-        db = _get_db()
-        case = db.get_case(case_id)
-        if case is None:
+        history = build_case_history(case_id)
+        if not history.get("case"):
             err_console.print(
                 f"[bold red]Error:[/bold red] Case [yellow]{case_id}[/yellow] not found."
             )
             raise typer.Exit(code=1)
     except typer.Exit:
         raise
-    except Exception as exc:  # noqa: BLE001
-        err_console.print(f"[bold red]DB error:[/bold red] {exc}")
-        raise typer.Exit(code=1)
-
-    # Build history
-    try:
-        history = build_case_history(case_id)
     except Exception as exc:  # noqa: BLE001
         err_console.print(f"[bold red]Error building history:[/bold red] {exc}")
         raise typer.Exit(code=1)
@@ -912,7 +905,7 @@ def case_export(
     # Determine output path
     if output is None:
         safe_name = "".join(
-            c if c.isalnum() or c in "-_ " else "_" for c in case["name"]
+            c if c.isalnum() or c in "-_ " else "_" for c in history["case"].get("name", "case")
         ).replace(" ", "_")[:40]
         suffix = ".txt" if format == "txt" else ".docx"
         output = Path(f"case_{case_id}_{safe_name}{suffix}")
@@ -1150,6 +1143,11 @@ def config_test() -> None:
         ("GreyNoise", settings.greynoise_key, "https://api.greynoise.io/v3/community/1.1.1.1"),
         ("IPQS", settings.ipqs_key, "https://www.ipqualityscore.com/api/json/ip"),
         ("Ollama", "configured", f"{settings.ollama_base_url.rstrip('/')}/api/tags"),
+        (
+            "Gemini",
+            settings.gemini_api_key,
+            "https://generativelanguage.googleapis.com/v1beta/models",
+        ),
     ]
 
     console.print("\n[bold]Lupe CTI[/bold] — API Connectivity Test\n")

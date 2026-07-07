@@ -92,7 +92,7 @@ class Settings(BaseSettings):
     db_path: str = ""  # Empty = use platformdirs default
 
     # LLM provider selection (empty = skip AI analysis)
-    llm_provider: str = ""  # "ollama", "openai", "anthropic", "openrouter"
+    llm_provider: str = ""  # "ollama", "openai", "anthropic", "openrouter", "gemini"
     openai_api_key: str | None = None
     anthropic_api_key: str | None = None
     openrouter_api_key: str | None = None

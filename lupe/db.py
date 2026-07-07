@@ -515,6 +515,8 @@ class Database:
                     "timestamp": row["added_at"],
                     "description": f"IOC added: [{row['type']}] {row['value']}",
                     "detail": row["link_notes"] or "",
+                    "ioc_value": row["value"],
+                    "ioc_type": row["type"],
                 }
             )
 
