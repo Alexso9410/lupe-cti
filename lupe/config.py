@@ -92,11 +92,15 @@ class Settings(BaseSettings):
     db_path: str = ""  # Empty = use platformdirs default
 
     # LLM provider selection (empty = skip AI analysis)
-    llm_provider: str = ""  # "ollama", "openai", "anthropic", "openrouter"
+    llm_provider: str = ""  # "ollama", "openai", "anthropic", "openrouter", "gemini"
     openai_api_key: str | None = None
     anthropic_api_key: str | None = None
     openrouter_api_key: str | None = None
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
+
+    # Gemini (Google AI Studio)
+    gemini_api_key: str | None = None
+    gemini_model: str = "gemini-2.5-flash"
 
     # CRITICAL #2 — PII redaction before sending data to any LLM provider.
     # Default ON. Set LUPE_LLM_REDACT_PII=false to disable (NOT recommended

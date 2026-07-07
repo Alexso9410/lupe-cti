@@ -515,6 +515,8 @@ class Database:
                     "timestamp": row["added_at"],
                     "description": f"IOC added: [{row['type']}] {row['value']}",
                     "detail": row["link_notes"] or "",
+                    "ioc_value": row["value"],
+                    "ioc_type": row["type"],
                 }
             )
 
@@ -536,6 +538,33 @@ class Database:
                     "timestamp": row["enriched_at"],
                     "description": f"[{row['source']}] {row['ioc_value']}: {row['summary']}",
                     "detail": row["severity"],
+                    "ioc_value": row["ioc_value"],
+                    "source": row["source"],
+                    "severity": row["severity"],
+                }
+            )
+
+        # Analyses for IOCs linked to this case
+        cur = self._conn.execute(
+            """
+            SELECT a.model, a.summary, a.analyzed_at, i.value AS ioc_value
+            FROM analyses a
+            JOIN iocs i ON i.id = a.ioc_id
+            JOIN case_iocs ci ON ci.ioc_id = a.ioc_id
+            WHERE ci.case_id = ?
+            """,
+            (case_id,),
+        )
+        for row in cur.fetchall():
+            events.append(
+                {
+                    "event_type": "analysis",
+                    "timestamp": row["analyzed_at"],
+                    "description": f"AI analysis by {row['model']}",
+                    "model": row["model"],
+                    "summary": row["summary"],
+                    "ioc_value": row["ioc_value"],
+                    "detail": row["summary"],
                 }
             )
 
