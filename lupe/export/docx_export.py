@@ -5,7 +5,19 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from pathlib import Path
 
-from docx import Document
+try:
+    from docx import Document
+except ImportError:
+    Document = None  # type: ignore[assignment]
+
+
+def _require_docx() -> None:
+    """Raise a friendly error if python-docx is not installed."""
+    if Document is None:
+        raise ImportError(
+            "python-docx is required for DOCX export. "
+            "Install with: pip install lupe-cti[docx]"
+        )
 
 
 def _add_ioc_added_section(doc: Document, events: list[dict]) -> None:
@@ -68,6 +80,7 @@ def export_case_to_docx(history: dict, output_path: Path) -> Path:
     Returns:
         Path to the written file.
     """
+    _require_docx()
     doc = Document()
     case = history.get("case", {})
     stats = history.get("stats", {})
@@ -138,6 +151,7 @@ def export_ioc_to_docx(
     Returns:
         Path to the written file.
     """
+    _require_docx()
     doc = Document()
     ioc = ioc_data.get("ioc", {})
     events = ioc_data.get("events", [])

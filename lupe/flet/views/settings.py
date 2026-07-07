@@ -208,7 +208,10 @@ def build_settings_view(page: ft.Page) -> ft.Control:
         ft.Text("MISP", size=16, color=CYAN, weight=ft.FontWeight.BOLD),
     ]
 
-    llm_keys = {"llm_provider", "ollama_url", "openai_key", "anthropic_key", "openrouter_key"}
+    llm_keys = {
+        "llm_provider", "ollama_url", "openai_key",
+        "anthropic_key", "openrouter_key", "gemini_key",
+    }
     misp_keys = {"misp_url", "misp_key", "censys_id", "censys_secret", "hybrid_analysis_key"}
 
     for key, label, is_password in FIELDS:
