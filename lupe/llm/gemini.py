@@ -59,16 +59,23 @@ class GeminiProvider(LLMProvider):
                 response = await client.post(
                     url, json=payload, headers=headers, timeout=120.0
                 )
-        except httpx.RequestError:
+        except httpx.RequestError as exc:
+            logger.warning("Gemini API request failed: %s", exc)
             return ""
 
         if response.status_code != 200:
+            logger.warning(
+                "Gemini API returned %d: %s",
+                response.status_code,
+                response.text[:500],
+            )
             return ""
 
         try:
             data: dict = response.json()
             return str(data["candidates"][0]["content"]["parts"][0]["text"])
-        except (KeyError, IndexError, ValueError):
+        except (KeyError, IndexError, ValueError) as exc:
+            logger.warning("Gemini API unexpected response structure: %s", exc)
             return ""
 
     # ------------------------------------------------------------------
@@ -104,7 +111,8 @@ class GeminiProvider(LLMProvider):
                                 yield text
                         except (json.JSONDecodeError, KeyError, IndexError, ValueError):
                             continue
-        except httpx.RequestError:
+        except httpx.RequestError as exc:
+            logger.warning("Gemini stream request failed: %s", exc)
             return
 
     # ------------------------------------------------------------------

@@ -911,7 +911,9 @@ def case_export(
 
     # Determine output path
     if output is None:
-        safe_name = case["name"].replace(" ", "_").replace("/", "_")[:40]
+        safe_name = "".join(
+            c if c.isalnum() or c in "-_ " else "_" for c in case["name"]
+        ).replace(" ", "_")[:40]
         suffix = ".txt" if format == "txt" else ".docx"
         output = Path(f"case_{case_id}_{safe_name}{suffix}")
 

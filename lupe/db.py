@@ -536,6 +536,9 @@ class Database:
                     "timestamp": row["enriched_at"],
                     "description": f"[{row['source']}] {row['ioc_value']}: {row['summary']}",
                     "detail": row["severity"],
+                    "ioc_value": row["ioc_value"],
+                    "source": row["source"],
+                    "severity": row["severity"],
                 }
             )
 
