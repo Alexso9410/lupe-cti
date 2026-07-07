@@ -149,6 +149,7 @@ def export_ioc_to_docx(
         f"[{ioc.get('type', 'unknown')}] {ioc.get('value', 'N/A')}", level=2
     )
 
+    _add_ioc_added_section(doc, events)
     _add_enrichment_table(doc, events)
     _add_analysis_section(doc, events)
 

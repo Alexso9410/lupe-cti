@@ -104,6 +104,7 @@ _KEY_FIELDS: list[tuple[str, str]] = [
 _PLAIN_FIELDS: list[tuple[str, str]] = [
     ("ollama_base_url", "LUPE_OLLAMA_BASE_URL"),
     ("ollama_model", "LUPE_OLLAMA_MODEL"),
+    ("gemini_model", "LUPE_GEMINI_MODEL"),
     ("db_path", "LUPE_DB_PATH"),
 ]
 

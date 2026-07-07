@@ -107,7 +107,13 @@ def export_ioc_to_txt(ioc_data: dict, case_info: dict | None = None) -> str:
 
     for event in events:
         ev_type = event.get("event_type", "")
-        if ev_type == "enrichment":
+        if ev_type == "ioc_added":
+            lines.append(
+                f"  [{event.get('timestamp', '')}] IOC ADDED "
+                f"— Type: {event.get('ioc_type', 'unknown')}"
+            )
+            lines.append("")
+        elif ev_type == "enrichment":
             lines.append(f"  [{event.get('timestamp', '')}] ENRICHMENT — {event.get('source', '')}")
             lines.append(f"    Severity: {event.get('detail', event.get('severity', ''))}")
             lines.append(f"    Summary:  {event.get('summary', event.get('description', ''))}")

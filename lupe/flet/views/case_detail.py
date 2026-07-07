@@ -312,6 +312,8 @@ def build_case_detail_view(
         try:
             case_id = case_info.get("id")
             if case_id is None:
+                if page:
+                    show_snackbar(page, "Export failed — missing case ID", ERROR_RED)
                 return
             result = export_case_txt_to_file(case_id)
             if result and page:
@@ -326,6 +328,8 @@ def build_case_detail_view(
         try:
             case_id = case_info.get("id")
             if case_id is None:
+                if page:
+                    show_snackbar(page, "Export failed — missing case ID", ERROR_RED)
                 return
             result = export_case_docx_to_file(case_id)
             if result and page:
@@ -423,6 +427,21 @@ def build_case_detail_view(
                         )
                     )
 
+                elif ev_type == "ioc_added":
+                    event_rows.append(
+                        ft.Container(
+                            content=ft.Row([
+                                ft.Icon(ft.Icons.ADD_CIRCLE, color=CYAN, size=16),
+                                ft.Text(
+                                    f"IOC added — {event.get('ioc_type', 'unknown')}",
+                                    color=ft.Colors.WHITE70, size=13,
+                                ),
+                                ft.Text(timestamp, color=ft.Colors.WHITE54, size=11),
+                            ], spacing=8),
+                            padding=ft.Padding.symmetric(vertical=2, horizontal=8),
+                        )
+                    )
+
                 elif ev_type == "note":
                     event_rows.append(
                         ft.Container(
@@ -441,10 +460,14 @@ def build_case_detail_view(
                     try:
                         cid = case_info.get("id")
                         if cid is None:
+                            if page:
+                                show_snackbar(page, "Export failed — missing case ID", ERROR_RED)
                             return
                         result = export_ioc_txt_to_file(cid, val)
                         if result and page:
                             show_snackbar(page, f"Exported: {result}")
+                        elif page:
+                            show_snackbar(page, "Export failed — IOC not found", ERROR_RED)
                     except Exception as exc:
                         if page:
                             show_snackbar(page, f"Export error: {exc}", ERROR_RED)
@@ -455,10 +478,14 @@ def build_case_detail_view(
                     try:
                         cid = case_info.get("id")
                         if cid is None:
+                            if page:
+                                show_snackbar(page, "Export failed — missing case ID", ERROR_RED)
                             return
                         result = export_ioc_docx_to_file(cid, val)
                         if result and page:
                             show_snackbar(page, f"Exported: {result}")
+                        elif page:
+                            show_snackbar(page, "Export failed — IOC not found", ERROR_RED)
                     except Exception as exc:
                         if page:
                             show_snackbar(page, f"Export error: {exc}", ERROR_RED)
