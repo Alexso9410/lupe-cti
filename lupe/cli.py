@@ -1119,6 +1119,11 @@ def config_test() -> None:
 
     settings = get_settings()
 
+    gemini_url = (
+        "https://generativelanguage.googleapis.com/v1beta/models"
+        f"?key={settings.gemini_api_key or ''}"
+    )
+
     checks: list[tuple[str, str | None, str]] = [
         ("AbuseIPDB", settings.abuseipdb_key, "https://api.abuseipdb.com/api/v2/check"),
         (
@@ -1143,11 +1148,7 @@ def config_test() -> None:
         ("GreyNoise", settings.greynoise_key, "https://api.greynoise.io/v3/community/1.1.1.1"),
         ("IPQS", settings.ipqs_key, "https://www.ipqualityscore.com/api/json/ip"),
         ("Ollama", "configured", f"{settings.ollama_base_url.rstrip('/')}/api/tags"),
-        (
-            "Gemini",
-            settings.gemini_api_key,
-            "https://generativelanguage.googleapis.com/v1beta/models",
-        ),
+        ("Gemini", settings.gemini_api_key, gemini_url),
     ]
 
     console.print("\n[bold]Lupe CTI[/bold] — API Connectivity Test\n")
@@ -1160,8 +1161,8 @@ def config_test() -> None:
         try:
             with _httpx.Client(timeout=8.0) as client:
                 resp = client.get(url)
-            # Most APIs return 200, 400, or 401 when reachable
-            reachable = resp.status_code < 500
+            # Treat 2xx as reachable; 4xx = auth/format issue, not genuine connectivity
+            reachable = 200 <= resp.status_code < 300
             status_code = resp.status_code
         except _httpx.ConnectError:
             reachable = False
